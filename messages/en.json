@@ -1,0 +1,49 @@
+{
+    "Navigation": {
+        "bestSellers": "Best Sellers",
+        "makeup": "Make-up",
+        "skincare": "Skincare",
+        "newArrivals": "New Arrivals"
+    },
+    "Hero": {
+        "headline": "Radiance of Seoul",
+        "subheadline": "Experience the luxury of Korean skincare, tailored for your unique glow.",
+        "shopNow": "Shop Now",
+        "becomeMember": "Become a Member",
+        "memberOffer": "Members get 10% off their first order"
+    },
+    "Register": {
+        "title": "Become a Member",
+        "subtitle": "Join Noor Seoul for exclusive benefits and faster checkout.",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "phone": "Phone Number",
+        "email": "Email Address",
+        "shippingAddress": "Shipping Address",
+        "city": "City",
+        "paymentInfo": "Payment Information (Secure Profile)",
+        "cardNumber": "Card Number",
+        "expiry": "MM / YY",
+        "cvc": "CVC",
+        "optIn": "Sign me up for new arrivals and exclusive offers",
+        "submit": "Join & Save",
+        "memberBenefit": "Save your details for one-click checkout."
+    },
+    "Common": {
+        "searchPlaceholder": "Search products..."
+    },
+    "Product": {
+        "addToCart": "Add to Cart",
+        "addedToCart": "Added to cart"
+    },
+    "Cart": {
+        "title": "Your Cart",
+        "subtotal": "Subtotal",
+        "checkout": "Checkout",
+        "continueShopping": "Continue Shopping",
+        "empty": "Your cart is empty",
+        "item": "item",
+        "items": "items",
+        "remove": "Remove"
+    }
+}

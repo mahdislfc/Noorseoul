@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Luxe Product Details | Radiance Gold Elixir</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ecb613",
+                        "background-light": "#f8f8f6",
+                        "background-dark": "#221d10",
+                        "luxe-nude": "#e5dacf",
+                        "luxe-dark": "#1b180d"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ecb61344;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-luxe-dark dark:text-background-light antialiased transition-colors duration-300">
+<!-- Navigation -->
+<header class="sticky top-0 z-50 w-full border-b border-luxe-nude/30 bg-background-light/80 backdrop-blur-md dark:bg-background-dark/80 dark:border-white/10 px-6 lg:px-20 py-4">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-3xl">star_rate</span>
+<h1 class="text-xl font-extrabold tracking-tighter uppercase">Luxe Dubai</h1>
+</div>
+<nav class="hidden md:flex items-center gap-8 text-sm font-semibold tracking-wide uppercase opacity-80">
+<a class="hover:text-primary transition-colors" href="#">Skincare</a>
+<a class="hover:text-primary transition-colors" href="#">Collections</a>
+<a class="hover:text-primary transition-colors" href="#">New Arrivals</a>
+<a class="hover:text-primary transition-colors" href="#">Our Story</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden sm:flex items-center bg-luxe-nude/20 dark:bg-white/5 rounded-full px-4 py-1.5 border border-luxe-nude/40">
+<span class="material-symbols-outlined text-xl opacity-60">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-32 lg:w-48 placeholder:text-luxe-dark/40 dark:placeholder:text-white/40" placeholder="Search..." type="text"/>
+</div>
+<button class="relative p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+<button class="relative p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">2</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-luxe-nude dark:bg-white/10 overflow-hidden">
+<img class="h-full w-full object-cover" data-alt="User profile placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgHH4jvEJv9gpTXzrtvOtFRf5odbh8rAP7R3iThx62dkTGwJ0U8uwDgLKqdbPnt0g5kEzZhiQrPXdfWl9xPj0nIpyNET_CdGZvXdFGIVBMb7onTH18Tq1RwtdplO_jDMqSQMtIgJtXhe-O9DmfxdHaYuu0Lb2R2m2xUAfIn-uWjgkf2KXPyHcySJ4JhlvvN5w3v1dgaRxYao5ijf3CPztErT3iigIWkZBiNT2gWhgKJoX0959xeHRr28SmWwub1NLq7BFWTYxXkJGQ"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 lg:px-20 py-10">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-50 mb-8">
+<a class="hover:text-primary transition-colors" href="#">Home</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Skincare</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-luxe-dark dark:text-white">Radiance Gold Elixir</span>
+</nav>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+<!-- Left Column: Gallery -->
+<div class="lg:col-span-7 space-y-4">
+<div class="relative group aspect-[4/5] w-full overflow-hidden rounded-xl bg-luxe-nude/10">
+<img class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Premium gold glass serum bottle with dropper" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6Skqj6R9g_Yd5gMztA47QOEih2SnfZG8iEOKZ_7F4Aq81W0OwIK_c9kPVNTafFCARoMsh-8rukNuQuKAaJmop19af5D5lu2xjzKvXImmDPXBKGvvroBFoCq2pBd0Vfz1fGNpiC87nP6hDWYqYs3s2zxFG9YpDaWCao_uAuBUqdehq1PE5WcQ8UUcFw0wx5HwIPxOesYUbnK-otbdkA8wTsx77x_aI9sKKxTc_9u1fjvIeoQN2VvLZgJob3PWjsxaU32MtqCSCufzg"/>
+<div class="absolute top-6 left-6 flex flex-col gap-2">
+<span class="bg-primary px-3 py-1 rounded-full text-[10px] font-bold text-white uppercase tracking-widest">New Arrival</span>
+</div>
+<button class="absolute bottom-6 right-6 h-12 w-12 flex items-center justify-center rounded-full bg-white/90 dark:bg-background-dark/90 backdrop-blur shadow-xl text-luxe-dark dark:text-white transition-transform hover:scale-110">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+</div>
+<!-- Thumbnails -->
+<div class="grid grid-cols-4 gap-4">
+<div class="aspect-square rounded-lg border-2 border-primary overflow-hidden cursor-pointer">
+<img class="h-full w-full object-cover" data-alt="Close up of serum dropper" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3p-9xkmf9o7B9mVCxtseVPIH10CHklIkpGLMdbVO6Y9CEAj3A_QkajrOjIzs-9guXQ6dXHf_MnZLlD8qnm8rMyEYf8Z9Nj1JgjJK9rSSsBnMZQmk56xzMV5vdZe7rFDjRXyR9OnitF8G_sgsutCV64hRjBihzUQvT8FKFbfV0_n5DPyGoCmT9Gntu4MbAY4ca21fFS6L8NpaL8fR5I7PPMFoFv9roBWU6Lww6Kj3jQ5KPjT0zMcWZO8qN3pCDLBtftCk0iYnR9wuY"/>
+</div>
+<div class="aspect-square rounded-lg border-2 border-transparent hover:border-primary/50 overflow-hidden cursor-pointer transition-colors">
+<img class="h-full w-full object-cover" data-alt="Gold serum liquid texture splash" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKozWBfvsua0XdehxNMguLyKXDphnbXq39blJPj7M55TbuAiuJJzoflwCYYT1shO3TFeN4mXSnJrCiEoyJn26xLDOQNQjT1nTjD0wjDkvzWqH4lWcOFdEIsNuqBlRwG4kx8GlhGZiy_PatqHrXLNV6fsVfxaoS3n0xhWK1Uj1zF5vQNLE_yPsZdkHf_USkUy9z9gpfksaDiEPy71-UBUzOuHsOMecR4Rso3UHw8M87rwEw1timNRtI3AXKSSDj6iSm6PiRfUXiCOq8"/>
+</div>
+<div class="aspect-square rounded-lg border-2 border-transparent hover:border-primary/50 overflow-hidden cursor-pointer transition-colors">
+<img class="h-full w-full object-cover" data-alt="Model applying serum to face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWL_rlRM47ZuC7mcI18JWj0Sf8sigg-z7r-vtBrVYne-YiJB5iTqihTrmFTdu_R7cqmGU6IqE13No2xFYe99sBsMnPSaq7h08HDmxJ0SO4hb-BJfb6Q8jZP3jUeYAh-bhfzUh0JL0uxGj-fuq5HQb1MpV4axFQCSeIILgcOhX4vD6F6Z_d_-9pfGKRtZcVXejVeIVBZEFvlCGGyBh3-KbJzKKDzGMRoG5xPLLa69n0u2BaNLU0Sy544LLWjugLtkU7qVDCSwEpfDhi"/>
+</div>
+<div class="aspect-square rounded-lg border-2 border-transparent hover:border-primary/50 overflow-hidden cursor-pointer transition-colors">
+<img class="h-full w-full object-cover" data-alt="Luxury bathroom shelf with serum" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB226MFJtj3myVIY2szqbPrHUhohacI5TRH8UasEjQW-FrPcokv_0-1MkNH5fzAz8kaC_IbOj_K-nJAPDsmWsJOkFOT8SmNF_igaT5KsEXo-BhYgqXpNRFuAhNkFOsudRmFlzIyeS5ENKVjHJi60ygnvz5YawwJ333_vf7ayqlH9SdlFYoSuDLJn1PZ4XAxkIFy6ac1SSm9Zxg9pjvrHkJy2FTVSQXxDdqwTlzCcvoAJVgRsXYgRTgktZba6Jcp5b7Xu4qxNN67i_Gw"/>
+</div>
+</div>
+</div>
+<!-- Right Column: Details -->
+<div class="lg:col-span-5 flex flex-col">
+<div class="mb-2 flex items-center justify-between">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star_half</span>
+<span class="ml-2 text-xs font-bold text-luxe-dark/60 dark:text-white/60 tracking-tight">4.9 (120 Reviews)</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold uppercase tracking-wider">
+<span class="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        In Stock
+                    </div>
+</div>
+<h2 class="text-4xl lg:text-5xl font-extrabold leading-tight mb-4 tracking-tight">Radiance Gold Elixir</h2>
+<div class="flex items-baseline gap-4 mb-8">
+<span class="text-3xl font-light text-primary">450 AED</span>
+<span class="text-lg opacity-40 line-through">580 AED</span>
+</div>
+<p class="text-luxe-dark/70 dark:text-white/70 leading-relaxed mb-8 text-lg">
+                    A celestial blend of pure 24K gold flakes and high-density hyaluronic acid designed to illuminate your complexion and provide age-defying hydration. Experience the essence of Dubai luxury.
+                </p>
+<!-- Best For & Specs -->
+<div class="grid grid-cols-2 gap-6 mb-10 py-6 border-y border-luxe-nude/40">
+<div class="space-y-1">
+<span class="text-[10px] uppercase font-bold tracking-widest opacity-50">Best For</span>
+<p class="font-semibold text-sm">All Skin Types</p>
+</div>
+<div class="space-y-1">
+<span class="text-[10px] uppercase font-bold tracking-widest opacity-50">Scent</span>
+<p class="font-semibold text-sm">Damask Rose &amp; Oud</p>
+</div>
+</div>
+<!-- CTA Section -->
+<div class="space-y-4 mb-12">
+<div class="flex gap-4">
+<div class="flex items-center border border-luxe-nude dark:border-white/20 rounded-lg px-2">
+<button class="p-2 hover:text-primary transition-colors"><span class="material-symbols-outlined">remove</span></button>
+<span class="w-10 text-center font-bold">1</span>
+<button class="p-2 hover:text-primary transition-colors"><span class="material-symbols-outlined">add</span></button>
+</div>
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-lg shadow-lg shadow-primary/20 transition-all uppercase tracking-widest text-sm">
+                            Add to Cart
+                        </button>
+</div>
+<button class="w-full bg-luxe-dark dark:bg-luxe-nude dark:text-luxe-dark text-white font-bold py-4 rounded-lg transition-all uppercase tracking-widest text-sm">
+                        Buy Now
+                    </button>
+</div>
+<!-- Accordions / Sections -->
+<div class="space-y-6">
+<details class="group border-b border-luxe-nude/40 pb-6" open="">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<h3 class="font-bold text-lg uppercase tracking-wider">Benefits</h3>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<ul class="mt-4 space-y-3 text-sm opacity-80 leading-relaxed">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+<span>Deep cellular hydration with triple-weight Hyaluronic Acid.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+<span>24K Gold particles stimulate collagen production and instant glow.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+<span>Reduces appearance of fine lines and uneven texture.</span>
+</li>
+</ul>
+</details>
+<details class="group border-b border-luxe-nude/40 pb-6">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<h3 class="font-bold text-lg uppercase tracking-wider">Key Ingredients</h3>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="mt-4 grid grid-cols-2 gap-4">
+<div class="p-3 bg-luxe-nude/20 dark:bg-white/5 rounded-lg">
+<p class="font-bold text-sm text-primary">24K Gold Flakes</p>
+<p class="text-xs opacity-70">Antioxidant &amp; Radiance</p>
+</div>
+<div class="p-3 bg-luxe-nude/20 dark:bg-white/5 rounded-lg">
+<p class="font-bold text-sm text-primary">Hyaluronic Acid</p>
+<p class="text-xs opacity-70">Moisture Magnet</p>
+</div>
+<div class="p-3 bg-luxe-nude/20 dark:bg-white/5 rounded-lg">
+<p class="font-bold text-sm text-primary">Pearl Extract</p>
+<p class="text-xs opacity-70">Smoothing &amp; Brightening</p>
+</div>
+<div class="p-3 bg-luxe-nude/20 dark:bg-white/5 rounded-lg">
+<p class="font-bold text-sm text-primary">Vitamin C</p>
+<p class="text-xs opacity-70">Dark Spot Correction</p>
+</div>
+</div>
+</details>
+<details class="group border-b border-luxe-nude/40 pb-6">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<h3 class="font-bold text-lg uppercase tracking-wider">How To Use</h3>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="mt-4 space-y-4">
+<div class="flex gap-4">
+<span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 text-primary font-bold text-xs">1</span>
+<p class="text-sm opacity-80">Apply 3-5 drops to cleansed, slightly damp skin every morning and evening.</p>
+</div>
+<div class="flex gap-4">
+<span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 text-primary font-bold text-xs">2</span>
+<p class="text-sm opacity-80">Gently press into face and neck until the gold flakes are fully absorbed.</p>
+</div>
+<div class="flex gap-4">
+<span class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary/20 text-primary font-bold text-xs">3</span>
+<p class="text-sm opacity-80">Follow with your favorite Luxe Dubai moisturizer for locked-in brilliance.</p>
+</div>
+</div>
+</details>
+</div>
+<!-- Trust Badges -->
+<div class="mt-12 flex flex-wrap items-center justify-between gap-6 opacity-60">
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-3xl text-primary">cruelty_free</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-center">Cruelty-Free</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-3xl text-primary">verified_user</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-center">Dermatologist Tested</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-3xl text-primary">eco</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-center">Halal Friendly</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Reviews Section Preview -->
+<section class="mt-24 pt-16 border-t border-luxe-nude/40">
+<div class="flex flex-col md:flex-row items-center justify-between mb-12 gap-8">
+<div>
+<h2 class="text-3xl font-extrabold mb-2 uppercase tracking-tight">Customer Experience</h2>
+<p class="opacity-60">Based on 120 authentic verified purchases</p>
+</div>
+<div class="flex items-center gap-8">
+<div class="text-center">
+<p class="text-5xl font-extrabold text-primary">4.9</p>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+</div>
+</div>
+<button class="bg-luxe-nude/40 dark:bg-white/10 px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+                        Write a Review
+                    </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-luxe-nude/10 dark:bg-white/5 p-8 rounded-xl space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-bold text-sm uppercase tracking-widest">Sarah M.</span>
+<span class="text-xs opacity-40 italic font-medium">Verified Buyer</span>
+</div>
+<div class="flex text-primary text-xs">
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+</div>
+<p class="text-sm italic opacity-80 leading-relaxed">"The glow is instant. I’ve used high-end serums before, but nothing compares to the luxury feel of the 24K flakes. Truly Dubai in a bottle!"</p>
+</div>
+<div class="bg-luxe-nude/10 dark:bg-white/5 p-8 rounded-xl space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-bold text-sm uppercase tracking-widest">Layla K.</span>
+<span class="text-xs opacity-40 italic font-medium">Verified Buyer</span>
+</div>
+<div class="flex text-primary text-xs">
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+</div>
+<p class="text-sm italic opacity-80 leading-relaxed">"Perfect for the desert climate. It's so hydrating without being greasy. My skin feels plump and looks illuminated even under makeup."</p>
+</div>
+<div class="bg-luxe-nude/10 dark:bg-white/5 p-8 rounded-xl space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-bold text-sm uppercase tracking-widest">Ameera R.</span>
+<span class="text-xs opacity-40 italic font-medium">Verified Buyer</span>
+</div>
+<div class="flex text-primary text-xs">
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star</span>
+<span class="material-symbols-outlined filled-icon">star_half</span>
+</div>
+<p class="text-sm italic opacity-80 leading-relaxed">"The scent is absolutely divine. It smells like a luxury spa. Only 4 stars because shipping took an extra day, but the product is 5/5."</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Simple -->
+<footer class="mt-24 border-t border-luxe-nude dark:border-white/10 py-12 bg-luxe-nude/10 dark:bg-background-dark">
+<div class="max-w-7xl mx-auto px-6 lg:px-20 grid grid-cols-1 md:grid-cols-4 gap-12">
+<div class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">star_rate</span>
+<h3 class="font-extrabold uppercase tracking-widest">Luxe Dubai</h3>
+</div>
+<p class="text-xs opacity-60 leading-relaxed">Elevating beauty to art. Born in the heart of Dubai, crafted for the global elite. Premium skincare inspired by royal heritage.</p>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-xs uppercase tracking-widest">Shop</h4>
+<ul class="text-sm space-y-2 opacity-60">
+<li><a class="hover:text-primary transition-colors" href="#">Best Sellers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Gift Sets</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Sun Protection</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-xs uppercase tracking-widest">Support</h4>
+<ul class="text-sm space-y-2 opacity-60">
+<li><a class="hover:text-primary transition-colors" href="#">Shipping Policy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Returns &amp; Refunds</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contact Us</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-xs uppercase tracking-widest">Newsletter</h4>
+<div class="flex border-b border-luxe-nude dark:border-white/20 pb-2">
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full p-0" placeholder="Email address" type="email"/>
+<button class="material-symbols-outlined text-primary">arrow_forward</button>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-6 lg:px-20 mt-12 pt-8 border-t border-luxe-nude/20 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 opacity-40 text-[10px] font-bold uppercase tracking-[0.2em]">
+<p>© 2024 Luxe Dubai Beauty. All Rights Reserved.</p>
+<div class="flex gap-8">
+<a href="#">Privacy</a>
+<a href="#">Terms</a>
+<a href="#">Accessibility</a>
+</div>
+</div>
+</footer>
+</body></html>

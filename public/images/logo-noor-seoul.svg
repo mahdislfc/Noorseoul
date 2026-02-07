@@ -1,0 +1,31 @@
+<svg width="300" height="80" viewBox="0 0 300 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C5A059;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#E6C76C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C5A059;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Golden Wind/Dust Effect replacing/accenting the first stroke of N -->
+  <path d="M15 65 Q 5 45 25 15" stroke="url(#goldGradient)" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#glow)" />
+  <path d="M12 70 Q 0 40 28 10" stroke="url(#goldGradient)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-dasharray="2 4" opacity="0.8" />
+  
+  <!-- Glitter particles -->
+  <circle cx="15" cy="65" r="1" fill="#E6C76C" />
+  <circle cx="20" cy="55" r="1.5" fill="#C5A059" />
+  <circle cx="10" cy="45" r="1" fill="#E6C76C" />
+  <circle cx="25" cy="25" r="1.5" fill="#C5A059" />
+  <circle cx="28" cy="15" r="1" fill="#E6C76C" />
+
+  <!-- Text -->
+  <!-- N is constructed manually-ish or we allow the text to overlap the gold -->
+  <text x="10" y="65" fill="#000000" font-family="serif" font-size="52" font-weight="bold" letter-spacing="1">Noor Seoul</text>
+</svg>

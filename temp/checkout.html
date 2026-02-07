@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Secure Luxury Checkout | LUXE BEAUTY DUBAI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ecb613",
+                        "background-light": "#fcfbf8",
+                        "background-dark": "#221d10",
+                        "border-gold": "#e7e1cf",
+                        "text-gold": "#9a864c"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .step-active {
+            border-left: 2px solid #ecb613;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1b180d] dark:text-[#fcfbf8]">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-gold dark:border-white/10 px-6 md:px-20 lg:px-40 py-4 bg-background-light dark:bg-background-dark">
+<div class="flex items-center gap-4 text-[#1b180d] dark:text-white">
+<div class="size-6 text-primary">
+<span class="material-symbols-outlined text-3xl">diamond</span>
+</div>
+<h2 class="text-lg font-extrabold leading-tight tracking-[0.1em] uppercase">Luxe Beauty Dubai</h2>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-text-gold">lock</span>
+<span class="text-sm font-medium uppercase tracking-widest text-text-gold hidden md:block">Secure Checkout</span>
+</div>
+</header>
+<main class="flex-1 px-6 md:px-20 lg:px-40 py-10">
+<div class="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Left Column: Checkout Steps -->
+<div class="lg:col-span-7 flex flex-col gap-8">
+<div class="flex flex-col gap-2">
+<h1 class="text-3xl font-bold tracking-tight">Checkout</h1>
+<nav class="flex items-center gap-2 text-sm font-medium text-text-gold uppercase tracking-wider">
+<span>Bag</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-[#1b180d] dark:text-white">Details</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span>Confirmation</span>
+</nav>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Step 1: Information -->
+<details class="group bg-white dark:bg-white/5 rounded-xl border border-border-gold dark:border-white/10 overflow-hidden" open="">
+<summary class="flex cursor-pointer items-center justify-between p-6 list-none">
+<div class="flex items-center gap-4">
+<span class="flex size-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold">1</span>
+<h3 class="text-lg font-semibold">Information</h3>
+</div>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="p-6 pt-0 border-t border-border-gold/50 dark:border-white/5">
+<p class="text-text-gold text-sm mb-6 font-medium">Continue as a guest or sign in for a faster experience.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-[#1b180d] dark:text-white">Email Address</label>
+<input class="h-12 w-full rounded-lg border border-border-gold dark:border-white/10 bg-transparent px-4 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="email@example.com" type="email"/>
+</div>
+<div class="flex items-end">
+<button class="h-12 w-full border border-primary text-primary hover:bg-primary hover:text-white font-bold rounded-lg transition-colors duration-300">Sign In</button>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<input class="rounded text-primary focus:ring-primary border-border-gold" id="newsletter" type="checkbox"/>
+<label class="text-sm text-text-gold font-medium" for="newsletter">Keep me updated on exclusive luxury launches</label>
+</div>
+</div>
+</details>
+<!-- Step 2: Shipping -->
+<details class="group bg-white dark:bg-white/5 rounded-xl border border-border-gold dark:border-white/10 overflow-hidden">
+<summary class="flex cursor-pointer items-center justify-between p-6 list-none">
+<div class="flex items-center gap-4">
+<span class="flex size-8 items-center justify-center rounded-full bg-background-light dark:bg-white/10 text-text-gold text-sm font-bold">2</span>
+<h3 class="text-lg font-semibold text-text-gold">Shipping</h3>
+</div>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-text-gold">expand_more</span>
+</summary>
+<div class="p-6 pt-0 border-t border-border-gold/50 dark:border-white/5">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-[#1b180d] dark:text-white">First Name</label>
+<input class="h-12 rounded-lg border border-border-gold dark:border-white/10 bg-transparent px-4 outline-none" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-[#1b180d] dark:text-white">Last Name</label>
+<input class="h-12 rounded-lg border border-border-gold dark:border-white/10 bg-transparent px-4 outline-none" type="text"/>
+</div>
+<div class="flex flex-col gap-2 md:col-span-2">
+<label class="text-xs font-bold uppercase tracking-widest text-[#1b180d] dark:text-white">Emirate</label>
+<select class="h-12 rounded-lg border border-border-gold dark:border-white/10 bg-transparent px-4 outline-none">
+<option>Dubai</option>
+<option>Abu Dhabi</option>
+<option>Sharjah</option>
+<option>Ajman</option>
+<option>Umm Al Quwain</option>
+<option>Ras Al Khaimah</option>
+<option>Fujairah</option>
+</select>
+</div>
+<div class="flex flex-col gap-2 md:col-span-2">
+<label class="text-xs font-bold uppercase tracking-widest text-[#1b180d] dark:text-white">Street Address &amp; Villa / Apartment</label>
+<input class="h-12 rounded-lg border border-border-gold dark:border-white/10 bg-transparent px-4 outline-none" placeholder="Palm Jumeirah, Frond D" type="text"/>
+</div>
+</div>
+</div>
+</details>
+<!-- Step 3: Payment -->
+<details class="group bg-white dark:bg-white/5 rounded-xl border border-border-gold dark:border-white/10 overflow-hidden">
+<summary class="flex cursor-pointer items-center justify-between p-6 list-none">
+<div class="flex items-center gap-4">
+<span class="flex size-8 items-center justify-center rounded-full bg-background-light dark:bg-white/10 text-text-gold text-sm font-bold">3</span>
+<h3 class="text-lg font-semibold text-text-gold">Payment</h3>
+</div>
+<span class="material-symbols-outlined group-open:rotate-180 transition-transform text-text-gold">expand_more</span>
+</summary>
+<div class="p-6 pt-0 border-t border-border-gold/50 dark:border-white/5">
+<div class="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-start gap-4">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<div>
+<p class="text-sm font-bold text-[#1b180d] dark:text-white uppercase tracking-wider">Encrypted &amp; Secure</p>
+<p class="text-xs text-text-gold">Your payment details are protected by 256-bit SSL encryption. We do not store your card information.</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-[#1b180d] dark:text-white">Card Number</label>
+<div class="relative">
+<input class="h-12 w-full rounded-lg border border-border-gold dark:border-white/10 bg-transparent px-4 pr-24 outline-none" placeholder="0000 0000 0000 0000" type="text"/>
+<div class="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1">
+<div class="w-8 h-5 bg-gray-200 rounded-sm"></div>
+<div class="w-8 h-5 bg-gray-200 rounded-sm"></div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-[#1b180d] dark:text-white">Expiry Date</label>
+<input class="h-12 rounded-lg border border-border-gold dark:border-white/10 bg-transparent px-4 outline-none" placeholder="MM / YY" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-[#1b180d] dark:text-white">Security Code</label>
+<input class="h-12 rounded-lg border border-border-gold dark:border-white/10 bg-transparent px-4 outline-none" placeholder="CVV" type="text"/>
+</div>
+</div>
+</div>
+</div>
+</details>
+</div>
+<!-- Footer Help -->
+<div class="flex justify-center py-6 border-t border-border-gold/30">
+<a class="flex items-center gap-2 text-text-gold hover:text-primary transition-colors font-medium text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+                            Need Help? Chat with a Specialist
+                        </a>
+</div>
+</div>
+<!-- Right Column: Order Summary -->
+<div class="lg:col-span-5">
+<div class="sticky top-10 bg-white dark:bg-white/5 rounded-2xl border border-border-gold dark:border-white/10 p-8 flex flex-col gap-6 shadow-sm">
+<h2 class="text-xl font-bold border-b border-border-gold/30 pb-4 tracking-tight">Order Summary</h2>
+<!-- Item List -->
+<div class="flex flex-col gap-6">
+<div class="flex gap-4">
+<div class="size-20 rounded-lg bg-background-light dark:bg-white/10 overflow-hidden flex-shrink-0 border border-border-gold/20">
+<img alt="Luxury Perfume Bottle" class="w-full h-full object-cover" data-alt="Exquisite gold-accented luxury perfume bottle on beige background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2xZ3UJGlxKXf1wFETqDdLIYksd8vc2xY8ie7_n-Aouxqrqwr9p4bi4DQbOTln40DshHbastl4y1AxDn8p0DWX47h0pUql380qnp8vppRli6ZsTUQ5k8vRFGU7vezbqIfqIrQeyhrssKoQDdfBiQm8T7Kli35EtoPBB2lmBk0gk8gTl3DUTORjyBv2w78o4fpurl-8LDIVlKYzb4hS5ZZq5AFxnCnTnpUtSDhwcpJ01QDkVFtB9v3JFze-yFwheco6HE7xphZKRoKB"/>
+</div>
+<div class="flex flex-col justify-center gap-1">
+<h4 class="font-bold text-sm tracking-wide">Oud Al Sultan - Eau de Parfum</h4>
+<p class="text-xs text-text-gold uppercase tracking-widest">100ml / Collector's Edition</p>
+<p class="text-sm font-bold text-primary mt-1">1,250.00 AED</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-20 rounded-lg bg-background-light dark:bg-white/10 overflow-hidden flex-shrink-0 border border-border-gold/20">
+<img alt="Luxury Skincare" class="w-full h-full object-cover" data-alt="Premium glass skin serum bottle with gold dropper" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsl0Hsn_MUyqAL4UZ3zjjp7jjCYiU_0MUd6HNOixVh7B39ljPI8ca7Wi05nPo7i6shmtcwejSyTnl59EHuvTwMVXQfTrxZEUzmYgqajCAF2MiiaLp-m5b3DhHxLKJkruCt83e3Zixk6SMFMyAjEzcXFxRQFV67GJAG0A10l2S0qq9LHgPw-GUuGnm84-Br8GyHru7A4yWsX6ekGLGG3uOIVPt4MiMJwZ_S1C80twpl0UUCQYW1fus_eiazC0hUZcMxjKATtfwJ__tX"/>
+</div>
+<div class="flex flex-col justify-center gap-1">
+<h4 class="font-bold text-sm tracking-wide">24K Gold Rejuvenating Serum</h4>
+<p class="text-xs text-text-gold uppercase tracking-widest">30ml / Hydration Line</p>
+<p class="text-sm font-bold text-primary mt-1">850.00 AED</p>
+</div>
+</div>
+</div>
+<!-- Pricing Table -->
+<div class="flex flex-col gap-3 py-6 border-y border-border-gold/30 text-sm">
+<div class="flex justify-between">
+<span class="text-text-gold">Subtotal</span>
+<span class="font-bold">2,100.00 AED</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-gold">White-Glove Delivery (Dubai)</span>
+<span class="text-primary font-bold uppercase tracking-tighter">Complimentary</span>
+</div>
+<div class="flex justify-between">
+<span class="text-text-gold">VAT (5%)</span>
+<span class="font-bold">105.00 AED</span>
+</div>
+</div>
+<!-- Total -->
+<div class="flex justify-between items-center py-2">
+<span class="text-lg font-bold">Total</span>
+<span class="text-2xl font-black text-primary">2,205.00 AED</span>
+</div>
+<!-- Place Order Button -->
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-extrabold py-5 rounded-xl uppercase tracking-[0.2em] transition-all transform hover:scale-[1.01] shadow-lg shadow-primary/20">
+                            Complete Purchase
+                        </button>
+<!-- Trust Badges Summary -->
+<div class="flex justify-center gap-6 mt-2 opacity-50 grayscale hover:grayscale-0 transition-all">
+<span class="material-symbols-outlined text-2xl">credit_card</span>
+<span class="material-symbols-outlined text-2xl">lock</span>
+<span class="material-symbols-outlined text-2xl">shield</span>
+<span class="material-symbols-outlined text-2xl">encrypted</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="py-10 text-center border-t border-border-gold/20">
+<p class="text-xs text-text-gold uppercase tracking-[0.3em] font-medium">© 2024 LUXE BEAUTY DUBAI. ALL RIGHTS RESERVED.</p>
+</footer>
+</div>
+</body></html>
