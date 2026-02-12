@@ -7,11 +7,13 @@ import { useCart } from "@/context/CartContext"
 import { Minus, Plus } from "lucide-react"
 import { toast } from "sonner"
 import { Product } from "@/lib/data"
+import { ProductQuickView } from "./ProductQuickView"
 
 export function ProductCard({ product }: { product: Product }) {
     const t = useTranslations('Product');
-    const { addToCart } = useCart()
+    const { addToCart, setIsOpen } = useCart()
     const [quantity, setQuantity] = useState(1)
+    const [showQuickView, setShowQuickView] = useState(false)
 
     const handleAddToCart = () => {
         addToCart({
@@ -25,7 +27,7 @@ export function ProductCard({ product }: { product: Product }) {
             description: `${product.name} (x${quantity})`,
             action: {
                 label: 'View Cart',
-                onClick: () => document.dispatchEvent(new CustomEvent('open-cart'))
+                onClick: () => setIsOpen(true)
             }
         })
         setQuantity(1)
@@ -39,8 +41,9 @@ export function ProductCard({ product }: { product: Product }) {
             <div className="relative overflow-hidden rounded-lg aspect-[4/5] bg-secondary/20 mb-4">
                 {/* Fallback image logic if image missing */}
                 <div
-                    className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700 cursor-pointer"
                     style={{ backgroundImage: `url('${product.image.startsWith('http') ? product.image : 'https://placehold.co/400x500/e3d5c5/1a1a1a?text=' + product.name.split(' ').join('+')}')` }}
+                    onClick={() => setShowQuickView(true)}
                 />
                 <Button
                     variant="default"
@@ -86,6 +89,11 @@ export function ProductCard({ product }: { product: Product }) {
                     </button>
                 </div>
             </div>
+            <ProductQuickView
+                product={product}
+                open={showQuickView}
+                onOpenChange={setShowQuickView}
+            />
         </div>
     )
 }
