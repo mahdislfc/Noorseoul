@@ -3,25 +3,74 @@
 
 import { useState } from "react"
 import { Footer } from "@/components/layout/Footer"
-import { CheckoutForm } from "@/components/checkout/CheckoutForm"
-import { useTranslations } from 'next-intl';
 import { useCart } from "@/context/CartContext"
-import { ChevronRight, CreditCard, Lock, ShieldCheck, Shield } from "lucide-react"
+import { ChevronRight, CreditCard, Lock, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 import { useLocale } from 'next-intl';
 
 export default function CheckoutPage() {
-    const t = useTranslations('Checkout');
     const locale = useLocale();
     const isRtl = locale === 'ar';
-    const { items, totalPrice } = useCart()
+    const { items, totalPrice, clearCart } = useCart()
     const [activeStep, setActiveStep] = useState(1)
+    const [email, setEmail] = useState("")
+    const [firstName, setFirstName] = useState("")
+    const [lastName, setLastName] = useState("")
+    const [city, setCity] = useState("Seoul")
+    const [placingOrder, setPlacingOrder] = useState(false)
+    const [checkoutError, setCheckoutError] = useState("")
+    const [successOrderNumber, setSuccessOrderNumber] = useState("")
 
     const shippingCost = 0 // Complimentary
     const vat = totalPrice * 0.05
     const finalTotal = totalPrice + shippingCost + vat
+
+    const handleCompletePurchase = async () => {
+        setCheckoutError("")
+        setSuccessOrderNumber("")
+
+        if (!email.trim() || !firstName.trim() || !lastName.trim() || !city.trim()) {
+            setCheckoutError("Please complete your contact and shipping details.")
+            return
+        }
+
+        if (items.length === 0) {
+            setCheckoutError("Your bag is empty.")
+            return
+        }
+
+        setPlacingOrder(true)
+        try {
+            const res = await fetch("/api/orders", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email,
+                    firstName,
+                    lastName,
+                    city,
+                    currency: "AED",
+                    items,
+                }),
+            })
+
+            const data = await res.json().catch(() => null)
+            if (!res.ok) {
+                throw new Error(data?.error || "Failed to place order")
+            }
+
+            setSuccessOrderNumber(data?.order?.orderNumber || "")
+            clearCart()
+        } catch (error) {
+            setCheckoutError(error instanceof Error ? error.message : "Failed to place order")
+        } finally {
+            setPlacingOrder(false)
+        }
+    }
 
     return (
         <div className="min-h-screen flex flex-col font-sans bg-background">
@@ -56,9 +105,15 @@ export default function CheckoutPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="flex flex-col gap-2">
                                                 <label className="text-xs font-bold uppercase tracking-widest text-foreground">Email Address</label>
-                                                <input type="email" placeholder="email@example.com" className="h-12 w-full rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none" />
+                                                <input
+                                                    type="email"
+                                                    placeholder="email@example.com"
+                                                    value={email}
+                                                    onChange={(event) => setEmail(event.target.value)}
+                                                    className="h-12 w-full rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
+                                                />
                                             </div>
-                                            <Button className="h-12 mt-auto" onClick={() => setActiveStep(2)}>Continue to Shipping</Button>
+                                            <Button type="button" className="h-12 mt-auto" onClick={() => setActiveStep(2)}>Continue to Shipping</Button>
                                         </div>
                                     </div>
                                 )}
@@ -80,21 +135,35 @@ export default function CheckoutPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="flex flex-col gap-2">
                                                 <label className="text-xs font-bold uppercase tracking-widest">First Name</label>
-                                                <input type="text" className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none" />
+                                                <input
+                                                    type="text"
+                                                    value={firstName}
+                                                    onChange={(event) => setFirstName(event.target.value)}
+                                                    className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none"
+                                                />
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <label className="text-xs font-bold uppercase tracking-widest">Last Name</label>
-                                                <input type="text" className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none" />
+                                                <input
+                                                    type="text"
+                                                    value={lastName}
+                                                    onChange={(event) => setLastName(event.target.value)}
+                                                    className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none"
+                                                />
                                             </div>
                                             <div className="flex flex-col gap-2 md:col-span-2">
                                                 <label className="text-xs font-bold uppercase tracking-widest">City</label>
-                                                <select className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none bg-background">
+                                                <select
+                                                    value={city}
+                                                    onChange={(event) => setCity(event.target.value)}
+                                                    className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none bg-background"
+                                                >
                                                     <option>Seoul</option>
                                                     <option>Busan</option>
                                                     <option>Incheon</option>
                                                 </select>
                                             </div>
-                                            <Button className="md:col-span-2 h-12" onClick={() => setActiveStep(3)}>Continue to Payment</Button>
+                                            <Button type="button" className="md:col-span-2 h-12" onClick={() => setActiveStep(3)}>Continue to Payment</Button>
                                         </div>
                                     </div>
                                 )}
@@ -186,7 +255,23 @@ export default function CheckoutPage() {
                                 <span className="text-2xl font-black text-primary">{finalTotal.toFixed(2)} AED</span>
                             </div>
 
-                            <Button className="w-full py-6 text-sm">Complete Purchase</Button>
+                            {checkoutError && (
+                                <p className="text-sm text-red-600">{checkoutError}</p>
+                            )}
+                            {successOrderNumber && (
+                                <p className="text-sm text-emerald-700">
+                                    Order placed successfully. Order number: {successOrderNumber}
+                                </p>
+                            )}
+
+                            <Button
+                                type="button"
+                                className="w-full py-6 text-sm"
+                                onClick={handleCompletePurchase}
+                                disabled={placingOrder || items.length === 0}
+                            >
+                                {placingOrder ? "Placing Order..." : "Complete Purchase"}
+                            </Button>
 
                             <div className="flex justify-center gap-6 mt-2 opacity-50 grayscale hover:grayscale-0 transition-all text-muted-foreground">
                                 <CreditCard className="w-6 h-6" />

@@ -4,11 +4,16 @@ import { randomUUID } from "crypto";
 import fs from "fs/promises";
 import { prisma } from "@/lib/prisma";
 import { getAdminSessionCookie, isAdminSessionValid } from "@/lib/admin-auth";
+import {
+  normalizeBrandInput,
+  normalizeCategoryInput,
+  normalizeDepartmentInput,
+} from "@/lib/product-taxonomy";
 
 export const runtime = "nodejs";
 
-function ensureAuthorized() {
-  const session = getAdminSessionCookie();
+async function ensureAuthorized() {
+  const session = await getAdminSessionCookie();
   if (!isAdminSessionValid(session)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -34,7 +39,7 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const authError = ensureAuthorized();
+  const authError = await ensureAuthorized();
   if (authError) return authError;
 
   const formData = await request.formData();
@@ -44,9 +49,11 @@ export async function PUT(
   const price = Number(formData.get("price") || 0);
   const originalPriceRaw = formData.get("originalPrice");
   const currency = String(formData.get("currency") || "USD").trim() || "USD";
-  const brand = String(formData.get("brand") || "").trim();
-  const category = String(formData.get("category") || "").trim();
-  const department = String(formData.get("department") || "").trim();
+  const brand = normalizeBrandInput(String(formData.get("brand") || ""));
+  const category = normalizeCategoryInput(String(formData.get("category") || ""));
+  const department = normalizeDepartmentInput(
+    String(formData.get("department") || "")
+  );
   const size = String(formData.get("size") || "").trim();
   const bestSeller = toBool(formData.get("bestSeller"));
   const newArrival = toBool(formData.get("newArrival"));
@@ -62,7 +69,7 @@ export async function PUT(
       ? Number(originalPriceRaw)
       : null;
 
-  const data: any = {
+  const data: Record<string, unknown> = {
     name,
     description: description || null,
     price,
@@ -96,7 +103,7 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const authError = ensureAuthorized();
+  const authError = await ensureAuthorized();
   if (authError) return authError;
 
   const existing = await prisma.product.findUnique({ where: { id: params.id } });

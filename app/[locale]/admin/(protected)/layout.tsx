@@ -18,7 +18,7 @@ export default async function AdminProtectedLayout({
     redirect(`/${locale}/admin/login`);
   }
 
-  const session = getAdminSessionCookie();
+  const session = await getAdminSessionCookie();
   if (!isAdminSessionValid(session)) {
     redirect(`/${locale}/admin/login`);
   }

@@ -2,6 +2,7 @@ import { getProducts } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "./ProductCard";
 import { getLocale } from "next-intl/server";
+import { categoriesMatch, departmentsMatch } from "@/lib/product-taxonomy";
 
 interface ProductGridProps {
     category?: string;
@@ -18,11 +19,11 @@ export async function ProductGrid({ category, department, newArrival, bestSeller
     const products: Product[] = await getProducts(locale);
 
     const filteredProducts = products.filter(product => {
-        if (category && product.category.toLowerCase() !== category.toLowerCase()) return false;
-        if (department && product.department.toLowerCase() !== department.toLowerCase()) return false;
+        if (category && !categoriesMatch(category, product.category)) return false;
+        if (department && !departmentsMatch(department, product.department)) return false;
         if (newArrival && !product.newArrival) return false;
         if (bestSeller && !product.bestSeller) return false;
-        if (brand && product.brand !== brand) return false;
+        if (brand && product.brand.toLowerCase() !== brand.toLowerCase()) return false;
         if (discounted && !product.originalPrice) return false;
         if (comingSoon && !product.comingSoon) return false;
         return true;

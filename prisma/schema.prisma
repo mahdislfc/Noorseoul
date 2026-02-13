@@ -25,3 +25,32 @@ model Product {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  customerEmail String
+  firstName     String
+  lastName      String
+  city          String
+  currency      String      @default("AED")
+  subtotal      Float
+  vat           Float
+  shipping      Float
+  total         Float
+  status        String      @default("PENDING")
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String?
+  name      String
+  price     Float
+  quantity  Int
+  image     String
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}

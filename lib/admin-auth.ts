@@ -23,8 +23,9 @@ export function getAdminSessionToken() {
   return createHmac("sha256", password).update(email).digest("hex");
 }
 
-export function getAdminSessionCookie() {
-  return cookies().get("admin_session")?.value || "";
+export async function getAdminSessionCookie() {
+  const cookieStore = await cookies();
+  return cookieStore.get("admin_session")?.value || "";
 }
 
 export function isAdminSessionValid(cookieValue?: string) {

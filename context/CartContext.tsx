@@ -14,6 +14,7 @@ interface CartContextType {
     items: CartItem[]
     addToCart: (item: CartItem) => void
     removeFromCart: (id: string) => void
+    clearCart: () => void
     totalItems: number
     totalPrice: number
     isOpen: boolean
@@ -23,20 +24,17 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-    const [items, setItems] = useState<CartItem[]>([])
-    const [isOpen, setIsOpen] = useState(false)
-
-    // Hydrate from local storage
-    useEffect(() => {
-        const saved = localStorage.getItem("cart")
-        if (saved) {
-            try {
-                setItems(JSON.parse(saved))
-            } catch (e) {
-                console.error("Failed to parse cart", e)
-            }
+    const [items, setItems] = useState<CartItem[]>(() => {
+        if (typeof window === "undefined") return []
+        try {
+            const saved = localStorage.getItem("cart")
+            return saved ? (JSON.parse(saved) as CartItem[]) : []
+        } catch (e) {
+            console.error("Failed to parse cart", e)
+            return []
         }
-    }, [])
+    })
+    const [isOpen, setIsOpen] = useState(false)
 
     // Persist to local storage
     useEffect(() => {
@@ -68,6 +66,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setItems((prev) => prev.filter((item) => item.id !== id))
     }
 
+    const clearCart = () => {
+        setItems([])
+    }
+
     const totalItems = items.reduce((acc, item) => acc + item.quantity, 0)
     const totalPrice = items.reduce((acc, item) => acc + item.price * item.quantity, 0)
 
@@ -77,6 +79,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 items,
                 addToCart,
                 removeFromCart,
+                clearCart,
                 totalItems,
                 totalPrice,
                 isOpen,

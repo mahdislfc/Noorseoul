@@ -1,6 +1,7 @@
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { BrandSidebar } from "@/components/product/BrandSidebar";
 import { Suspense } from "react";
+import type { ComponentProps } from "react";
 
 interface BrandPageProps {
     params: Promise<{
@@ -18,7 +19,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
     const decodedBrand = decodeURIComponent(brand);
 
     // Filter mapping
-    const gridProps: any = { brand: decodedBrand };
+    const gridProps: ComponentProps<typeof ProductGrid> = { brand: decodedBrand };
 
     switch (filter) {
         case 'best-sellers':
@@ -31,7 +32,7 @@ export default async function BrandPage({ params, searchParams }: BrandPageProps
             gridProps.category = "Cleansing foam/gel";
             break;
         case 'toners':
-            gridProps.category = "Toner";
+            gridProps.category = "Skin/toner";
             break;
         case 'serums':
             gridProps.category = "Essence/Serum/Ampoule";

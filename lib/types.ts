@@ -19,3 +19,37 @@ export interface Product {
     price: number;
   };
 }
+
+export type AdminOrderStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
+
+export interface AdminOrderItem {
+  id: string;
+  productId?: string | null;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
+export interface AdminOrder {
+  id: string;
+  orderNumber: string;
+  customerEmail: string;
+  firstName: string;
+  lastName: string;
+  city: string;
+  currency: string;
+  subtotal: number;
+  vat: number;
+  shipping: number;
+  total: number;
+  status: AdminOrderStatus;
+  createdAt: string;
+  updatedAt: string;
+  items: AdminOrderItem[];
+}
