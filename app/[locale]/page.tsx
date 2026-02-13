@@ -13,7 +13,6 @@ export default function Home() {
         <Categories />
         <Discover />
         <DiscoverBrands />
-        <Testimonials />
       </main>
       <Footer />
     </div>

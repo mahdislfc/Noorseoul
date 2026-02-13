@@ -12,6 +12,7 @@ interface ProductInfoProps {
         name: string
         price: number
         oldPrice?: number
+        currency?: string
         description: string
         reviews: number
         rating: number
@@ -57,8 +58,12 @@ export function ProductInfo({ product }: ProductInfoProps) {
             <h1 className="text-4xl lg:text-5xl font-serif font-extrabold leading-tight mb-4 tracking-tight">{product.name}</h1>
 
             <div className="flex items-baseline gap-4 mb-8">
-                <span className="text-3xl font-light text-primary">{product.price} AED</span>
-                {product.oldPrice && <span className="text-lg opacity-40 line-through">{product.oldPrice} AED</span>}
+                <span className="text-3xl font-light text-primary">{product.price} {product.currency || "AED"}</span>
+                {product.oldPrice && (
+                    <span className="text-lg opacity-40 line-through">
+                        {product.oldPrice} {product.currency || "AED"}
+                    </span>
+                )}
             </div>
 
             <p className="text-foreground/70 leading-relaxed mb-8 text-lg">

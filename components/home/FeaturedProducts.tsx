@@ -1,10 +1,10 @@
-import { ProductCard } from "@/components/product/ProductCard"
-import { useLocale } from 'next-intl';
+import { ProductCard } from "@/components/product/ProductCard";
 import { getProducts } from "@/lib/data";
+import { getLocale } from "next-intl/server";
 
-export function FeaturedProducts() {
-    const locale = useLocale();
-    const products = getProducts(locale);
+export async function FeaturedProducts() {
+    const locale = await getLocale();
+    const products = await getProducts(locale);
 
     return (
         <section className="py-24 bg-accent/30 px-6 lg:px-20">

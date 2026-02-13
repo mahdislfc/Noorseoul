@@ -1,6 +1,7 @@
-import { getProducts, Product } from "@/lib/data"
-import { ProductCard } from "./ProductCard"
-import { useLocale } from 'next-intl';
+import { getProducts } from "@/lib/data";
+import type { Product } from "@/lib/types";
+import { ProductCard } from "./ProductCard";
+import { getLocale } from "next-intl/server";
 
 interface ProductGridProps {
     category?: string;
@@ -12,9 +13,9 @@ interface ProductGridProps {
     comingSoon?: boolean;
 }
 
-export function ProductGrid({ category, department, newArrival, bestSeller, brand, discounted, comingSoon }: ProductGridProps) {
-    const locale = useLocale();
-    const products: Product[] = getProducts(locale);
+export async function ProductGrid({ category, department, newArrival, bestSeller, brand, discounted, comingSoon }: ProductGridProps) {
+    const locale = await getLocale();
+    const products: Product[] = await getProducts(locale);
 
     const filteredProducts = products.filter(product => {
         if (category && product.category.toLowerCase() !== category.toLowerCase()) return false;

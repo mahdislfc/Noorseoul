@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { Product } from "@/lib/data"
+import type { Product } from "@/lib/types"
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"

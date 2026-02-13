@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useCart } from "@/context/CartContext"
 import { Minus, Plus } from "lucide-react"
 import { toast } from "sonner"
-import { Product } from "@/lib/data"
+import type { Product } from "@/lib/types"
 import { ProductQuickView } from "./ProductQuickView"
 
 export function ProductCard({ product }: { product: Product }) {
@@ -36,13 +36,19 @@ export function ProductCard({ product }: { product: Product }) {
     const incrementQuantity = () => setQuantity(q => q + 1)
     const decrementQuantity = () => setQuantity(q => (q > 1 ? q - 1 : 1))
 
+    const imageUrl =
+        product.image.startsWith("http") || product.image.startsWith("/")
+            ? product.image
+            : "https://placehold.co/400x500/e3d5c5/1a1a1a?text=" +
+              product.name.split(" ").join("+")
+
     return (
         <div className="group relative bg-white p-4 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 h-full flex flex-col">
             <div className="relative overflow-hidden rounded-lg aspect-[4/5] bg-secondary/20 mb-4">
                 {/* Fallback image logic if image missing */}
                 <div
                     className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700 cursor-pointer"
-                    style={{ backgroundImage: `url('${product.image.startsWith('http') ? product.image : 'https://placehold.co/400x500/e3d5c5/1a1a1a?text=' + product.name.split(' ').join('+')}')` }}
+                    style={{ backgroundImage: `url('${imageUrl}')` }}
                     onClick={() => setShowQuickView(true)}
                 />
                 <Button
