@@ -398,13 +398,25 @@ export function AdminProducts({ locale }: AdminProductsProps) {
 
             <div>
               <label className="block text-sm font-medium mb-1">Product Image</label>
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="product-image-input"
+                  className="inline-flex cursor-pointer items-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-muted"
+                >
+                  Choose file
+                </label>
+                <span className="text-sm text-muted-foreground">
+                  {imageFile?.name || "No file chosen"}
+                </span>
+              </div>
               <input
+                id="product-image-input"
                 type="file"
                 accept="image/*"
                 onChange={(event) =>
                   setImageFile(event.target.files ? event.target.files[0] : null)
                 }
-                className="block text-sm"
+                className="sr-only"
                 required={!isEditing}
               />
             </div>

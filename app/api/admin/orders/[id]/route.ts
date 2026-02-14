@@ -22,10 +22,15 @@ const VALID_STATUSES = new Set([
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;
+  const { id } = await params;
+
+  if (!id) {
+    return NextResponse.json({ error: "Invalid order id" }, { status: 400 });
+  }
 
   const body = await request.json().catch(() => null);
   const status = String(body?.status || "").toUpperCase();
@@ -35,7 +40,7 @@ export async function PUT(
   }
 
   const order = await prisma.order.update({
-    where: { id: params.id },
+    where: { id },
     data: { status },
     include: { items: true },
   });

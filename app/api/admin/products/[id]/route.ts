@@ -37,10 +37,15 @@ async function saveImage(file: File) {
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;
+  const { id } = await params;
+
+  if (!id) {
+    return NextResponse.json({ error: "Invalid product id" }, { status: 400 });
+  }
 
   const formData = await request.formData();
 
@@ -92,7 +97,7 @@ export async function PUT(
   }
 
   const product = await prisma.product.update({
-    where: { id: params.id },
+    where: { id },
     data,
   });
 
@@ -101,17 +106,22 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;
+  const { id } = await params;
 
-  const existing = await prisma.product.findUnique({ where: { id: params.id } });
+  if (!id) {
+    return NextResponse.json({ error: "Invalid product id" }, { status: 400 });
+  }
+
+  const existing = await prisma.product.findUnique({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  await prisma.product.delete({ where: { id: params.id } });
+  await prisma.product.delete({ where: { id } });
 
   if (existing.image && existing.image.startsWith("/uploads/")) {
     const filePath = path.join(process.cwd(), "public", existing.image);
