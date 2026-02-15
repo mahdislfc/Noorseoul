@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Product {
@@ -53,4 +54,16 @@ model OrderItem {
   quantity  Int
   image     String
   order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+model Profile {
+  id             String   @id // Matches Supabase Auth User ID
+  email          String   @unique
+  firstName      String?
+  lastName       String?
+  phone          String?
+  address        String?
+  city           String?
+  membershipTier String   @default("Member")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

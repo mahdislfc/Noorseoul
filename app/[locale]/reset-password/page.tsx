@@ -1,0 +1,96 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Footer } from "@/components/layout/Footer"
+import { createClient } from "@/utils/supabase/client"
+import { toast } from "sonner"
+import { useRouter } from "@/i18n/routing"
+
+export default function ResetPasswordPage() {
+    const [password, setPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter()
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        if (password.length < 6) {
+            toast.error("Password must be at least 6 characters.")
+            return
+        }
+
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match.")
+            return
+        }
+
+        setIsLoading(true)
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session?.user) {
+            toast.error("Recovery session expired. Please request a new reset email.")
+            setIsLoading(false)
+            router.push("/login")
+            return
+        }
+
+        const { error } = await supabase.auth.updateUser({ password })
+        if (error) {
+            toast.error(error.message)
+            setIsLoading(false)
+            return
+        }
+
+        toast.success("Password updated. You can sign in now.")
+        setIsLoading(false)
+        router.push("/login")
+        router.refresh()
+    }
+
+    return (
+        <div className="min-h-screen bg-background font-sans flex flex-col">
+            <main className="flex-grow pt-32 pb-20">
+                <div className="container mx-auto px-6 lg:px-20 max-w-md">
+                    <div className="text-center mb-12">
+                        <h1 className="font-serif text-4xl font-bold mb-4">Reset Password</h1>
+                        <p className="text-muted-foreground">Set a new password for your account.</p>
+                    </div>
+
+                    <div className="bg-surface border border-border rounded-2xl p-8 shadow-sm">
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest">New Password</label>
+                                <input
+                                    required
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 outline-none focus:border-primary"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-widest">Confirm New Password</label>
+                                <input
+                                    required
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 outline-none focus:border-primary"
+                                />
+                            </div>
+
+                            <Button type="submit" size="lg" className="w-full h-12" disabled={isLoading}>
+                                {isLoading ? "Updating..." : "Update Password"}
+                            </Button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+            <Footer />
+        </div>
+    )
+}

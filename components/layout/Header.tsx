@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Link, usePathname } from "@/i18n/routing"
-import { Search, User, ShoppingBag, Menu, X, Gem } from "lucide-react"
+import { Search, User, ShoppingBag, Menu, X, Gem, Package, Star, LogOut, LogIn, UserPlus, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from 'next-intl';
 import { useCart } from "@/context/CartContext"
@@ -14,9 +14,12 @@ export function Header() {
     const tCommon = useTranslations('Common');
     const pathname = usePathname();
     const { totalItems, setIsOpen } = useCart()
-    const { isAuthenticated } = useUser()
+    const { isAuthenticated, logout, user, orders } = useUser()
+    const pointsBalance = Math.floor(orders.reduce((sum, order) => sum + order.total, 0))
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+    const profileMenuRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
         let ticking = false
@@ -31,6 +34,26 @@ export function Header() {
         }
         window.addEventListener("scroll", handleScroll)
         return () => window.removeEventListener("scroll", handleScroll)
+    }, [])
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!profileMenuRef.current) return
+            if (!profileMenuRef.current.contains(event.target as Node)) {
+                setIsProfileMenuOpen(false)
+            }
+        }
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setIsProfileMenuOpen(false)
+        }
+
+        document.addEventListener("mousedown", handleClickOutside)
+        document.addEventListener("keydown", handleEscape)
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+            document.removeEventListener("keydown", handleEscape)
+        }
     }, [])
 
     return (
@@ -101,13 +124,112 @@ export function Header() {
                             className="bg-transparent border-none focus:outline-none focus:ring-0 text-sm w-48 placeholder:text-muted-foreground ms-2"
                         />
                     </div>
-                    <Link
-                        href={isAuthenticated ? "/dashboard" : "/login"}
-                        className="hover:text-primary transition-colors"
-                        title={isAuthenticated ? "Dashboard" : "Sign In / Register"}
-                    >
-                        <User className="w-6 h-6" />
-                    </Link>
+                    <div className="relative" ref={profileMenuRef}>
+                        <button
+                            type="button"
+                            className="hover:text-primary transition-colors"
+                            title={isAuthenticated ? tCommon('account') : tCommon('signInOrRegister')}
+                            onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                            aria-haspopup="menu"
+                            aria-expanded={isProfileMenuOpen}
+                        >
+                            <User className="w-6 h-6" />
+                        </button>
+
+                        {isProfileMenuOpen && (
+                            <div className="absolute right-0 mt-4 w-72 rounded-2xl border border-white/60 bg-background/90 backdrop-blur-xl shadow-[0_20px_55px_rgba(15,23,42,0.2)] p-3 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute -top-2 right-7 h-4 w-4 rotate-45 border-l border-t border-white/60 bg-background/90" />
+                                {isAuthenticated ? (
+                                    <>
+                                        <div className="mb-2 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border border-primary/20 p-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-9 w-9 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold uppercase">
+                                                    {user?.name?.charAt(0) || "M"}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-semibold truncate">{user?.name || tCommon('account')}</p>
+                                                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Link
+                                            href="/dashboard?tab=profile"
+                                            className="group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm hover:bg-secondary/40 transition-colors"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <User className="w-4 h-4 text-primary/80" />
+                                                {tCommon('myProfile')}
+                                            </span>
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                        </Link>
+                                        <Link
+                                            href="/dashboard?tab=orders"
+                                            className="group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm hover:bg-secondary/40 transition-colors"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <Package className="w-4 h-4 text-primary/80" />
+                                                {tCommon('orders')}
+                                            </span>
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                        </Link>
+                                        <Link
+                                            href="/dashboard?tab=points"
+                                            className="group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm hover:bg-secondary/40 transition-colors"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <Star className="w-4 h-4 text-primary/80" />
+                                                <span className="text-pink-500 font-semibold">{pointsBalance}</span>
+                                                <span>{tCommon('points')}</span>
+                                            </span>
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                        </Link>
+                                        <div className="my-2 h-px bg-border" />
+                                        <button
+                                            type="button"
+                                            className="w-full rounded-xl px-3 py-2.5 text-sm hover:bg-secondary/40 transition-colors"
+                                            onClick={async () => {
+                                                setIsProfileMenuOpen(false)
+                                                await logout()
+                                            }}
+                                        >
+                                            <span className="flex items-center gap-2 text-red-600">
+                                                <LogOut className="w-4 h-4" />
+                                                {tCommon('logout')}
+                                            </span>
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link
+                                            href="/login"
+                                            className="group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm hover:bg-secondary/40 transition-colors"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <LogIn className="w-4 h-4 text-primary/80" />
+                                                {tCommon('signIn')}
+                                            </span>
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                        </Link>
+                                        <Link
+                                            href="/register"
+                                            className="group flex items-center justify-between rounded-xl px-3 py-2.5 text-sm hover:bg-secondary/40 transition-colors"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <UserPlus className="w-4 h-4 text-primary/80" />
+                                                {tCommon('register')}
+                                            </span>
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
                     <button
                         className="relative hover:text-primary transition-colors"
                         onClick={() => setIsOpen(true)}

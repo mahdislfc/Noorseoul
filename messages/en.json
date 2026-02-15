@@ -19,6 +19,7 @@
         "lastName": "Last Name",
         "phone": "Phone Number",
         "email": "Email Address",
+        "password": "Password",
         "shippingAddress": "Shipping Address",
         "city": "City",
         "paymentInfo": "Payment Information (Secure Profile)",
@@ -30,7 +31,15 @@
         "memberBenefit": "Save your details for one-click checkout."
     },
     "Common": {
-        "searchPlaceholder": "Search products..."
+        "searchPlaceholder": "Search products...",
+        "account": "Account",
+        "signInOrRegister": "Sign In / Register",
+        "myProfile": "My Profile",
+        "orders": "Orders",
+        "points": "Points",
+        "logout": "Logout",
+        "signIn": "Sign In",
+        "register": "Register"
     },
     "Product": {
         "addToCart": "Add to Cart",

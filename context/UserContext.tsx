@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from "react"
+import { createClient } from "@/utils/supabase/client"
 
 export interface User {
     name: string
@@ -39,8 +40,9 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
 
-    // Mock Orders
+    // Mock Orders (keep for now until we have real orders)
     const orders: Order[] = [
         {
             id: "ORD-2024-8832",
@@ -63,29 +65,79 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
     ]
 
+
     useEffect(() => {
-        const storedUser = localStorage.getItem('noor_user')
-        if (storedUser) {
-            setUser(JSON.parse(storedUser))
+        const supabase = createClient()
+
+        const fetchProfile = async (userId: string) => {
+            const { data: profile } = await supabase
+                .from('Profile')
+                .select('*')
+                .eq('id', userId)
+                .single()
+            return profile
         }
+
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session?.user) {
+                const profile = await fetchProfile(session.user.id)
+                setUser({
+                    name: (profile?.firstName && profile?.lastName)
+                        ? `${profile.firstName} ${profile.lastName}`
+                        : (session.user.user_metadata.first_name || session.user.email || "Member"),
+                    email: session.user.email || "",
+                    phone: profile?.phone || session.user.user_metadata.phone || "",
+                    address: profile?.address || "",
+                    city: profile?.city || "",
+                    membershipTier: profile?.membershipTier || "Member",
+                    profileImage: "https://github.com/shadcn.png"
+                })
+            }
+            setIsLoading(false)
+        }
+
+        checkSession()
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: string, session: any) => {
+            if (session?.user) {
+                const profile = await fetchProfile(session.user.id)
+                setUser({
+                    name: (profile?.firstName && profile?.lastName)
+                        ? `${profile.firstName} ${profile.lastName}`
+                        : (session.user.user_metadata.first_name || session.user.email || "Member"),
+                    email: session.user.email || "",
+                    phone: profile?.phone || session.user.user_metadata.phone || "",
+                    address: profile?.address || "",
+                    city: profile?.city || "",
+                    membershipTier: profile?.membershipTier || "Member",
+                    profileImage: "https://github.com/shadcn.png"
+                })
+            } else {
+                setUser(null)
+            }
+            setIsLoading(false)
+        })
+
+        return () => subscription.unsubscribe()
     }, [])
 
+
     const login = (userData: User) => {
+        // Legacy support - now handled by Supabase Auth
         setUser(userData)
-        localStorage.setItem('noor_user', JSON.stringify(userData))
     }
 
-    const logout = () => {
+    const logout = async () => {
+        const supabase = createClient()
+        await supabase.auth.signOut()
         setUser(null)
-        localStorage.removeItem('noor_user')
         window.location.href = '/'
     }
 
     const updateProfile = (data: Partial<User>) => {
         if (!user) return
-        const updatedUser = { ...user, ...data }
-        setUser(updatedUser)
-        localStorage.setItem('noor_user', JSON.stringify(updatedUser))
+        setUser({ ...user, ...data })
     }
 
     return (

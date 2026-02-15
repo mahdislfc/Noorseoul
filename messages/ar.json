@@ -19,6 +19,7 @@
         "lastName": "اسم العائلة",
         "phone": "رقم الهاتف",
         "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
         "shippingAddress": "عنوان الشحن",
         "city": "المدينة",
         "paymentInfo": "معلومات الدفع (ملف آمن)",
@@ -30,7 +31,15 @@
         "memberBenefit": "احفظي بياناتك لتسوق أسرع بضغطة زر."
     },
     "Common": {
-        "searchPlaceholder": "بحث عن منتجات..."
+        "searchPlaceholder": "بحث عن منتجات...",
+        "account": "الحساب",
+        "signInOrRegister": "تسجيل الدخول / التسجيل",
+        "myProfile": "ملفي الشخصي",
+        "orders": "الطلبات",
+        "points": "النقاط",
+        "logout": "تسجيل الخروج",
+        "signIn": "تسجيل الدخول",
+        "register": "إنشاء حساب"
     },
     "Product": {
         "addToCart": "أضف إلى السلة",
