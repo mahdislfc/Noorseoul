@@ -52,9 +52,10 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const isSupportedLocale = locale === "en" || locale === "ar";
 
   // Ensure that the incoming `locale` is valid
-  if (!['en', 'ar'].includes(locale as any)) {
+  if (!isSupportedLocale) {
     notFound();
   }
 

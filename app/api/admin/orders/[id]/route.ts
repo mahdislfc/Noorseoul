@@ -22,11 +22,11 @@ const VALID_STATUSES = new Set([
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;
-  const { id } = await params;
+  const { id } = params;
 
   if (!id) {
     return NextResponse.json({ error: "Invalid order id" }, { status: 400 });

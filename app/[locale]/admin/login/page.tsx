@@ -4,9 +4,9 @@ import { isAdminEnvConfigured } from "@/lib/admin-auth";
 export default async function AdminLoginPage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: { locale: string };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-6">

@@ -4,9 +4,9 @@ import { Link } from '@/i18n/routing';
 export default async function ProductsPage({
     searchParams,
 }: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+    searchParams: { [key: string]: string | string[] | undefined };
 }) {
-    const resolvedParams = await searchParams;
+    const resolvedParams = searchParams;
     const category = typeof resolvedParams.category === 'string' ? resolvedParams.category : undefined;
     const subcategory = typeof resolvedParams.subcategory === 'string' ? resolvedParams.subcategory : undefined;
 

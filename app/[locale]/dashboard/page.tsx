@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useUser } from "@/context/UserContext"
 import { useCart } from "@/context/CartContext"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -12,7 +12,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 export default function DashboardPage() {
-    const { user, isAuthenticated, logout, updateProfile, orders } = useUser()
+    const { user, isAuthenticated, isLoading, logout, updateProfile, orders } = useUser()
     const { addToCart } = useCart()
     const router = useRouter()
     const pathname = usePathname()
@@ -38,9 +38,17 @@ export default function DashboardPage() {
         router.push(`${pathname}?tab=${nextTab}`)
     }
 
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.replace('/register')
+        }
+    }, [isLoading, isAuthenticated, router])
+
+    if (isLoading) {
+        return null
+    }
+
     if (!isAuthenticated) {
-        // Simple protection
-        if (typeof window !== 'undefined') router.push('/register')
         return null
     }
 

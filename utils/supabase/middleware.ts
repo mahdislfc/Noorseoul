@@ -37,19 +37,28 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
+    const pathname = request.nextUrl.pathname
+    const localeMatch = pathname.match(/^\/(en|ar)(?:\/|$)/)
+    const localePrefix = localeMatch ? `/${localeMatch[1]}` : ""
+    const isLocalizedDashboard = /^\/(en|ar)\/dashboard(?:\/|$)/.test(pathname)
+    const isRootDashboard = /^\/dashboard(?:\/|$)/.test(pathname)
+    const isDashboardRoute = isLocalizedDashboard || isRootDashboard
+
+    const isPublicAuthRoute =
+        /^\/(en|ar)\/login(?:\/|$)/.test(pathname) ||
+        /^\/(en|ar)\/register(?:\/|$)/.test(pathname) ||
+        /^\/login(?:\/|$)/.test(pathname) ||
+        /^\/register(?:\/|$)/.test(pathname) ||
+        /^\/auth(?:\/|$)/.test(pathname)
+
     if (
         !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        !request.nextUrl.pathname.startsWith('/register') &&
-        // Add other public routes here if needed, but for now we are not enforcing strict auth on all pages
-        // So we just return the response.
-        // If we wanted to protect /dashboard, we would redirect here.
-        request.nextUrl.pathname.startsWith('/dashboard')
+        !isPublicAuthRoute &&
+        isDashboardRoute
     ) {
         // no user, potentially respond by redirecting the user to the login page
         const url = request.nextUrl.clone()
-        url.pathname = '/login'
+        url.pathname = `${localePrefix}/login` || '/login'
         return NextResponse.redirect(url)
     }
 

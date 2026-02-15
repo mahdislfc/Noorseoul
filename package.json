@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev --turbo",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "db:fix-auth-trigger": "node scripts/fix-auth-trigger.js --backfill"

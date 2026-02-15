@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { createClient } from "@/utils/supabase/client"
+import type { Session } from "@supabase/supabase-js"
 
 export interface User {
     name: string
@@ -30,10 +31,20 @@ export interface Order {
 interface UserContextType {
     user: User | null
     isAuthenticated: boolean
+    isLoading: boolean
     orders: Order[]
     login: (userData: User) => void
     logout: () => void
     updateProfile: (data: Partial<User>) => void
+}
+
+interface ProfileRow {
+    firstName?: string | null
+    lastName?: string | null
+    phone?: string | null
+    address?: string | null
+    city?: string | null
+    membershipTier?: string | null
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -43,7 +54,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
 
     // Mock Orders (keep for now until we have real orders)
-    const orders: Order[] = [
+    const mockOrders: Order[] = [
         {
             id: "ORD-2024-8832",
             date: "Feb 15, 2026",
@@ -64,10 +75,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             ]
         }
     ]
+    const orders = user ? mockOrders : []
 
 
     useEffect(() => {
         const supabase = createClient()
+        let isMounted = true
 
         const fetchProfile = async (userId: string) => {
             const { data: profile } = await supabase
@@ -78,48 +91,65 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             return profile
         }
 
+        const buildUser = (session: Session, profile?: ProfileRow | null): User => ({
+            name: (profile?.firstName && profile?.lastName)
+                ? `${profile.firstName} ${profile.lastName}`
+                : (session.user.user_metadata.first_name || session.user.email || "Member"),
+            email: session.user.email || "",
+            phone: profile?.phone || session.user.user_metadata.phone || "",
+            address: profile?.address || "",
+            city: profile?.city || "",
+            membershipTier: profile?.membershipTier || "Member",
+            profileImage: "https://github.com/shadcn.png"
+        })
+
         const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            if (session?.user) {
-                const profile = await fetchProfile(session.user.id)
-                setUser({
-                    name: (profile?.firstName && profile?.lastName)
-                        ? `${profile.firstName} ${profile.lastName}`
-                        : (session.user.user_metadata.first_name || session.user.email || "Member"),
-                    email: session.user.email || "",
-                    phone: profile?.phone || session.user.user_metadata.phone || "",
-                    address: profile?.address || "",
-                    city: profile?.city || "",
-                    membershipTier: profile?.membershipTier || "Member",
-                    profileImage: "https://github.com/shadcn.png"
-                })
+            try {
+                const { data: { session } } = await supabase.auth.getSession()
+                if (!isMounted) return
+
+                if (session?.user) {
+                    // Render authenticated UI immediately, then enrich with profile.
+                    setUser(buildUser(session))
+                    const profile = await fetchProfile(session.user.id)
+                    if (!isMounted) return
+                    setUser(buildUser(session, profile))
+                } else {
+                    setUser(null)
+                }
+            } catch {
+                if (!isMounted) return
+                setUser(null)
+            } finally {
+                if (isMounted) setIsLoading(false)
             }
-            setIsLoading(false)
         }
+
+        const loadingFallbackTimer = setTimeout(() => {
+            if (isMounted) setIsLoading(false)
+        }, 4000)
 
         checkSession()
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: string, session: any) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: string, session: Session | null) => {
+            if (!isMounted) return
+
             if (session?.user) {
+                setUser(buildUser(session))
                 const profile = await fetchProfile(session.user.id)
-                setUser({
-                    name: (profile?.firstName && profile?.lastName)
-                        ? `${profile.firstName} ${profile.lastName}`
-                        : (session.user.user_metadata.first_name || session.user.email || "Member"),
-                    email: session.user.email || "",
-                    phone: profile?.phone || session.user.user_metadata.phone || "",
-                    address: profile?.address || "",
-                    city: profile?.city || "",
-                    membershipTier: profile?.membershipTier || "Member",
-                    profileImage: "https://github.com/shadcn.png"
-                })
+                if (!isMounted) return
+                setUser(buildUser(session, profile))
             } else {
                 setUser(null)
             }
-            setIsLoading(false)
+            if (isMounted) setIsLoading(false)
         })
 
-        return () => subscription.unsubscribe()
+        return () => {
+            isMounted = false
+            clearTimeout(loadingFallbackTimer)
+            subscription.unsubscribe()
+        }
     }, [])
 
 
@@ -130,9 +160,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const logout = async () => {
         const supabase = createClient()
-        await supabase.auth.signOut()
-        setUser(null)
-        window.location.href = '/'
+        try {
+            // Clear server-side auth cookies/session first.
+            await fetch('/auth/signout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                cache: 'no-store',
+            })
+            // Then clear client-side session storage.
+            await supabase.auth.signOut({ scope: "local" })
+        } catch {
+            // continue with local clear fallback
+        } finally {
+            setUser(null)
+            setIsLoading(false)
+            try {
+                localStorage.removeItem("cart")
+            } catch {
+                // ignore localStorage failures
+            }
+            window.location.assign('/login')
+        }
     }
 
     const updateProfile = (data: Partial<User>) => {
@@ -141,7 +189,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <UserContext.Provider value={{ user, isAuthenticated: !!user, login, logout, updateProfile, orders }}>
+        <UserContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout, updateProfile, orders }}>
             {children}
         </UserContext.Provider>
     )

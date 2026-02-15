@@ -37,11 +37,11 @@ async function saveImage(file: File) {
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;
-  const { id } = await params;
+  const { id } = params;
 
   if (!id) {
     return NextResponse.json({ error: "Invalid product id" }, { status: 400 });
@@ -106,11 +106,11 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;
-  const { id } = await params;
+  const { id } = params;
 
   if (!id) {
     return NextResponse.json({ error: "Invalid product id" }, { status: 400 });

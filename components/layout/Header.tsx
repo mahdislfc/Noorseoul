@@ -13,7 +13,7 @@ export function Header() {
     const t = useTranslations('Navigation');
     const tCommon = useTranslations('Common');
     const pathname = usePathname();
-    const { totalItems, setIsOpen } = useCart()
+    const { totalItems, setIsOpen, clearCart } = useCart()
     const { isAuthenticated, logout, user, orders } = useUser()
     const pointsBalance = Math.floor(orders.reduce((sum, order) => sum + order.total, 0))
     const [isScrolled, setIsScrolled] = useState(false)
@@ -137,7 +137,13 @@ export function Header() {
                         </button>
 
                         {isProfileMenuOpen && (
-                            <div className="absolute right-0 mt-4 w-72 rounded-2xl border border-white/60 bg-background/90 backdrop-blur-xl shadow-[0_20px_55px_rgba(15,23,42,0.2)] p-3 z-50 animate-in fade-in zoom-in-95 duration-200">
+                            <div
+                                className={cn(
+                                    "absolute right-0 mt-4 max-w-[calc(100vw-1rem)] rounded-2xl border border-white/60 bg-background/90 backdrop-blur-xl shadow-[0_20px_55px_rgba(15,23,42,0.2)] p-3 z-[80] pointer-events-auto animate-in fade-in zoom-in-95 duration-200",
+                                    isAuthenticated ? "w-72" : "w-56"
+                                )}
+                                onMouseDown={(event) => event.stopPropagation()}
+                            >
                                 <div className="absolute -top-2 right-7 h-4 w-4 rotate-45 border-l border-t border-white/60 bg-background/90" />
                                 {isAuthenticated ? (
                                     <>
@@ -189,10 +195,11 @@ export function Header() {
                                         <div className="my-2 h-px bg-border" />
                                         <button
                                             type="button"
-                                            className="w-full rounded-xl px-3 py-2.5 text-sm hover:bg-secondary/40 transition-colors"
-                                            onClick={async () => {
+                                            className="w-full rounded-xl px-3 py-2.5 text-sm hover:bg-secondary/40 transition-colors cursor-pointer"
+                                            onClick={() => {
                                                 setIsProfileMenuOpen(false)
-                                                await logout()
+                                                clearCart()
+                                                void logout()
                                             }}
                                         >
                                             <span className="flex items-center gap-2 text-red-600">

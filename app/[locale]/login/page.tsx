@@ -1,8 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
-import { useLocale } from 'next-intl';
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/layout/Footer"
 import { createClient } from "@/utils/supabase/client"
@@ -10,31 +9,55 @@ import { toast } from "sonner"
 import { Link, useRouter } from "@/i18n/routing"
 
 export default function LoginPage() {
-    const locale = useLocale()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [isEmailActionLoading, setIsEmailActionLoading] = useState(false)
     const router = useRouter()
+    const hasRedirectedRef = useRef(false)
+
+    useEffect(() => {
+        const supabase = createClient()
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((event) => {
+            if (event === "SIGNED_IN" && !hasRedirectedRef.current) {
+                hasRedirectedRef.current = true
+                router.replace('/dashboard')
+                router.refresh()
+            }
+        })
+
+        return () => subscription.unsubscribe()
+    }, [router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
 
         const supabase = createClient()
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
+        const normalizedEmail = email.trim().toLowerCase()
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
             password,
         })
 
         if (error) {
             toast.error(error.message)
             setIsLoading(false)
-        } else {
-            toast.success("Welcome back!")
-            router.push('/dashboard')
-            router.refresh()
+            return
         }
+
+        if (!data.session) {
+            toast.error("Sign-in was not completed. Please verify your email or try again.")
+            setIsLoading(false)
+            return
+        }
+
+        toast.success("Welcome back!")
+        hasRedirectedRef.current = true
+        router.replace('/dashboard')
+        router.refresh()
     }
 
 

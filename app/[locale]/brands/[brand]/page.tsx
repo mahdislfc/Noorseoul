@@ -4,18 +4,18 @@ import { Suspense } from "react";
 import type { ComponentProps } from "react";
 
 interface BrandPageProps {
-    params: Promise<{
+    params: {
         brand: string;
         locale: string;
-    }>;
-    searchParams: Promise<{
+    };
+    searchParams: {
         filter?: string;
-    }>;
+    };
 }
 
 export default async function BrandPage({ params, searchParams }: BrandPageProps) {
-    const { brand } = await params;
-    const { filter = 'all' } = await searchParams;
+    const { brand } = params;
+    const { filter = 'all' } = searchParams;
     const decodedBrand = decodeURIComponent(brand);
 
     // Filter mapping

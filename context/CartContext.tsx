@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect } from "react"
+import React, { createContext, useContext, useState, useEffect, useRef } from "react"
 
 export interface CartItem {
     id: string
@@ -24,20 +24,31 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-    const [items, setItems] = useState<CartItem[]>(() => {
-        if (typeof window === "undefined") return []
+    const [items, setItems] = useState<CartItem[]>([])
+    const [isOpen, setIsOpen] = useState(false)
+    const hasHydratedRef = useRef(false)
+
+    // Hydrate cart from localStorage after mount to avoid SSR/client mismatch.
+    useEffect(() => {
         try {
             const saved = localStorage.getItem("cart")
-            return saved ? (JSON.parse(saved) as CartItem[]) : []
-        } catch (e) {
-            console.error("Failed to parse cart", e)
-            return []
+            if (saved) {
+                const parsedItems = JSON.parse(saved) as CartItem[]
+                queueMicrotask(() => {
+                    setItems(parsedItems)
+                    hasHydratedRef.current = true
+                })
+                return
+            }
+        } catch (error) {
+            console.error("Failed to parse cart from localStorage:", error)
         }
-    })
-    const [isOpen, setIsOpen] = useState(false)
+        hasHydratedRef.current = true
+    }, [])
 
     // Persist to local storage
     useEffect(() => {
+        if (!hasHydratedRef.current) return
         try {
             localStorage.setItem("cart", JSON.stringify(items))
         } catch (error) {

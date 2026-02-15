@@ -1,11 +1,9 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 
-export function Hero() {
-    const t = useTranslations('Hero');
+export async function Hero() {
+    const t = await getTranslations('Hero');
 
     return (
         <section className="relative h-[85vh] w-full overflow-hidden">

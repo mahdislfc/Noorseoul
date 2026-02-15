@@ -10,9 +10,9 @@ export default async function AdminProtectedLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  params: { locale: string };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
 
   if (!isAdminEnvConfigured()) {
     redirect(`/${locale}/admin/login`);
