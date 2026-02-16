@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { useUser } from "@/context/UserContext"
 import { useCart } from "@/context/CartContext"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter } from "@/i18n/routing"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/layout/Footer"
 import { Package, User as UserIcon, Bell, LogOut, RefreshCw, Star, ReceiptText } from "lucide-react"
@@ -19,10 +20,24 @@ export default function DashboardPage() {
     const searchParams = useSearchParams()
     const [notificationsEnabled, setNotificationsEnabled] = useState(true)
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
+    const [isUpdating, setIsUpdating] = useState(false)
 
     // Form states
+    const [firstName, setFirstName] = useState(user?.firstName || "")
+    const [lastName, setLastName] = useState(user?.lastName || "")
     const [address, setAddress] = useState(user?.address || "")
     const [phone, setPhone] = useState(user?.phone || "")
+
+    // Initialize states when user data is available
+    useEffect(() => {
+        if (user) {
+            setFirstName(user.firstName)
+            setLastName(user.lastName)
+            setAddress(user.address)
+            setPhone(user.phone)
+        }
+    }, [user])
+
     const totalPoints = Math.floor(orders.reduce((sum, order) => sum + order.total, 0))
     const pointsToNextReward = Math.max(0, 500 - (totalPoints % 500))
     const tab = searchParams.get("tab")
@@ -40,7 +55,7 @@ export default function DashboardPage() {
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            router.replace('/register')
+            router.replace('/login') // Use localized router for login redirect
         }
     }, [isLoading, isAuthenticated, router])
 
@@ -69,10 +84,28 @@ export default function DashboardPage() {
         }
     }
 
-    const handleUpdateProfile = (e: React.FormEvent) => {
+    const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault()
-        updateProfile({ address, phone })
-        toast.success("Profile updated successfully")
+        setIsUpdating(true)
+
+        try {
+            const result = await updateProfile({
+                firstName,
+                lastName,
+                address,
+                phone
+            })
+
+            if (result.success) {
+                toast.success("Profile updated successfully")
+            } else {
+                toast.error(result.error || "Failed to update profile")
+            }
+        } catch (err) {
+            toast.error("An unexpected error occurred")
+        } finally {
+            setIsUpdating(false)
+        }
     }
 
     return (
@@ -83,7 +116,7 @@ export default function DashboardPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                         <div>
-                            <h1 className="font-serif text-4xl font-bold mb-2">Hello, {user?.name.split(' ')[0]}</h1>
+                            <h1 className="font-serif text-4xl font-bold mb-2">Hello, {user?.firstName || user?.name.split(' ')[0]}</h1>
                             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                 <span className="w-2 h-2 rounded-full bg-primary" />
                                 {user?.membershipTier}
@@ -300,8 +333,20 @@ export default function DashboardPage() {
                                     <form onSubmit={handleUpdateProfile} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Full Name</label>
-                                                <input disabled value={user?.name} className="w-full h-12 rounded-lg border border-border bg-secondary/10 px-4 text-muted-foreground cursor-not-allowed" />
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">First Name</label>
+                                                <input
+                                                    value={firstName}
+                                                    onChange={e => setFirstName(e.target.value)}
+                                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Last Name</label>
+                                                <input
+                                                    value={lastName}
+                                                    onChange={e => setLastName(e.target.value)}
+                                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
+                                                />
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-xs font-bold uppercase tracking-widest opacity-70">Email Address</label>
@@ -316,7 +361,7 @@ export default function DashboardPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest">Default City</label>
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Default City</label>
                                                 <input disabled value={user?.city} className="w-full h-12 rounded-lg border border-border bg-secondary/10 px-4 text-muted-foreground cursor-not-allowed" />
                                             </div>
                                             <div className="md:col-span-2 space-y-2">
@@ -329,7 +374,9 @@ export default function DashboardPage() {
                                             </div>
                                         </div>
                                         <div className="flex justify-end">
-                                            <Button type="submit" size="lg">Save Changes</Button>
+                                            <Button type="submit" size="lg" disabled={isUpdating}>
+                                                {isUpdating ? "Saving..." : "Save Changes"}
+                                            </Button>
                                         </div>
                                     </form>
                                 </div>

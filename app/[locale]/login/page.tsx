@@ -2,6 +2,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/layout/Footer"
 import { createClient } from "@/utils/supabase/client"
@@ -12,8 +13,12 @@ export default function LoginPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const [isEmailActionLoading, setIsEmailActionLoading] = useState(false)
+    const [showAdminHint, setShowAdminHint] = useState(false)
     const router = useRouter()
+    const params = useParams()
+    const locale = params.locale as string
     const hasRedirectedRef = useRef(false)
 
     useEffect(() => {
@@ -23,7 +28,7 @@ export default function LoginPage() {
         } = supabase.auth.onAuthStateChange((event) => {
             if (event === "SIGNED_IN" && !hasRedirectedRef.current) {
                 hasRedirectedRef.current = true
-                router.replace('/dashboard')
+                router.replace('/')
                 router.refresh()
             }
         })
@@ -35,29 +40,51 @@ export default function LoginPage() {
         e.preventDefault()
         setIsLoading(true)
 
-        const supabase = createClient()
-        const normalizedEmail = email.trim().toLowerCase()
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: normalizedEmail,
-            password,
-        })
+        try {
+            const supabase = createClient()
+            const normalizedEmail = email.trim().toLowerCase()
+            setError(null)
 
-        if (error) {
-            toast.error(error.message)
+            // Check for admin email to show hint
+            if (normalizedEmail === "nmashhadi79@gmail.com") {
+                setShowAdminHint(true)
+            } else {
+                setShowAdminHint(false)
+            }
+
+            const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                email: normalizedEmail,
+                password,
+            })
+
+            if (signInError) {
+                console.error("Sign-in error:", signInError)
+                toast.error(signInError.message)
+                setError(signInError.message)
+                setIsLoading(false)
+                return
+            }
+
+            if (!data.session) {
+                toast.error("Sign-in was not completed. Please verify your email or try again.")
+                setIsLoading(false)
+                return
+            }
+
+            toast.success("Welcome back!")
+            hasRedirectedRef.current = true
+            router.replace('/')
+            router.refresh()
+            // Fallback in case client routing is blocked by stale state.
+            setTimeout(() => {
+                window.location.assign(`/${locale}/`)
+            }, 350)
+        } catch (err) {
+            console.error("Unexpected sign-in error:", err)
+            setError("Something went wrong while signing in. Please try again.")
+            toast.error("Something went wrong while signing in. Please try again.")
             setIsLoading(false)
-            return
         }
-
-        if (!data.session) {
-            toast.error("Sign-in was not completed. Please verify your email or try again.")
-            setIsLoading(false)
-            return
-        }
-
-        toast.success("Welcome back!")
-        hasRedirectedRef.current = true
-        router.replace('/dashboard')
-        router.refresh()
     }
 
 
@@ -151,6 +178,22 @@ export default function LoginPage() {
                                 <span className="bg-surface px-2 text-muted-foreground">Or continue with</span>
                             </div>
                         </div>
+
+                        {error && (
+                            <div className="mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium animate-in fade-in slide-in-from-top-2">
+                                {error}
+                            </div>
+                        )}
+
+                        {showAdminHint && (
+                            <div className="mb-6 p-4 rounded-lg bg-primary/10 border border-primary/20 text-primary text-sm animate-in fade-in slide-in-from-top-2">
+                                <p className="font-bold mb-1">Looking for Admin Access?</p>
+                                <p className="mb-2 opacity-90">It looks like you're trying to sign in as an admin. Please use the dedicated admin portal.</p>
+                                <Link href="/admin/login" className="font-bold underline hover:no-underline">
+                                    Go to Admin Login →
+                                </Link>
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
