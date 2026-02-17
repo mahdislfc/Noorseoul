@@ -1,7 +1,7 @@
 "use client"
 
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Footer } from "@/components/layout/Footer"
 import { useCart } from "@/context/CartContext"
 import { ChevronRight, CreditCard, Lock, ShieldCheck } from "lucide-react"
@@ -22,10 +22,125 @@ export default function CheckoutPage() {
     const [placingOrder, setPlacingOrder] = useState(false)
     const [checkoutError, setCheckoutError] = useState("")
     const [successOrderNumber, setSuccessOrderNumber] = useState("")
+    const [rewardCodeInput, setRewardCodeInput] = useState("")
+    const [activeFreeShippingCode, setActiveFreeShippingCode] = useState("")
+    const [shippingRewardApplied, setShippingRewardApplied] = useState(false)
+    const [activeVoucher15Code, setActiveVoucher15Code] = useState("")
+    const [activeVoucher30Code, setActiveVoucher30Code] = useState("")
+    const [appliedRewards, setAppliedRewards] = useState<string[]>([])
+    const [appliedCodeValues, setAppliedCodeValues] = useState<string[]>([])
+    const [voucherDiscountAmount, setVoucherDiscountAmount] = useState(0)
+    const [appliedVoucherCode, setAppliedVoucherCode] = useState("")
+    const [rewardCodeMessage, setRewardCodeMessage] = useState("")
+    const [rewardCodeHighlight, setRewardCodeHighlight] = useState("")
+    const [isRewardCodeMessageSuccess, setIsRewardCodeMessageSuccess] = useState(false)
 
-    const shippingCost = 0 // Complimentary
-    const vat = totalPrice * 0.05
-    const finalTotal = totalPrice + shippingCost + vat
+    const FREE_SHIPPING_CODE_KEY = "reward_free_shipping_code"
+    const FREE_SHIPPING_CLAIMED_KEY = "reward_free_shipping_claimed"
+    const VOUCHER_15_CODE_KEY = "reward_voucher_15_code"
+    const VOUCHER_15_CLAIMED_KEY = "reward_voucher_15_claimed"
+    const VOUCHER_30_CODE_KEY = "reward_voucher_30_code"
+    const VOUCHER_30_CLAIMED_KEY = "reward_voucher_30_claimed"
+    const BASE_SHIPPING_COST = 20
+
+    const shippingCost = shippingRewardApplied ? 0 : BASE_SHIPPING_COST
+    const appliedDiscount = Math.min(voucherDiscountAmount, totalPrice)
+    const discountedSubtotal = Math.max(0, totalPrice - appliedDiscount)
+    const vat = discountedSubtotal * 0.05
+    const finalTotal = discountedSubtotal + shippingCost + vat
+
+    useEffect(() => {
+        try {
+            const shippingCode = localStorage.getItem(FREE_SHIPPING_CODE_KEY)
+            const shippingClaimed = localStorage.getItem(FREE_SHIPPING_CLAIMED_KEY) === "true"
+            if (shippingCode && shippingClaimed) {
+                setActiveFreeShippingCode(shippingCode)
+            }
+
+            const voucher15Code = localStorage.getItem(VOUCHER_15_CODE_KEY)
+            const voucher15Claimed = localStorage.getItem(VOUCHER_15_CLAIMED_KEY) === "true"
+            if (voucher15Code && voucher15Claimed) {
+                setActiveVoucher15Code(voucher15Code)
+            }
+
+            const voucher30Code = localStorage.getItem(VOUCHER_30_CODE_KEY)
+            const voucher30Claimed = localStorage.getItem(VOUCHER_30_CLAIMED_KEY) === "true"
+            if (voucher30Code && voucher30Claimed) {
+                setActiveVoucher30Code(voucher30Code)
+            }
+        } catch {
+            // ignore storage issues
+        }
+    }, [])
+
+    const handleApplyRewardCode = (codeToApply?: string | unknown) => {
+        const rawInput = typeof codeToApply === "string" ? codeToApply : rewardCodeInput
+        const normalizedInput = rawInput.trim().toUpperCase()
+        const normalizedShippingCode = activeFreeShippingCode.trim().toUpperCase()
+        const normalizedVoucher15Code = activeVoucher15Code.trim().toUpperCase()
+        const normalizedVoucher30Code = activeVoucher30Code.trim().toUpperCase()
+
+        if (!normalizedInput) {
+            setRewardCodeMessage("Please enter a reward code.")
+            setRewardCodeHighlight("")
+            setIsRewardCodeMessageSuccess(false)
+            return
+        }
+
+        if (
+            !normalizedShippingCode &&
+            !normalizedVoucher15Code &&
+            !normalizedVoucher30Code
+        ) {
+            setRewardCodeMessage("No active reward code found.")
+            setRewardCodeHighlight("")
+            setIsRewardCodeMessageSuccess(false)
+            return
+        }
+
+        if (normalizedInput === normalizedShippingCode) {
+            setShippingRewardApplied(true)
+            setAppliedRewards((current) => (current.includes("Free Shipping") ? current : [...current, "Free Shipping"]))
+            setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
+            setRewardCodeMessage(`Code ${normalizedInput} applied:`)
+            setRewardCodeHighlight("Free shipping activated")
+            setIsRewardCodeMessageSuccess(true)
+            setRewardCodeInput("")
+            return
+        }
+
+        if (normalizedInput === normalizedVoucher15Code) {
+            setVoucherDiscountAmount(15)
+            setAppliedVoucherCode(normalizedVoucher15Code)
+            setAppliedRewards((current) => (current.includes("$15 Discount") ? current : [...current, "$15 Discount"]))
+            setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
+            setRewardCodeMessage(`Code ${normalizedInput} applied:`)
+            setRewardCodeHighlight("$15 discount activated")
+            setIsRewardCodeMessageSuccess(true)
+            setRewardCodeInput("")
+            return
+        }
+
+        if (normalizedInput === normalizedVoucher30Code) {
+            setVoucherDiscountAmount(30)
+            setAppliedVoucherCode(normalizedVoucher30Code)
+            setAppliedRewards((current) => (current.includes("$30 Discount") ? current : [...current, "$30 Discount"]))
+            setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
+            setRewardCodeMessage(`Code ${normalizedInput} applied:`)
+            setRewardCodeHighlight("$30 discount activated")
+            setIsRewardCodeMessageSuccess(true)
+            setRewardCodeInput("")
+            return
+        }
+
+        setRewardCodeMessage("Invalid code. Please check and try again.")
+        setRewardCodeHighlight("")
+        setIsRewardCodeMessageSuccess(false)
+    }
+
+    const availableCodes = [activeFreeShippingCode, activeVoucher15Code, activeVoucher30Code]
+        .map((code) => code.trim().toUpperCase())
+        .filter((code) => Boolean(code) && !appliedCodeValues.includes(code))
 
     const handleCompletePurchase = async () => {
         setCheckoutError("")
@@ -64,6 +179,44 @@ export default function CheckoutPage() {
             }
 
             setSuccessOrderNumber(data?.order?.orderNumber || "")
+            if (shippingRewardApplied && activeFreeShippingCode) {
+                try {
+                    localStorage.removeItem(FREE_SHIPPING_CODE_KEY)
+                    localStorage.removeItem(FREE_SHIPPING_CLAIMED_KEY)
+                } catch {
+                    // ignore storage issues
+                }
+                setActiveFreeShippingCode("")
+                setRewardCodeInput("")
+                setRewardCodeMessage("")
+                setRewardCodeHighlight("")
+                setIsRewardCodeMessageSuccess(false)
+                setShippingRewardApplied(false)
+            }
+            if (voucherDiscountAmount > 0 && appliedVoucherCode) {
+                try {
+                    if (appliedVoucherCode === activeVoucher15Code.toUpperCase()) {
+                        localStorage.removeItem(VOUCHER_15_CODE_KEY)
+                        localStorage.removeItem(VOUCHER_15_CLAIMED_KEY)
+                        setActiveVoucher15Code("")
+                    }
+                    if (appliedVoucherCode === activeVoucher30Code.toUpperCase()) {
+                        localStorage.removeItem(VOUCHER_30_CODE_KEY)
+                        localStorage.removeItem(VOUCHER_30_CLAIMED_KEY)
+                        setActiveVoucher30Code("")
+                    }
+                } catch {
+                    // ignore storage issues
+                }
+                setVoucherDiscountAmount(0)
+                setAppliedVoucherCode("")
+                setRewardCodeInput("")
+                setRewardCodeMessage("")
+                setRewardCodeHighlight("")
+                setIsRewardCodeMessageSuccess(false)
+            }
+            setAppliedRewards([])
+            setAppliedCodeValues([])
             clearCart()
         } catch (error) {
             setCheckoutError(error instanceof Error ? error.message : "Failed to place order")
@@ -236,13 +389,57 @@ export default function CheckoutPage() {
                             </div>
 
                             <div className="flex flex-col gap-3 py-6 border-y border-border/30 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Subtotal</span>
-                                    <span className="font-bold">{totalPrice.toFixed(2)} AED</span>
+                                <div className="space-y-2 rounded-lg border border-border p-3">
+                                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Discount / Reward Code</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            list="available-reward-codes"
+                                            value={rewardCodeInput}
+                                            onChange={(event) => setRewardCodeInput(event.target.value.toUpperCase())}
+                                            placeholder={availableCodes.length > 0 ? "Enter code or choose from list" : "Enter code"}
+                                            className="h-10 flex-1 rounded-md border border-border bg-transparent px-3 text-sm outline-none"
+                                        />
+                                        <Button type="button" className="h-10" onClick={handleApplyRewardCode}>
+                                            Apply
+                                        </Button>
+                                    </div>
+                                    <datalist id="available-reward-codes">
+                                        {availableCodes.map((code) => (
+                                            <option key={code} value={code} />
+                                        ))}
+                                    </datalist>
+                                    {rewardCodeMessage && (
+                                        <p className={`text-xs ${isRewardCodeMessageSuccess ? "text-emerald-700" : "text-muted-foreground"}`}>
+                                            {rewardCodeMessage}{" "}
+                                            {rewardCodeHighlight && (
+                                                <span className="font-bold text-sm">
+                                                    {rewardCodeHighlight}
+                                                </span>
+                                            )}
+                                        </p>
+                                    )}
+                                    {appliedRewards.length > 0 && (
+                                        <p className="text-base text-emerald-700 font-bold">
+                                            Claimed rewards: {appliedRewards.join(", ")}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span className="font-bold">{discountedSubtotal.toFixed(2)} AED</span>
+                                </div>
+                                {appliedDiscount > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Voucher Discount</span>
+                                        <span className="font-bold text-emerald-700">-{appliedDiscount.toFixed(2)} AED</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between">
                                     <span className="text-muted-foreground">White-Glove Delivery</span>
-                                    <span className="text-primary font-bold uppercase tracking-tighter">Complimentary</span>
+                                    <span className="text-primary font-bold uppercase tracking-tighter">
+                                        {shippingRewardApplied ? "Free (Reward Applied)" : `${shippingCost.toFixed(2)} AED`}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">VAT (5%)</span>

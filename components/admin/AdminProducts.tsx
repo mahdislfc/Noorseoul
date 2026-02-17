@@ -40,7 +40,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 export function AdminProducts({ locale }: AdminProductsProps) {
-  const [activeTab, setActiveTab] = useState<"products" | "orders">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "orders" | "rewards">("products");
 
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -243,6 +243,16 @@ export function AdminProducts({ locale }: AdminProductsProps) {
           }`}
         >
           See Orders
+        </button>
+        <button
+          onClick={() => setActiveTab("rewards")}
+          className={`rounded-md px-4 py-2 text-sm ${
+            activeTab === "rewards"
+              ? "bg-primary text-primary-foreground"
+              : "border border-input"
+          }`}
+        >
+          Rewards
         </button>
       </div>
 
@@ -508,7 +518,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
             )}
           </section>
         </>
-      ) : (
+      ) : activeTab === "orders" ? (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Website Orders</h2>
@@ -596,6 +606,43 @@ export function AdminProducts({ locale }: AdminProductsProps) {
               ))}
             </div>
           )}
+        </section>
+      ) : (
+        <section className="space-y-6">
+          <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+            <h2 className="text-xl font-semibold">Mini Sample Kit</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Replace these frames with your final mini kit images.
+            </p>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="h-36 rounded-md border-2 border-dashed border-border/80 flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">
+                Upload Kit Image 1
+              </div>
+              <div className="h-36 rounded-md border-2 border-dashed border-border/80 flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">
+                Upload Kit Image 2
+              </div>
+              <div className="h-36 rounded-md border-2 border-dashed border-border/80 flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">
+                Upload Kit Image 3
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+            <h2 className="text-xl font-semibold">Choose Product Reward</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Set image assets for selectable reward products.
+            </p>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {["Lipstick", "Blush", "Highlighter", "Eye Shadow", "Lip Gloss", "Lip Tint"].map((label) => (
+                <div key={label} className="rounded-lg border border-border bg-secondary/10 p-4">
+                  <div className="h-28 rounded-md border-2 border-dashed border-border/80 flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">
+                    Upload Product Image
+                  </div>
+                  <p className="mt-3 text-sm font-medium">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
       )}
     </div>

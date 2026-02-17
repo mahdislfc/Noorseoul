@@ -63,6 +63,8 @@ const pointsFromOrderTotal = (amount: number) => {
     return Math.floor(amount / 10) + 1
 }
 
+const TEST_FAKE_POINTS = 350
+
 export default function DashboardPage() {
     const { user, isAuthenticated, isLoading, logout, updateProfile, orders } = useUser()
     const { addToCart } = useCart()
@@ -94,7 +96,7 @@ export default function DashboardPage() {
         }
     }, [user])
 
-    const totalPoints = orders.reduce((sum, order) => sum + pointsFromOrderTotal(order.total), 0)
+    const totalPoints = orders.reduce((sum, order) => sum + pointsFromOrderTotal(order.total), 0) + TEST_FAKE_POINTS
     const tab = searchParams.get("tab")
     const activeTab: 'overview' | 'orders' | 'profile' | 'points' =
         tab === "overview" || tab === "orders" || tab === "profile" || tab === "points"
