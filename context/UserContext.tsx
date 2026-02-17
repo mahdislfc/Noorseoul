@@ -56,28 +56,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [isLoading, setIsLoading] = useState(true)
 
-    // Mock Orders (keep for now until we have real orders)
-    const mockOrders: Order[] = [
-        {
-            id: "ORD-2024-8832",
-            date: "Feb 15, 2026",
-            status: "Processing",
-            total: 220.00,
-            items: [
-                { id: "101", name: "Golden Glow Serum", price: 125.00, quantity: 1, image: "https://lh3.googleusercontent.com/aida-public/AB6AXuD3R2ud4Nj_1LxdIJtcOd1aJsWtwdJns-JV0Msc2_NpPmzaeAY_c24WYNL4JkLAqsLyUq_k8bWyVQNR2gz7P2bYVuqNZMJ63ba6mj9ImRnyc73_84c4gOtNu4zDFKQbflTYgfmzTvaeOtXbNEyrSzGzLkPFBjzXHHCyqxrz3OhqWGr02xH7fj0WYZa5RbnMhSzbb1dUi6ZeabGBWHYDstT5jwh72crpAyXxpygr45CEidkYHcvuewgbmpedoDGFmNsmNzP_byhmONj2" },
-                { id: "102", name: "Desert Rose Night Cream", price: 95.00, quantity: 1, image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAqGUIo14DcvxBQFtGlrY3dyFH2lmS4pRAcLXVRg6azH5Zbj2qzMgVr1iduzHltOasg3hu4E0VFNBy4d__kWiIwhvUr7jkOAq0F8dofJ9BnqfG-gmYgLryi52A32Os3EAphnyE6dxGe0HBzqjIGGi4-uLWYkLGWfXjB9FpMydTkiBlUBO6-QvQp0zur8Lg0WmXRyDAwqHgfARD6TRi030fRMkv_fKYsvbXs1qfqRT9Wdk67M2IC78B028qgb72NFArKExozNH87j-zK" }
-            ]
-        },
-        {
-            id: "ORD-2023-1029",
-            date: "Dec 10, 2025",
-            status: "Delivered",
-            total: 148.00,
-            items: [
-                { id: "103", name: "Saffron Infused Elixir", price: 148.00, quantity: 1, image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCs58z3qMdhg5XkQdC30LCflMoZAhqSPkCeZcjpBtM0HsSJjaz38I2Xd5HiJQoQiP_OCgwFdDqK2uK9kEvDpcY-9zs9lCClwWAAZB8TmXlRbsLd4sBRNdKyw9eKGg_MHONSrhvWUsH0vmxuufaKGns08qe3doYS3oYKhLrlNjH5EknBx38RPhZhIitgqIgiR21GVRFOLK0v9QsZqDWLR3UAdC8btulF94s_4KIMy1TCDqTUjpnjBUib1Ivmhix7ek7bNDOH48RZiiuu" }
-            ]
-        }
-    ]
+    // Start with no orders; points remain zero until real orders exist.
+    const mockOrders: Order[] = []
     const orders = user ? mockOrders : []
 
 
@@ -216,24 +196,32 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         if (!user) return { success: false, error: "No user authenticated" }
 
         try {
-            const supabase = createClient()
-            const { data: { session } } = await supabase.auth.getSession()
-            if (!session?.user) return { success: false, error: "Session expired" }
-
-            const updates: ProfileRow = {
+            const payload: ProfileRow = {
                 firstName: data.firstName ?? user.firstName,
                 lastName: data.lastName ?? user.lastName,
                 phone: data.phone ?? user.phone,
                 address: data.address ?? user.address,
-                city: data.city ?? user.city,
+                city: data.city ?? user.city
+            }
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort("Profile update timed out"), 30000)
+
+            let response: Response
+            try {
+                response = await fetch('/api/profile', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                })
+            } finally {
+                clearTimeout(timeoutId)
             }
 
-            const { error } = await supabase
-                .from('Profile')
-                .update(updates)
-                .eq('id', session.user.id)
-
-            if (error) throw error
+            if (!response.ok) {
+                const result = await response.json().catch(() => ({ error: "Failed to update profile" }))
+                throw new Error(result.error || "Failed to update profile")
+            }
 
             // Update local state
             const updatedUser = { ...user, ...data }
@@ -246,9 +234,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             setUser(updatedUser)
 
             return { success: true }
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error updating profile:", error)
-            return { success: false, error: error.message }
+            const message = error instanceof Error ? error.message : "Failed to update profile"
+            return { success: false, error: message }
         }
     }
 

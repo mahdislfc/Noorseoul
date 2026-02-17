@@ -7,10 +7,61 @@ import { usePathname, useRouter } from "@/i18n/routing"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/layout/Footer"
-import { Package, User as UserIcon, Bell, LogOut, RefreshCw, Star, ReceiptText } from "lucide-react"
+import { Package, User as UserIcon, Bell, LogOut, RefreshCw, Star, ReceiptText, ChevronDown } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+
+const PHONE_COUNTRIES = [
+    { code: "+82", flag: "🇰🇷", label: "South Korea" },
+    { code: "+971", flag: "🇦🇪", label: "UAE" },
+    { code: "+966", flag: "🇸🇦", label: "Saudi Arabia" },
+    { code: "+965", flag: "🇰🇼", label: "Kuwait" },
+    { code: "+973", flag: "🇧🇭", label: "Bahrain" },
+    { code: "+968", flag: "🇴🇲", label: "Oman" },
+    { code: "+974", flag: "🇶🇦", label: "Qatar" },
+    { code: "+1", flag: "🇺🇸", label: "United States" },
+    { code: "+44", flag: "🇬🇧", label: "United Kingdom" },
+    { code: "+81", flag: "🇯🇵", label: "Japan" }
+] as const
+
+const DEFAULT_PHONE_COUNTRY = PHONE_COUNTRIES[0]
+const splitPhone = (rawPhone: string) => {
+    const value = rawPhone.trim()
+    const matchingCountry = PHONE_COUNTRIES.find((country) => value.startsWith(country.code))
+
+    if (matchingCountry) {
+        return {
+            countryCode: matchingCountry.code,
+            phoneNumber: value.slice(matchingCountry.code.length).trim()
+        }
+    }
+
+    const match = value.match(/^(\+\d{1,4})\s*(.*)$/)
+    if (match) {
+        return {
+            countryCode: match[1],
+            phoneNumber: match[2] || ""
+        }
+    }
+
+    return {
+        countryCode: DEFAULT_PHONE_COUNTRY.code,
+        phoneNumber: value
+    }
+}
+
+const normalizeCountryCode = (rawCode: string) => {
+    const digits = rawCode.replace(/\D/g, "").slice(0, 4)
+    return digits ? `+${digits}` : ""
+}
+
+const pointsFromOrderTotal = (amount: number) => {
+    if (amount <= 0) return 0
+    if (amount <= 10) return 1
+    if (amount <= 19) return 2
+    return Math.floor(amount / 10) + 1
+}
 
 export default function DashboardPage() {
     const { user, isAuthenticated, isLoading, logout, updateProfile, orders } = useUser()
@@ -26,7 +77,10 @@ export default function DashboardPage() {
     const [firstName, setFirstName] = useState(user?.firstName || "")
     const [lastName, setLastName] = useState(user?.lastName || "")
     const [address, setAddress] = useState(user?.address || "")
-    const [phone, setPhone] = useState(user?.phone || "")
+    const initialPhone = splitPhone(user?.phone || "")
+    const [countryCode, setCountryCode] = useState(initialPhone.countryCode)
+    const [phoneNumber, setPhoneNumber] = useState(initialPhone.phoneNumber)
+    const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
 
     // Initialize states when user data is available
     useEffect(() => {
@@ -34,12 +88,13 @@ export default function DashboardPage() {
             setFirstName(user.firstName)
             setLastName(user.lastName)
             setAddress(user.address)
-            setPhone(user.phone)
+            const parsedPhone = splitPhone(user.phone || "")
+            setCountryCode(parsedPhone.countryCode)
+            setPhoneNumber(parsedPhone.phoneNumber)
         }
     }, [user])
 
-    const totalPoints = Math.floor(orders.reduce((sum, order) => sum + order.total, 0))
-    const pointsToNextReward = Math.max(0, 500 - (totalPoints % 500))
+    const totalPoints = orders.reduce((sum, order) => sum + pointsFromOrderTotal(order.total), 0)
     const tab = searchParams.get("tab")
     const activeTab: 'overview' | 'orders' | 'profile' | 'points' =
         tab === "overview" || tab === "orders" || tab === "profile" || tab === "points"
@@ -89,11 +144,14 @@ export default function DashboardPage() {
         setIsUpdating(true)
 
         try {
+            const normalizedPhoneNumber = phoneNumber.trim()
+            const effectiveCountryCode = countryCode || DEFAULT_PHONE_COUNTRY.code
+            const fullPhone = normalizedPhoneNumber ? `${effectiveCountryCode} ${normalizedPhoneNumber}` : ""
             const result = await updateProfile({
                 firstName,
                 lastName,
                 address,
-                phone
+                phone: fullPhone
             })
 
             if (result.success) {
@@ -107,6 +165,14 @@ export default function DashboardPage() {
             setIsUpdating(false)
         }
     }
+
+    const selectedCountry =
+        PHONE_COUNTRIES.find((country) => country.code === countryCode)
+        || PHONE_COUNTRIES.find((country) => countryCode.startsWith(country.code))
+        || DEFAULT_PHONE_COUNTRY
+    const filteredCountries = PHONE_COUNTRIES.filter((country) =>
+        country.code.includes(countryCode) || country.label.toLowerCase().includes(countryCode.toLowerCase())
+    )
 
     return (
         <div className="min-h-screen bg-background font-sans flex flex-col">
@@ -205,7 +271,7 @@ export default function DashboardPage() {
                                                     </p>
                                                 </div>
                                                 <p className="col-span-4 text-right font-bold text-pink-500 group-hover:text-pink-600">
-                                                    +{Math.floor(order.total)}
+                                                    +{pointsFromOrderTotal(order.total)}
                                                 </p>
                                             </button>
                                         ))}
@@ -354,15 +420,67 @@ export default function DashboardPage() {
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-xs font-bold uppercase tracking-widest">Phone Number</label>
-                                                <input
-                                                    value={phone}
-                                                    onChange={e => setPhone(e.target.value)}
-                                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Default City</label>
-                                                <input disabled value={user?.city} className="w-full h-12 rounded-lg border border-border bg-secondary/10 px-4 text-muted-foreground cursor-not-allowed" />
+                                                <div className="flex gap-2">
+                                                    <div className="relative w-36">
+                                                        <div className="h-12 rounded-lg border border-border bg-transparent px-3 flex items-center gap-2">
+                                                        <span className="text-lg" aria-hidden>{selectedCountry.flag}</span>
+                                                        <input
+                                                            type="tel"
+                                                            inputMode="numeric"
+                                                            value={countryCode}
+                                                            onChange={e => {
+                                                                setCountryCode(normalizeCountryCode(e.target.value))
+                                                                setIsCountryDropdownOpen(true)
+                                                            }}
+                                                            onFocus={() => setIsCountryDropdownOpen(true)}
+                                                            onBlur={() => {
+                                                                setTimeout(() => setIsCountryDropdownOpen(false), 100)
+                                                                if (!countryCode) {
+                                                                    setCountryCode(DEFAULT_PHONE_COUNTRY.code)
+                                                                }
+                                                            }}
+                                                            placeholder="+82"
+                                                            className="w-full bg-transparent outline-none text-sm font-medium"
+                                                            aria-label="Country code"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsCountryDropdownOpen((prev) => !prev)}
+                                                            className="text-muted-foreground"
+                                                            aria-label="Toggle country code options"
+                                                        >
+                                                            <ChevronDown className="w-4 h-4" />
+                                                        </button>
+                                                        </div>
+                                                        {isCountryDropdownOpen && (
+                                                            <div className="absolute z-30 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-border bg-background shadow-lg">
+                                                                {filteredCountries.map((country) => (
+                                                                    <button
+                                                                        key={country.code}
+                                                                        type="button"
+                                                                        onMouseDown={(event) => {
+                                                                            event.preventDefault()
+                                                                            setCountryCode(country.code)
+                                                                            setIsCountryDropdownOpen(false)
+                                                                        }}
+                                                                        className="w-full px-3 py-2 text-left text-sm hover:bg-secondary/50 flex items-center gap-2"
+                                                                    >
+                                                                        <span className="text-base" aria-hidden>{country.flag}</span>
+                                                                        <span>{country.code}</span>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <input
+                                                        type="tel"
+                                                        inputMode="numeric"
+                                                        value={phoneNumber}
+                                                        onChange={e => setPhoneNumber(e.target.value)}
+                                                        placeholder="Rest of phone number"
+                                                        className="flex-1 h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
+                                                    />
+                                                </div>
                                             </div>
                                             <div className="md:col-span-2 space-y-2">
                                                 <label className="text-xs font-bold uppercase tracking-widest">Shipping Address</label>
@@ -392,8 +510,14 @@ export default function DashboardPage() {
                                             <p className="text-4xl font-bold">{totalPoints}</p>
                                         </div>
                                         <div className="rounded-xl border border-border p-6 bg-secondary/10">
-                                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Next Reward In</p>
-                                            <p className="text-4xl font-bold">{pointsToNextReward}</p>
+                                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Claim Reward</p>
+                                            <Button
+                                                type="button"
+                                                onClick={() => router.push('/rewards')}
+                                                className="mt-2"
+                                            >
+                                                View Rewards
+                                            </Button>
                                         </div>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-6">
