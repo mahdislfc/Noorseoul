@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react"
 import { Footer } from "@/components/layout/Footer"
 import { useCart } from "@/context/CartContext"
+import { useUser } from "@/context/UserContext"
 import { ChevronRight, CreditCard, Lock, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ export default function CheckoutPage() {
     const locale = useLocale();
     const isRtl = locale === 'ar';
     const { items, totalPrice, clearCart } = useCart()
+    const { user } = useUser()
     const [activeStep, setActiveStep] = useState(1)
     const [email, setEmail] = useState("")
     const [firstName, setFirstName] = useState("")
@@ -41,7 +43,10 @@ export default function CheckoutPage() {
     const VOUCHER_15_CLAIMED_KEY = "reward_voucher_15_claimed"
     const VOUCHER_30_CODE_KEY = "reward_voucher_30_code"
     const VOUCHER_30_CLAIMED_KEY = "reward_voucher_30_claimed"
+    const CLAIMED_REWARDS_KEY = "reward_claimed_rewards"
     const BASE_SHIPPING_COST = 20
+    const userKey = user?.email?.toLowerCase() || "guest"
+    const storageKey = (baseKey: string) => `${baseKey}:${userKey}`
 
     const shippingCost = shippingRewardApplied ? 0 : BASE_SHIPPING_COST
     const appliedDiscount = Math.min(voucherDiscountAmount, totalPrice)
@@ -51,34 +56,74 @@ export default function CheckoutPage() {
 
     useEffect(() => {
         try {
-            const shippingCode = localStorage.getItem(FREE_SHIPPING_CODE_KEY)
-            const shippingClaimed = localStorage.getItem(FREE_SHIPPING_CLAIMED_KEY) === "true"
+            const key = (baseKey: string) => `${baseKey}:${userKey}`
+
+            // Clean legacy global keys from the old reward system.
+            localStorage.removeItem(FREE_SHIPPING_CODE_KEY)
+            localStorage.removeItem(FREE_SHIPPING_CLAIMED_KEY)
+            localStorage.removeItem(VOUCHER_15_CODE_KEY)
+            localStorage.removeItem(VOUCHER_15_CLAIMED_KEY)
+            localStorage.removeItem(VOUCHER_30_CODE_KEY)
+            localStorage.removeItem(VOUCHER_30_CLAIMED_KEY)
+
+            const shippingCode = localStorage.getItem(key(FREE_SHIPPING_CODE_KEY))
+            const shippingClaimed = localStorage.getItem(key(FREE_SHIPPING_CLAIMED_KEY)) === "true"
             if (shippingCode && shippingClaimed) {
                 setActiveFreeShippingCode(shippingCode)
+            } else {
+                setActiveFreeShippingCode("")
             }
 
-            const voucher15Code = localStorage.getItem(VOUCHER_15_CODE_KEY)
-            const voucher15Claimed = localStorage.getItem(VOUCHER_15_CLAIMED_KEY) === "true"
+            const voucher15Code = localStorage.getItem(key(VOUCHER_15_CODE_KEY))
+            const voucher15Claimed = localStorage.getItem(key(VOUCHER_15_CLAIMED_KEY)) === "true"
             if (voucher15Code && voucher15Claimed) {
                 setActiveVoucher15Code(voucher15Code)
+            } else {
+                setActiveVoucher15Code("")
             }
 
-            const voucher30Code = localStorage.getItem(VOUCHER_30_CODE_KEY)
-            const voucher30Claimed = localStorage.getItem(VOUCHER_30_CLAIMED_KEY) === "true"
+            const voucher30Code = localStorage.getItem(key(VOUCHER_30_CODE_KEY))
+            const voucher30Claimed = localStorage.getItem(key(VOUCHER_30_CLAIMED_KEY)) === "true"
             if (voucher30Code && voucher30Claimed) {
                 setActiveVoucher30Code(voucher30Code)
+            } else {
+                setActiveVoucher30Code("")
             }
         } catch {
             // ignore storage issues
         }
-    }, [])
+    }, [userKey])
 
     const handleApplyRewardCode = (codeToApply?: string | unknown) => {
         const rawInput = typeof codeToApply === "string" ? codeToApply : rewardCodeInput
         const normalizedInput = rawInput.trim().toUpperCase()
-        const normalizedShippingCode = activeFreeShippingCode.trim().toUpperCase()
-        const normalizedVoucher15Code = activeVoucher15Code.trim().toUpperCase()
-        const normalizedVoucher30Code = activeVoucher30Code.trim().toUpperCase()
+        let latestShippingCode = activeFreeShippingCode
+        let latestVoucher15Code = activeVoucher15Code
+        let latestVoucher30Code = activeVoucher30Code
+
+        try {
+            const shippingCode = localStorage.getItem(storageKey(FREE_SHIPPING_CODE_KEY))
+            const shippingClaimed = localStorage.getItem(storageKey(FREE_SHIPPING_CLAIMED_KEY)) === "true"
+            latestShippingCode = shippingCode && shippingClaimed ? shippingCode : ""
+
+            const voucher15Code = localStorage.getItem(storageKey(VOUCHER_15_CODE_KEY))
+            const voucher15Claimed = localStorage.getItem(storageKey(VOUCHER_15_CLAIMED_KEY)) === "true"
+            latestVoucher15Code = voucher15Code && voucher15Claimed ? voucher15Code : ""
+
+            const voucher30Code = localStorage.getItem(storageKey(VOUCHER_30_CODE_KEY))
+            const voucher30Claimed = localStorage.getItem(storageKey(VOUCHER_30_CLAIMED_KEY)) === "true"
+            latestVoucher30Code = voucher30Code && voucher30Claimed ? voucher30Code : ""
+
+            setActiveFreeShippingCode(latestShippingCode)
+            setActiveVoucher15Code(latestVoucher15Code)
+            setActiveVoucher30Code(latestVoucher30Code)
+        } catch {
+            // ignore storage issues
+        }
+
+        const normalizedShippingCode = latestShippingCode.trim().toUpperCase()
+        const normalizedVoucher15Code = latestVoucher15Code.trim().toUpperCase()
+        const normalizedVoucher30Code = latestVoucher30Code.trim().toUpperCase()
 
         if (!normalizedInput) {
             setRewardCodeMessage("Please enter a reward code.")
@@ -142,6 +187,19 @@ export default function CheckoutPage() {
         .map((code) => code.trim().toUpperCase())
         .filter((code) => Boolean(code) && !appliedCodeValues.includes(code))
 
+    const clearClaimedReward = (rewardId: "shipping" | "voucher15" | "voucher30") => {
+        try {
+            const raw = localStorage.getItem(storageKey(CLAIMED_REWARDS_KEY))
+            if (!raw) return
+            const parsed = JSON.parse(raw) as Record<string, boolean>
+            if (!parsed[rewardId]) return
+            delete parsed[rewardId]
+            localStorage.setItem(storageKey(CLAIMED_REWARDS_KEY), JSON.stringify(parsed))
+        } catch {
+            // ignore storage issues
+        }
+    }
+
     const handleCompletePurchase = async () => {
         setCheckoutError("")
         setSuccessOrderNumber("")
@@ -181,8 +239,9 @@ export default function CheckoutPage() {
             setSuccessOrderNumber(data?.order?.orderNumber || "")
             if (shippingRewardApplied && activeFreeShippingCode) {
                 try {
-                    localStorage.removeItem(FREE_SHIPPING_CODE_KEY)
-                    localStorage.removeItem(FREE_SHIPPING_CLAIMED_KEY)
+                    localStorage.removeItem(storageKey(FREE_SHIPPING_CODE_KEY))
+                    localStorage.removeItem(storageKey(FREE_SHIPPING_CLAIMED_KEY))
+                    clearClaimedReward("shipping")
                 } catch {
                     // ignore storage issues
                 }
@@ -196,13 +255,15 @@ export default function CheckoutPage() {
             if (voucherDiscountAmount > 0 && appliedVoucherCode) {
                 try {
                     if (appliedVoucherCode === activeVoucher15Code.toUpperCase()) {
-                        localStorage.removeItem(VOUCHER_15_CODE_KEY)
-                        localStorage.removeItem(VOUCHER_15_CLAIMED_KEY)
+                        localStorage.removeItem(storageKey(VOUCHER_15_CODE_KEY))
+                        localStorage.removeItem(storageKey(VOUCHER_15_CLAIMED_KEY))
+                        clearClaimedReward("voucher15")
                         setActiveVoucher15Code("")
                     }
                     if (appliedVoucherCode === activeVoucher30Code.toUpperCase()) {
-                        localStorage.removeItem(VOUCHER_30_CODE_KEY)
-                        localStorage.removeItem(VOUCHER_30_CLAIMED_KEY)
+                        localStorage.removeItem(storageKey(VOUCHER_30_CODE_KEY))
+                        localStorage.removeItem(storageKey(VOUCHER_30_CLAIMED_KEY))
+                        clearClaimedReward("voucher30")
                         setActiveVoucher30Code("")
                     }
                 } catch {

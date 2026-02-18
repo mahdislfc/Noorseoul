@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/utils/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,45 @@ function createOrderNumber() {
   const stamp = Date.now().toString().slice(-8);
   const suffix = Math.floor(100 + Math.random() * 900);
   return `NS-${stamp}-${suffix}`;
+}
+
+function mapOrderStatus(status: string): "Processing" | "Shipped" | "Delivered" {
+  if (status === "SHIPPED") return "Shipped";
+  if (status === "DELIVERED") return "Delivered";
+  return "Processing";
+}
+
+export async function GET() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const orders = await prisma.order.findMany({
+    where: { customerEmail: user.email },
+    orderBy: { createdAt: "desc" },
+    include: { items: true },
+  });
+
+  return NextResponse.json({
+    orders: orders.map((order) => ({
+      id: order.id,
+      date: order.createdAt.toISOString(),
+      status: mapOrderStatus(order.status),
+      total: order.total,
+      items: order.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+      })),
+    })),
+  });
 }
 
 export async function POST(request: Request) {

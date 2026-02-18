@@ -15,8 +15,6 @@ const pointsFromOrderTotal = (amount: number) => {
     return Math.floor(amount / 10) + 1
 }
 
-const TEST_FAKE_POINTS = 350
-
 const REWARD_OPTIONS = [
     { id: "sample-kit", points: 50, title: "Mini Sample Skincare Kit", description: "Redeem a mini skincare sample kit." },
     {
@@ -36,11 +34,27 @@ const VOUCHER_15_CODE_KEY = "reward_voucher_15_code"
 const VOUCHER_15_CLAIMED_KEY = "reward_voucher_15_claimed"
 const VOUCHER_30_CODE_KEY = "reward_voucher_30_code"
 const VOUCHER_30_CLAIMED_KEY = "reward_voucher_30_claimed"
+const SPENT_POINTS_KEY = "reward_spent_points"
+const CLAIMED_REWARDS_KEY = "reward_claimed_rewards"
+const CHOOSE_PRODUCT_SELECTED_KEY = "reward_choose_product_selected"
+const TEST_BONUS_POINTS = 750
+const REWARD_COST: Record<string, number> = {
+    "choose-product": 75,
+    shipping: 100,
+    voucher15: 150,
+    voucher30: 300,
+}
 
 export default function RewardsPage() {
-    const { orders } = useUser()
+    const { user, orders } = useUser()
     const router = useRouter()
-    const totalPoints = orders.reduce((sum, order) => sum + pointsFromOrderTotal(order.total), 0) + TEST_FAKE_POINTS
+    const completedOrders = orders.filter((order) => order.status === "Delivered")
+    const earnedPoints = completedOrders.reduce(
+        (sum, order) => sum + pointsFromOrderTotal(order.total),
+        0
+    )
+    const [spentPoints, setSpentPoints] = useState(0)
+    const totalPoints = Math.max(0, earnedPoints + TEST_BONUS_POINTS - spentPoints)
     const [isMiniKitOpen, setIsMiniKitOpen] = useState(false)
     const [isChooseProductOpen, setIsChooseProductOpen] = useState(false)
     const [isConfirmChoiceOpen, setIsConfirmChoiceOpen] = useState(false)
@@ -58,12 +72,17 @@ export default function RewardsPage() {
     const [voucher30Code, setVoucher30Code] = useState("")
     const [isVoucher15Claimed, setIsVoucher15Claimed] = useState(false)
     const [isVoucher30Claimed, setIsVoucher30Claimed] = useState(false)
+    const [claimedRewards, setClaimedRewards] = useState<Record<string, boolean>>({})
     const [copiedCode, setCopiedCode] = useState("")
+    const userKey = user?.email?.toLowerCase() || "guest"
+    const storageKey = (baseKey: string) => `${baseKey}:${userKey}`
     const chooseProductReward = REWARD_OPTIONS.find((reward) => reward.id === "choose-product")
-    const canSelectChooseProduct = totalPoints >= (chooseProductReward?.points ?? 75)
-    const effectiveSelectedRewardProduct = canSelectChooseProduct ? selectedRewardProduct : null
+    const hasClaimedChooseProduct = Boolean(claimedRewards["choose-product"])
+    const canSelectChooseProduct = hasClaimedChooseProduct || totalPoints >= (chooseProductReward?.points ?? 75)
+    const effectiveSelectedRewardProduct = selectedRewardProduct
     const requestProductSelection = (productName: string) => {
         if (!canSelectChooseProduct) return
+        if (hasClaimedChooseProduct) return
         if (effectiveSelectedRewardProduct === productName) return
         setPendingRewardProduct(productName)
         setIsConfirmChoiceOpen(true)
@@ -71,30 +90,83 @@ export default function RewardsPage() {
 
     useEffect(() => {
         try {
-            const stored = localStorage.getItem(FREE_SHIPPING_CODE_KEY)
-            const claimed = localStorage.getItem(FREE_SHIPPING_CLAIMED_KEY) === "true"
-            if (stored && claimed) {
-                setFreeShippingCode(stored)
-                setIsFreeShippingClaimed(true)
+            const keyPrefix = `:${userKey}`
+            const key = (baseKey: string) => `${baseKey}${keyPrefix}`
+
+            const stored = localStorage.getItem(key(FREE_SHIPPING_CODE_KEY))
+            const claimed = localStorage.getItem(key(FREE_SHIPPING_CLAIMED_KEY)) === "true"
+            const voucher15Stored = localStorage.getItem(key(VOUCHER_15_CODE_KEY))
+            const voucher15Claimed = localStorage.getItem(key(VOUCHER_15_CLAIMED_KEY)) === "true"
+            const voucher30Stored = localStorage.getItem(key(VOUCHER_30_CODE_KEY))
+            const voucher30Claimed = localStorage.getItem(key(VOUCHER_30_CLAIMED_KEY)) === "true"
+            const selectedProduct = localStorage.getItem(key(CHOOSE_PRODUCT_SELECTED_KEY))
+            const storedSpentPoints = Number(localStorage.getItem(key(SPENT_POINTS_KEY)) || "0")
+            let nextSpentPoints = Number.isFinite(storedSpentPoints) ? Math.max(0, storedSpentPoints) : 0
+
+            const storedClaimedRewards = localStorage.getItem(key(CLAIMED_REWARDS_KEY))
+            let claimedMap: Record<string, boolean> = {}
+            if (storedClaimedRewards) {
+                const parsed = JSON.parse(storedClaimedRewards) as Record<string, boolean>
+                claimedMap = parsed
             }
 
-            const voucher15Stored = localStorage.getItem(VOUCHER_15_CODE_KEY)
-            const voucher15Claimed = localStorage.getItem(VOUCHER_15_CLAIMED_KEY) === "true"
-            if (voucher15Stored && voucher15Claimed) {
-                setVoucher15Code(voucher15Stored)
-                setIsVoucher15Claimed(true)
+            if (selectedProduct) claimedMap["choose-product"] = true
+
+            if (claimed) claimedMap.shipping = true
+            if (voucher15Claimed) claimedMap.voucher15 = true
+            if (voucher30Claimed) claimedMap.voucher30 = true
+
+            const minimumSpentFromClaims = Object.entries(claimedMap).reduce((sum, [rewardId, isClaimed]) => {
+                if (!isClaimed) return sum
+                return sum + (REWARD_COST[rewardId] || 0)
+            }, 0)
+
+            if (nextSpentPoints < minimumSpentFromClaims) {
+                nextSpentPoints = minimumSpentFromClaims
+                localStorage.setItem(key(SPENT_POINTS_KEY), String(nextSpentPoints))
             }
 
-            const voucher30Stored = localStorage.getItem(VOUCHER_30_CODE_KEY)
-            const voucher30Claimed = localStorage.getItem(VOUCHER_30_CLAIMED_KEY) === "true"
-            if (voucher30Stored && voucher30Claimed) {
-                setVoucher30Code(voucher30Stored)
-                setIsVoucher30Claimed(true)
-            }
+            localStorage.setItem(key(CLAIMED_REWARDS_KEY), JSON.stringify(claimedMap))
+
+            queueMicrotask(() => {
+                setFreeShippingCode(stored && claimed ? stored : "")
+                setIsFreeShippingClaimed(claimed)
+                setVoucher15Code(voucher15Stored && voucher15Claimed ? voucher15Stored : "")
+                setIsVoucher15Claimed(voucher15Claimed)
+                setVoucher30Code(voucher30Stored && voucher30Claimed ? voucher30Stored : "")
+                setIsVoucher30Claimed(voucher30Claimed)
+                setSelectedRewardProduct(selectedProduct || null)
+                setSpentPoints(nextSpentPoints)
+                setClaimedRewards(claimedMap)
+            })
         } catch {
             // ignore storage issues
         }
-    }, [])
+    }, [userKey])
+
+    const hasClaimedReward = (rewardId: string) => Boolean(claimedRewards[rewardId])
+
+    const persistClaimedReward = (rewardId: string) => {
+        try {
+            const next = { ...claimedRewards, [rewardId]: true }
+            setClaimedRewards(next)
+            localStorage.setItem(storageKey(CLAIMED_REWARDS_KEY), JSON.stringify(next))
+        } catch {
+            // ignore storage issues
+        }
+    }
+
+    const spendPoints = (requiredPoints: number) => {
+        if (totalPoints < requiredPoints) return false
+        const nextSpentPoints = spentPoints + requiredPoints
+        setSpentPoints(nextSpentPoints)
+        try {
+            localStorage.setItem(storageKey(SPENT_POINTS_KEY), String(nextSpentPoints))
+        } catch {
+            // ignore storage issues
+        }
+        return true
+    }
 
     const generateFreeShippingCode = () => {
         const suffix = Math.random().toString(36).slice(2, 8).toUpperCase()
@@ -107,20 +179,25 @@ export default function RewardsPage() {
 
     const handleClaimFreeShipping = (canClaim: boolean) => {
         if (!canClaim) return
+        const wasClaimed = hasClaimedReward("shipping")
+        if (!wasClaimed && !spendPoints(100)) return
         setIsConfirmFreeShippingOpen(false)
         let code = freeShippingCode
         if (!code) {
             code = generateFreeShippingCode()
             setFreeShippingCode(code)
             try {
-                localStorage.setItem(FREE_SHIPPING_CODE_KEY, code)
+                localStorage.setItem(storageKey(FREE_SHIPPING_CODE_KEY), code)
             } catch {
                 // ignore storage issues
             }
         }
         setIsFreeShippingClaimed(true)
         try {
-            localStorage.setItem(FREE_SHIPPING_CLAIMED_KEY, "true")
+            localStorage.setItem(storageKey(FREE_SHIPPING_CLAIMED_KEY), "true")
+            if (!wasClaimed) {
+                persistClaimedReward("shipping")
+            }
         } catch {
             // ignore storage issues
         }
@@ -129,6 +206,9 @@ export default function RewardsPage() {
 
     const handleClaimVoucher = (voucherId: "voucher15" | "voucher30", canClaim: boolean) => {
         if (!canClaim) return
+        const voucherCost = voucherId === "voucher30" ? 300 : 150
+        const wasClaimed = hasClaimedReward(voucherId)
+        if (!wasClaimed && !spendPoints(voucherCost)) return
         setIsConfirmVoucherOpen(false)
         setClaimedVoucherId(voucherId)
 
@@ -138,14 +218,17 @@ export default function RewardsPage() {
                 code = generateVoucherCode(15)
                 setVoucher15Code(code)
                 try {
-                    localStorage.setItem(VOUCHER_15_CODE_KEY, code)
+                    localStorage.setItem(storageKey(VOUCHER_15_CODE_KEY), code)
                 } catch {
                     // ignore storage issues
                 }
             }
             setIsVoucher15Claimed(true)
             try {
-                localStorage.setItem(VOUCHER_15_CLAIMED_KEY, "true")
+                localStorage.setItem(storageKey(VOUCHER_15_CLAIMED_KEY), "true")
+                if (!wasClaimed) {
+                    persistClaimedReward("voucher15")
+                }
             } catch {
                 // ignore storage issues
             }
@@ -157,14 +240,17 @@ export default function RewardsPage() {
                 code = generateVoucherCode(30)
                 setVoucher30Code(code)
                 try {
-                    localStorage.setItem(VOUCHER_30_CODE_KEY, code)
+                    localStorage.setItem(storageKey(VOUCHER_30_CODE_KEY), code)
                 } catch {
                     // ignore storage issues
                 }
             }
             setIsVoucher30Claimed(true)
             try {
-                localStorage.setItem(VOUCHER_30_CLAIMED_KEY, "true")
+                localStorage.setItem(storageKey(VOUCHER_30_CLAIMED_KEY), "true")
+                if (!wasClaimed) {
+                    persistClaimedReward("voucher30")
+                }
             } catch {
                 // ignore storage issues
             }
@@ -200,7 +286,8 @@ export default function RewardsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {REWARD_OPTIONS.map((reward) => {
-                            const canClaim = totalPoints >= reward.points
+                            const rewardClaimed = hasClaimedReward(reward.id)
+                            const canClaim = rewardClaimed || totalPoints >= reward.points
                             return (
                                 <div
                                     key={reward.id}
@@ -238,19 +325,24 @@ export default function RewardsPage() {
                                             }`}
                                         onClick={() => {
                                             if (reward.id === "shipping") {
-                                                if (canClaim) {
+                                                if (rewardClaimed) {
+                                                    setIsFreeShippingOpen(true)
+                                                } else if (canClaim) {
                                                     setIsConfirmFreeShippingOpen(true)
                                                 }
                                             }
                                             if (reward.id === "voucher15" || reward.id === "voucher30") {
-                                                if (canClaim) {
+                                                if (rewardClaimed) {
+                                                    setClaimedVoucherId(reward.id)
+                                                    setIsVoucherOpen(true)
+                                                } else if (canClaim) {
                                                     setPendingVoucherId(reward.id)
                                                     setIsConfirmVoucherOpen(true)
                                                 }
                                             }
                                         }}
                                     >
-                                        {canClaim ? "Claim Reward" : "Not enough points"}
+                                        {rewardClaimed ? "Already claimed" : canClaim ? "Claim Reward" : "Not enough points"}
                                     </Button>
                                     {reward.id === "shipping" && isFreeShippingClaimed && freeShippingCode && (
                                         <div className="mt-4 rounded-lg border border-[#D4AF37] bg-[#D4AF37]/20 p-3">
@@ -379,7 +471,21 @@ export default function RewardsPage() {
                             className="h-12 bg-[#D4AF37] text-black hover:bg-[#c39f2f]"
                             onClick={() => {
                                 if (pendingRewardProduct) {
+                                    const wasClaimed = hasClaimedReward("choose-product")
+                                    if (!wasClaimed && !spendPoints(chooseProductReward?.points ?? 75)) {
+                                        setIsConfirmChoiceOpen(false)
+                                        setPendingRewardProduct(null)
+                                        return
+                                    }
                                     setSelectedRewardProduct(pendingRewardProduct)
+                                    try {
+                                        localStorage.setItem(storageKey(CHOOSE_PRODUCT_SELECTED_KEY), pendingRewardProduct)
+                                        if (!wasClaimed) {
+                                            persistClaimedReward("choose-product")
+                                        }
+                                    } catch {
+                                        // ignore storage issues
+                                    }
                                 }
                                 setIsConfirmChoiceOpen(false)
                                 setPendingRewardProduct(null)

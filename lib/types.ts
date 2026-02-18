@@ -53,3 +53,12 @@ export interface AdminOrder {
   updatedAt: string;
   items: AdminOrderItem[];
 }
+
+export interface RequestedProduct {
+  id: string;
+  name: string;
+  image: string;
+  note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

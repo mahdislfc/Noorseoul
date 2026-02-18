@@ -54,11 +54,8 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
+    const [orders, setOrders] = useState<Order[]>([])
     const [isLoading, setIsLoading] = useState(true)
-
-    // Start with no orders; points remain zero until real orders exist.
-    const mockOrders: Order[] = []
-    const orders = user ? mockOrders : []
 
 
     useEffect(() => {
@@ -81,6 +78,31 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             } catch (err) {
                 console.error("Error fetching profile:", err)
                 return null
+            }
+        }
+
+        const fetchOrders = async () => {
+            try {
+                const response = await fetch("/api/orders", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
+                })
+
+                if (!response.ok) {
+                    return []
+                }
+
+                const result = await response.json()
+                const incoming = Array.isArray(result?.orders) ? result.orders : []
+                return incoming.map((order) => ({
+                    ...order,
+                    date: order?.date
+                        ? new Date(order.date).toLocaleDateString()
+                        : "",
+                })) as Order[]
+            } catch (err) {
+                console.error("Error fetching orders:", err)
+                return []
             }
         }
 
@@ -116,14 +138,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                     const initialUser = buildUser(session)
                     setUser(initialUser)
 
-                    const profile = await fetchProfile()
+                    const [profile, userOrders] = await Promise.all([
+                        fetchProfile(),
+                        fetchOrders()
+                    ])
                     if (!isMounted) return
 
                     const fullUser = buildUser(session, profile)
                     setUser(fullUser)
+                    setOrders(userOrders)
                 } else {
                     console.log("No session - user logged out")
                     setUser(null)
+                    setOrders([])
                 }
             } catch (error: unknown) {
                 if (!(error instanceof DOMException && error.name === "AbortError")) {
