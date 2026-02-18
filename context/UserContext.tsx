@@ -65,14 +65,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const supabase = createClient()
         let isMounted = true
 
-        const fetchProfile = async (userId: string) => {
+        const fetchProfile = async () => {
             try {
-                const { data: profile } = await supabase
-                    .from('Profile')
-                    .select('*')
-                    .eq('id', userId)
-                    .maybeSingle()
-                return profile as ProfileRow
+                const response = await fetch("/api/profile", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
+                })
+
+                if (!response.ok) {
+                    return null
+                }
+
+                const result = await response.json()
+                return (result?.profile ?? null) as ProfileRow | null
             } catch (err) {
                 console.error("Error fetching profile:", err)
                 return null
@@ -111,7 +116,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                     const initialUser = buildUser(session)
                     setUser(initialUser)
 
-                    const profile = await fetchProfile(session.user.id)
+                    const profile = await fetchProfile()
                     if (!isMounted) return
 
                     const fullUser = buildUser(session, profile)
@@ -120,8 +125,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                     console.log("No session - user logged out")
                     setUser(null)
                 }
-            } catch (error: any) {
-                if (error?.name !== 'AbortError') {
+            } catch (error: unknown) {
+                if (!(error instanceof DOMException && error.name === "AbortError")) {
                     console.error("Error in onAuthStateChange handler:", error)
                 }
             } finally {
@@ -172,8 +177,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
                 // Clear client-side session
                 await supabase.auth.signOut({ scope: "local" })
-            } catch (err: any) {
-                if (err.name !== 'AbortError') {
+            } catch (err: unknown) {
+                if (!(err instanceof DOMException && err.name === "AbortError")) {
                     console.warn("Background logout cleanup error:", err)
                 }
             } finally {

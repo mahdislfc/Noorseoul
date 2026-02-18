@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/layout/Footer"
 import { createClient } from "@/utils/supabase/client"
@@ -11,7 +11,46 @@ export default function ResetPasswordPage() {
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const [isSessionReady, setIsSessionReady] = useState(false)
+    const [hasRecoverySession, setHasRecoverySession] = useState(false)
     const router = useRouter()
+
+    useEffect(() => {
+        const supabase = createClient()
+
+        const bootstrap = async () => {
+            try {
+                const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+                const searchParams = new URLSearchParams(window.location.search)
+                const accessToken = hashParams.get("access_token")
+                const refreshToken = hashParams.get("refresh_token")
+                const code = searchParams.get("code")
+
+                if (accessToken && refreshToken) {
+                    const { error } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken,
+                    })
+                    if (!error) {
+                        window.history.replaceState({}, document.title, window.location.pathname + window.location.search)
+                    }
+                } else if (code) {
+                    await supabase.auth.exchangeCodeForSession(code)
+                }
+
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+                setHasRecoverySession(Boolean(session?.user))
+            } catch {
+                setHasRecoverySession(false)
+            } finally {
+                setIsSessionReady(true)
+            }
+        }
+
+        void bootstrap()
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -27,27 +66,37 @@ export default function ResetPasswordPage() {
         }
 
         setIsLoading(true)
-        const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
+        try {
+            const supabase = createClient()
 
-        if (!session?.user) {
-            toast.error("Recovery session expired. Please request a new reset email.")
-            setIsLoading(false)
+            if (!isSessionReady || !hasRecoverySession) {
+                toast.error("Recovery session expired. Please request a new reset email.")
+                router.push("/login")
+                return
+            }
+
+            let { error } = await supabase.auth.updateUser({ password })
+
+            if (error?.message?.toLowerCase().includes("signal is aborted")) {
+                await new Promise((resolve) => setTimeout(resolve, 300))
+                const retry = await supabase.auth.updateUser({ password })
+                error = retry.error
+            }
+
+            if (error) {
+                toast.error(error.message)
+                return
+            }
+
+            toast.success("Password updated. You can sign in now.")
             router.push("/login")
-            return
-        }
-
-        const { error } = await supabase.auth.updateUser({ password })
-        if (error) {
-            toast.error(error.message)
+            router.refresh()
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Unable to update password."
+            toast.error(message)
+        } finally {
             setIsLoading(false)
-            return
         }
-
-        toast.success("Password updated. You can sign in now.")
-        setIsLoading(false)
-        router.push("/login")
-        router.refresh()
     }
 
     return (
@@ -83,7 +132,7 @@ export default function ResetPasswordPage() {
                                 />
                             </div>
 
-                            <Button type="submit" size="lg" className="w-full h-12" disabled={isLoading}>
+                            <Button type="submit" size="lg" className="w-full h-12" disabled={isLoading || !isSessionReady}>
                                 {isLoading ? "Updating..." : "Update Password"}
                             </Button>
                         </form>

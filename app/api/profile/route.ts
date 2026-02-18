@@ -10,6 +10,34 @@ interface ProfileUpdateBody {
     city?: string
 }
 
+export async function GET() {
+    try {
+        const supabase = await createClient()
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+        if (authError || !user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const profile = await prisma.profile.findUnique({
+            where: { id: user.id },
+            select: {
+                firstName: true,
+                lastName: true,
+                phone: true,
+                address: true,
+                city: true,
+                membershipTier: true
+            }
+        })
+
+        return NextResponse.json({ profile })
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to fetch profile"
+        return NextResponse.json({ error: message }, { status: 500 })
+    }
+}
+
 export async function PATCH(request: Request) {
     try {
         const supabase = await createClient()

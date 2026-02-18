@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "@/i18n/routing"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Footer } from "@/components/layout/Footer"
-import { Package, User as UserIcon, Bell, LogOut, RefreshCw, Star, ReceiptText, ChevronDown } from "lucide-react"
+import { Package, User as UserIcon, Bell, LogOut, RefreshCw, Star, ReceiptText, ChevronDown, LocateFixed } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -83,6 +83,7 @@ export default function DashboardPage() {
     const [countryCode, setCountryCode] = useState(initialPhone.countryCode)
     const [phoneNumber, setPhoneNumber] = useState(initialPhone.phoneNumber)
     const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
+    const [isLocatingAddress, setIsLocatingAddress] = useState(false)
 
     // Initialize states when user data is available
     useEffect(() => {
@@ -161,10 +162,79 @@ export default function DashboardPage() {
             } else {
                 toast.error(result.error || "Failed to update profile")
             }
-        } catch (err) {
+        } catch {
             toast.error("An unexpected error occurred")
         } finally {
             setIsUpdating(false)
+        }
+    }
+
+    const handleUseCurrentLocation = async () => {
+        if (!navigator.geolocation) {
+            toast.error("Geolocation is not supported on this browser.")
+            return
+        }
+
+        setIsLocatingAddress(true)
+        try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0,
+                })
+            })
+
+            const latitude = position.coords.latitude
+            const longitude = position.coords.longitude
+
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 12000)
+
+            let resolvedAddress = ""
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+                    {
+                        signal: controller.signal,
+                        headers: {
+                            Accept: "application/json",
+                        },
+                    }
+                )
+                if (response.ok) {
+                    const data = await response.json() as { display_name?: string }
+                    resolvedAddress = data.display_name?.trim() || ""
+                }
+            } catch {
+                // Fall back to coordinates if reverse geocoding is unavailable.
+            } finally {
+                clearTimeout(timeoutId)
+            }
+
+            if (resolvedAddress) {
+                setAddress(resolvedAddress)
+                toast.success("Address auto-filled from your current location. Click Save Changes to submit.")
+            } else {
+                setAddress(`Current location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
+                toast.success("Location captured. Click Save Changes to submit.")
+            }
+        } catch (error) {
+            if (error instanceof GeolocationPositionError) {
+                if (error.code === error.PERMISSION_DENIED) {
+                    toast.error("Location permission was denied.")
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    toast.error("Location is currently unavailable.")
+                } else if (error.code === error.TIMEOUT) {
+                    toast.error("Timed out while getting your location.")
+                } else {
+                    toast.error("Unable to get your current location.")
+                }
+            } else {
+                toast.error("Unable to get your current location.")
+            }
+        } finally {
+            setIsLocatingAddress(false)
         }
     }
 
@@ -485,7 +555,20 @@ export default function DashboardPage() {
                                                 </div>
                                             </div>
                                             <div className="md:col-span-2 space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest">Shipping Address</label>
+                                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                                    <label className="text-xs font-bold uppercase tracking-widest">Shipping Address</label>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={handleUseCurrentLocation}
+                                                        disabled={isLocatingAddress || isUpdating}
+                                                        className="gap-2"
+                                                    >
+                                                        <LocateFixed className="w-4 h-4" />
+                                                        {isLocatingAddress ? "Locating..." : "Use My Location"}
+                                                    </Button>
+                                                </div>
                                                 <textarea
                                                     value={address}
                                                     onChange={e => setAddress(e.target.value)}
