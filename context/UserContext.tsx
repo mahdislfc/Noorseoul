@@ -94,7 +94,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
                 const result = await response.json()
                 const incoming = Array.isArray(result?.orders) ? result.orders : []
-                return incoming.map((order) => ({
+                return incoming.map((order: any) => ({
                     ...order,
                     date: order?.date
                         ? new Date(order.date).toLocaleDateString()

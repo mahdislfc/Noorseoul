@@ -23,12 +23,12 @@ export async function Hero() {
                         span: (chunks) => <span className="italic">{chunks}</span>
                     })}
                 </h1>
-                <p className="text-black text-lg md:text-xl max-w-xl mb-10 leading-relaxed font-light">
+                <p className="text-black text-base md:text-lg max-w-xl mb-10 leading-relaxed font-light">
                     {t('subheadline')}
                 </p>
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-wrap gap-5">
-                        <Link href="/best-sellers">
+                        <Link href="/categories">
                             <Button size="lg" className="rounded-none h-14 px-8 text-lg bg-black text-white hover:bg-black/80 shadow-lg hover:shadow-xl transition-all">{t('shopNow')}</Button>
                         </Link>
                         <Link href="/register">
