@@ -9,6 +9,8 @@ import { createClient } from "@/utils/supabase/client"
 import { toast } from "sonner"
 
 export default function RegisterPage() {
+    const REMEMBER_AUTH_KEY = "ns_auth_remember"
+    const ALLOW_SESSION_ONCE_KEY = "ns_auth_session_once"
     const t = useTranslations('Register');
     const [isLoading, setIsLoading] = useState(false)
     const [pendingVerificationEmail, setPendingVerificationEmail] = useState("")
@@ -55,6 +57,12 @@ export default function RegisterPage() {
             setIsLoading(false)
         } else {
             if (data.session) {
+                try {
+                    localStorage.removeItem(REMEMBER_AUTH_KEY)
+                    sessionStorage.setItem(ALLOW_SESSION_ONCE_KEY, "1")
+                } catch {
+                    // Ignore storage errors; session can still be used in current flow.
+                }
                 toast.success("Registration successful. You are signed in.")
                 setPendingVerificationEmail("")
             } else {
@@ -89,6 +97,13 @@ export default function RegisterPage() {
 
     const handleGoogleLogin = async () => {
         setIsLoading(true)
+        try {
+            localStorage.removeItem(REMEMBER_AUTH_KEY)
+            sessionStorage.setItem(ALLOW_SESSION_ONCE_KEY, "1")
+        } catch {
+            // Ignore storage errors; OAuth redirect can still continue.
+        }
+
         const supabase = createClient()
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',

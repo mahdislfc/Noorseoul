@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 // The client you created from the Server-Side Auth instructions
 import { createClient } from '@/utils/supabase/server'
+import { refreshCustomerBackupFiles } from '@/lib/customer-backup'
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
@@ -12,6 +13,11 @@ export async function GET(request: Request) {
         const supabase = await createClient()
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
+            try {
+                await refreshCustomerBackupFiles()
+            } catch (backupError) {
+                console.warn("Customer backup refresh failed after auth callback:", backupError)
+            }
             const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
             const isLocalEnv = process.env.NODE_ENV === 'development'
             if (isLocalEnv) {

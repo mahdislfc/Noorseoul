@@ -12,7 +12,9 @@ export interface User {
     email: string
     phone: string
     address: string
+    building: string
     city: string
+    postcode: string
     membershipTier: string
     profileImage?: string
 }
@@ -46,8 +48,24 @@ interface ProfileRow {
     lastName?: string | null
     phone?: string | null
     address?: string | null
+    building?: string | null
     city?: string | null
+    postcode?: string | null
     membershipTier?: string | null
+}
+
+interface IncomingOrder {
+    id?: string
+    date?: string
+    status?: "Processing" | "Shipped" | "Delivered"
+    total?: number
+    items?: {
+        id: string
+        name: string
+        price: number
+        quantity: number
+        image: string
+    }[]
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -61,6 +79,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const supabase = createClient()
         let isMounted = true
+        const REMEMBER_AUTH_KEY = "ns_auth_remember"
+        const ALLOW_SESSION_ONCE_KEY = "ns_auth_session_once"
+
+        const shouldAllowCurrentBrowserSession = () => {
+            try {
+                const rememberAuth = localStorage.getItem(REMEMBER_AUTH_KEY) === "1"
+                const allowSessionOnce = sessionStorage.getItem(ALLOW_SESSION_ONCE_KEY) === "1"
+                const isResetPasswordRoute =
+                    /^\/(en|ar)\/reset-password(?:\/|$)/.test(window.location.pathname) ||
+                    /^\/reset-password(?:\/|$)/.test(window.location.pathname)
+
+                return rememberAuth || allowSessionOnce || isResetPasswordRoute
+            } catch {
+                return false
+            }
+        }
 
         const fetchProfile = async () => {
             try {
@@ -94,7 +128,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
                 const result = await response.json()
                 const incoming = Array.isArray(result?.orders) ? result.orders : []
-                return incoming.map((order: any) => ({
+                return incoming.map((order: IncomingOrder) => ({
                     ...order,
                     date: order?.date
                         ? new Date(order.date).toLocaleDateString()
@@ -118,7 +152,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 email,
                 phone: profile?.phone || session.user.user_metadata.phone || "",
                 address: profile?.address || "",
+                building: profile?.building || "",
                 city: profile?.city || "",
+                postcode: profile?.postcode || "",
                 membershipTier: profile?.membershipTier || "Member",
                 profileImage: "https://github.com/shadcn.png"
             }
@@ -134,6 +170,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 if (!isMounted) return
 
                 if (session?.user) {
+                    if (!shouldAllowCurrentBrowserSession()) {
+                        await supabase.auth.signOut({ scope: "local" })
+                        setUser(null)
+                        setOrders([])
+                        return
+                    }
+
                     console.log("Session/User identified:", session.user.email)
                     const initialUser = buildUser(session)
                     setUser(initialUser)
@@ -182,6 +225,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const logout = async () => {
         const supabase = createClient()
         setIsLoading(true)
+        try {
+            localStorage.removeItem("ns_auth_remember")
+            sessionStorage.removeItem("ns_auth_session_once")
+        } catch { /* ignore */ }
 
         // Optimistic UI update: clear user state first
         setUser(null)
@@ -233,7 +280,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 lastName: data.lastName ?? user.lastName,
                 phone: data.phone ?? user.phone,
                 address: data.address ?? user.address,
-                city: data.city ?? user.city
+                building: data.building ?? user.building,
+                city: data.city ?? user.city,
+                postcode: data.postcode ?? user.postcode
             }
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort("Profile update timed out"), 30000)

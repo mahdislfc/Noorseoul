@@ -8,7 +8,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "db:fix-auth-trigger": "node scripts/fix-auth-trigger.js --backfill"
+    "db:fix-auth-trigger": "node scripts/fix-auth-trigger.js --backfill",
+    "backup:customers": "node scripts/backup-customers.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

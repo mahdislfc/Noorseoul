@@ -10,12 +10,14 @@ import { toast } from "sonner"
 import { Link, useRouter } from "@/i18n/routing"
 
 export default function LoginPage() {
+    const REMEMBER_AUTH_KEY = "ns_auth_remember"
+    const ALLOW_SESSION_ONCE_KEY = "ns_auth_session_once"
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [rememberMe, setRememberMe] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [isEmailActionLoading, setIsEmailActionLoading] = useState(false)
-    const [showAdminHint, setShowAdminHint] = useState(false)
     const router = useRouter()
     const params = useParams()
     const locale = params.locale as string
@@ -45,13 +47,6 @@ export default function LoginPage() {
             const normalizedEmail = email.trim().toLowerCase()
             setError(null)
 
-            // Check for admin email to show hint
-            if (normalizedEmail === "nmashhadi79@gmail.com") {
-                setShowAdminHint(true)
-            } else {
-                setShowAdminHint(false)
-            }
-
             const { data, error: signInError } = await supabase.auth.signInWithPassword({
                 email: normalizedEmail,
                 password,
@@ -69,6 +64,18 @@ export default function LoginPage() {
                 toast.error("Sign-in was not completed. Please verify your email or try again.")
                 setIsLoading(false)
                 return
+            }
+
+            try {
+                if (rememberMe) {
+                    localStorage.setItem(REMEMBER_AUTH_KEY, "1")
+                    sessionStorage.removeItem(ALLOW_SESSION_ONCE_KEY)
+                } else {
+                    localStorage.removeItem(REMEMBER_AUTH_KEY)
+                    sessionStorage.setItem(ALLOW_SESSION_ONCE_KEY, "1")
+                }
+            } catch {
+                // Ignore storage errors; auth will still proceed for current request cycle.
             }
 
             toast.success("Welcome back!")
@@ -90,6 +97,18 @@ export default function LoginPage() {
 
     const handleGoogleLogin = async () => {
         setIsLoading(true)
+        try {
+            if (rememberMe) {
+                localStorage.setItem(REMEMBER_AUTH_KEY, "1")
+                sessionStorage.removeItem(ALLOW_SESSION_ONCE_KEY)
+            } else {
+                localStorage.removeItem(REMEMBER_AUTH_KEY)
+                sessionStorage.setItem(ALLOW_SESSION_ONCE_KEY, "1")
+            }
+        } catch {
+            // Ignore storage errors; OAuth redirect can still continue.
+        }
+
         const supabase = createClient()
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
@@ -185,22 +204,14 @@ export default function LoginPage() {
                             </div>
                         )}
 
-                        {showAdminHint && (
-                            <div className="mb-6 p-4 rounded-lg bg-primary/10 border border-primary/20 text-primary text-sm animate-in fade-in slide-in-from-top-2">
-                                <p className="font-bold mb-1">Looking for Admin Access?</p>
-                                <p className="mb-2 opacity-90">It looks like you're trying to sign in as an admin. Please use the dedicated admin portal.</p>
-                                <Link href="/admin/login" className="font-bold underline hover:no-underline">
-                                    Go to Admin Login →
-                                </Link>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase tracking-widest">Email</label>
                                 <input
                                     required
                                     type="email"
+                                    name="ns_login_email"
+                                    autoComplete="off"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full h-12 rounded-lg border border-border bg-transparent px-4 outline-none focus:border-primary"
@@ -211,10 +222,24 @@ export default function LoginPage() {
                                 <input
                                     required
                                     type="password"
+                                    name="ns_login_password"
+                                    autoComplete="new-password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full h-12 rounded-lg border border-border bg-transparent px-4 outline-none focus:border-primary"
                                 />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    id="remember-me"
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="w-4 h-4 accent-primary"
+                                />
+                                <label htmlFor="remember-me" className="text-sm text-muted-foreground">
+                                    Remember me on this device
+                                </label>
                             </div>
 
                             <Button type="submit" size="lg" className="w-full h-12" disabled={isLoading}>

@@ -62,7 +62,9 @@ model Profile {
   lastName       String?
   phone          String?
   address        String?
+  building       String?
   city           String?
+  postcode       String?
   membershipTier String   @default("Member")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

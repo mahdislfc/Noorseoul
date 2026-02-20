@@ -90,6 +90,8 @@ export default function DashboardPage() {
     const [firstName, setFirstName] = useState(user?.firstName || "")
     const [lastName, setLastName] = useState(user?.lastName || "")
     const [address, setAddress] = useState(user?.address || "")
+    const [building, setBuilding] = useState(user?.building || "")
+    const [postcode, setPostcode] = useState(user?.postcode || "")
     const initialPhone = splitPhone(user?.phone || "")
     const [countryCode, setCountryCode] = useState(initialPhone.countryCode)
     const [phoneNumber, setPhoneNumber] = useState(initialPhone.phoneNumber)
@@ -103,6 +105,8 @@ export default function DashboardPage() {
             setFirstName(user.firstName)
             setLastName(user.lastName)
             setAddress(user.address)
+            setBuilding(user.building || "")
+            setPostcode(user.postcode || "")
             const parsedPhone = splitPhone(user.phone || "")
             setCountryCode(parsedPhone.countryCode)
             setPhoneNumber(parsedPhone.phoneNumber)
@@ -206,6 +210,8 @@ export default function DashboardPage() {
                 firstName,
                 lastName,
                 address,
+                building: building.trim(),
+                postcode: postcode.trim(),
                 phone: fullPhone
             })
 
@@ -255,8 +261,15 @@ export default function DashboardPage() {
                     }
                 )
                 if (response.ok) {
-                    const data = await response.json() as { display_name?: string }
+                    const data = await response.json() as {
+                        display_name?: string
+                        address?: { postcode?: string }
+                    }
                     resolvedAddress = data.display_name?.trim() || ""
+                    const resolvedPostcode = data.address?.postcode?.trim()
+                    if (resolvedPostcode) {
+                        setPostcode(resolvedPostcode)
+                    }
                 }
             } catch {
                 // Fall back to coordinates if reverse geocoding is unavailable.
@@ -625,6 +638,24 @@ export default function DashboardPage() {
                                                     value={address}
                                                     onChange={e => setAddress(e.target.value)}
                                                     className="w-full h-32 rounded-lg border border-border bg-transparent p-4 focus:ring-1 focus:ring-primary outline-none resize-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Building Name/Number</label>
+                                                <input
+                                                    value={building}
+                                                    onChange={e => setBuilding(e.target.value)}
+                                                    placeholder="e.g. Tower B, Building 17, Apt 304"
+                                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Postcode / ZIP</label>
+                                                <input
+                                                    value={postcode}
+                                                    onChange={e => setPostcode(e.target.value)}
+                                                    placeholder="e.g. 12345"
+                                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
                                                 />
                                             </div>
                                         </div>
