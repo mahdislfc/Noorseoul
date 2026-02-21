@@ -48,6 +48,8 @@ export default function CheckoutPage() {
     const BASE_SHIPPING_COST = 20
     const userKey = user?.email?.toLowerCase() || "guest"
     const storageKey = (baseKey: string) => `${baseKey}:${userKey}`
+    const cartCurrencies = Array.from(new Set(items.map((item) => (item.currency || "AED").toUpperCase())))
+    const cartCurrency = cartCurrencies.length === 1 ? cartCurrencies[0] : "AED"
 
     const shippingCost = shippingRewardApplied ? 0 : BASE_SHIPPING_COST
     const subtotal = totalPrice
@@ -241,7 +243,7 @@ export default function CheckoutPage() {
                     firstName,
                     lastName,
                     city,
-                    currency: "AED",
+                    currency: cartCurrency,
                     items,
                 }),
             })
@@ -457,7 +459,7 @@ export default function CheckoutPage() {
                                             <div className="flex flex-col justify-center gap-1">
                                                 <h4 className="font-bold text-sm tracking-wide">{item.name}</h4>
                                                 <p className="text-xs text-muted-foreground uppercase tracking-widest">Quantity: {item.quantity}</p>
-                                                <p className="text-sm font-bold text-primary mt-1">{(item.price * item.quantity).toFixed(2)} AED</p>
+                                                <p className="text-sm font-bold text-primary mt-1">{(item.price * item.quantity).toFixed(2)} {cartCurrency}</p>
                                             </div>
                                         </div>
                                     ))
@@ -503,43 +505,43 @@ export default function CheckoutPage() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span className="font-bold">{subtotal.toFixed(2)} AED</span>
+                                    <span className="font-bold">{subtotal.toFixed(2)} {cartCurrency}</span>
                                 </div>
                                 {appliedDiscount > 0 && (
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Voucher Discount</span>
-                                        <span className="font-bold text-emerald-700">-{appliedDiscount.toFixed(2)} AED</span>
+                                        <span className="font-bold text-emerald-700">-{appliedDiscount.toFixed(2)} {cartCurrency}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">White-Glove Delivery</span>
                                     <span className="font-bold uppercase tracking-tighter">
-                                        {BASE_SHIPPING_COST.toFixed(2)} AED
+                                        {BASE_SHIPPING_COST.toFixed(2)} {cartCurrency}
                                     </span>
                                 </div>
                                 {shippingDiscount > 0 && (
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Shipping Reward</span>
-                                        <span className="font-bold text-emerald-700">-{shippingDiscount.toFixed(2)} AED</span>
+                                        <span className="font-bold text-emerald-700">-{shippingDiscount.toFixed(2)} {cartCurrency}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal After Discounts</span>
-                                    <span className="font-bold">{discountedSubtotal.toFixed(2)} AED</span>
+                                    <span className="font-bold">{discountedSubtotal.toFixed(2)} {cartCurrency}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">VAT (5%)</span>
-                                    <span className="font-bold">{vat.toFixed(2)} AED</span>
+                                    <span className="font-bold">{vat.toFixed(2)} {cartCurrency}</span>
                                 </div>
                             </div>
 
                             <div className="flex justify-between items-center py-2">
                                 <span className="text-lg font-bold">Total</span>
-                                <span className="text-2xl font-black text-primary">{finalTotal.toFixed(2)} AED</span>
+                                <span className="text-2xl font-black text-primary">{finalTotal.toFixed(2)} {cartCurrency}</span>
                             </div>
                             {totalSavings > 0 && (
                                 <p className="text-sm font-semibold text-emerald-700">
-                                    You saved {totalSavings.toFixed(2)} AED
+                                    You saved {totalSavings.toFixed(2)} {cartCurrency}
                                 </p>
                             )}
 

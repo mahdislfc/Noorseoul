@@ -8,6 +8,7 @@ export interface CartItem {
     price: number
     quantity: number
     image: string
+    currency: string
 }
 
 interface CartContextType {
@@ -34,8 +35,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             const saved = localStorage.getItem("cart")
             if (saved) {
                 const parsedItems = JSON.parse(saved) as CartItem[]
+                const normalizedItems = parsedItems.map((item) => ({
+                    ...item,
+                    currency: (item.currency || "AED").toUpperCase(),
+                }))
                 queueMicrotask(() => {
-                    setItems(parsedItems)
+                    setItems(normalizedItems)
                     hasHydratedRef.current = true
                 })
                 return
@@ -57,18 +62,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }, [items])
 
     const addToCart = (newItem: CartItem) => {
+        const normalizedCurrency = (newItem.currency || "AED").toUpperCase()
         setItems((prev) => {
             const existing = prev.find((item) => item.id === newItem.id)
             if (existing) {
                 return prev.map((item) => {
                     if (item.id === newItem.id) {
                         const newQuantity = item.quantity + newItem.quantity;
-                        return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 }; // Prevent going below 1
+                        return {
+                            ...item,
+                            quantity: newQuantity > 0 ? newQuantity : 1,
+                            currency: normalizedCurrency,
+                        }; // Prevent going below 1
                     }
                     return item;
                 })
             }
-            return [...prev, newItem]
+            return [...prev, { ...newItem, currency: normalizedCurrency }]
         })
         // setIsOpen(true) // Removed auto-open as per user request for silent add
     }

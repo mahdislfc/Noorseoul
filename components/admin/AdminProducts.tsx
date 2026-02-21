@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type DragEvent, type FormEvent } from "react";
 import type {
   AdminOrder,
   AdminOrderStatus,
@@ -16,9 +16,22 @@ interface AdminProductsProps {
   locale: string;
 }
 
+interface ImageDraft {
+  id: string;
+  kind: "existing" | "new";
+  previewUrl: string;
+  file?: File;
+}
+
 const emptyForm = {
   name: "",
   description: "",
+  ingredients: "",
+  skinType: "",
+  scent: "",
+  waterResistance: "",
+  bundleLabel: "",
+  bundleProductId: "",
   price: "",
   originalPrice: "",
   currency: "USD",
@@ -55,7 +68,9 @@ export function AdminProducts({ locale }: AdminProductsProps) {
   const [productsError, setProductsError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...emptyForm });
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageDrafts, setImageDrafts] = useState<ImageDraft[]>([]);
+  const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -135,8 +150,86 @@ export function AdminProducts({ locale }: AdminProductsProps) {
 
   const resetForm = () => {
     setForm({ ...emptyForm });
-    setImageFile(null);
+    setImageDrafts([]);
+    setDragSourceIndex(null);
+    setDragOverIndex(null);
     setEditingId(null);
+  };
+
+  const addNewImageFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const next = Array.from(files).map((file, index) => ({
+      id: `new-${Date.now()}-${index}`,
+      kind: "new" as const,
+      previewUrl: URL.createObjectURL(file),
+      file,
+    }));
+    setImageDrafts((current) => [...current, ...next]);
+  };
+
+  const moveImage = (index: number, direction: "up" | "down") => {
+    setImageDrafts((current) => {
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= current.length) return current;
+      const next = [...current];
+      const temp = next[index];
+      next[index] = next[targetIndex];
+      next[targetIndex] = temp;
+      return next;
+    });
+  };
+
+  const reorderImages = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    setImageDrafts((current) => {
+      if (
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= current.length ||
+        toIndex >= current.length
+      ) {
+        return current;
+      }
+      const next = [...current];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  };
+
+  const handleImageDragStart = (index: number) => {
+    setDragSourceIndex(index);
+    setDragOverIndex(index);
+  };
+
+  const handleImageDragOver = (event: DragEvent<HTMLDivElement>, index: number) => {
+    event.preventDefault();
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleImageDrop = (event: DragEvent<HTMLDivElement>, index: number) => {
+    event.preventDefault();
+    if (dragSourceIndex === null) return;
+    reorderImages(dragSourceIndex, index);
+    setDragSourceIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleImageDragEnd = () => {
+    setDragSourceIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const removeImageAt = (index: number) => {
+    setImageDrafts((current) => {
+      const target = current[index];
+      if (target?.kind === "new" && target.previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+      return current.filter((_, itemIndex) => itemIndex !== index);
+    });
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -145,13 +238,23 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     setProductsError("");
 
     try {
+      if (imageDrafts.length === 0) {
+        throw new Error("Please add at least one product image.");
+      }
+
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
-      if (imageFile) {
-        formData.append("image", imageFile);
-      }
+      const imageOrder = imageDrafts.map((image) =>
+        image.kind === "existing" ? image.previewUrl : "__new__"
+      );
+      formData.append("imageOrder", JSON.stringify(imageOrder));
+      imageDrafts.forEach((image) => {
+        if (image.kind === "new" && image.file) {
+          formData.append("images", image.file);
+        }
+      });
 
       const url = isEditing
         ? `/api/admin/products/${editingId}`
@@ -178,6 +281,12 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     setForm({
       name: product.name,
       description: product.description || "",
+      ingredients: product.ingredients || "",
+      skinType: product.skinType || "",
+      scent: product.scent || "",
+      waterResistance: product.waterResistance || "",
+      bundleLabel: product.bundleLabel || "",
+      bundleProductId: product.bundleProductId || "",
       price: String(product.price),
       originalPrice: product.originalPrice ? String(product.originalPrice) : "",
       currency: product.currency,
@@ -189,7 +298,15 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       newArrival: product.newArrival,
       comingSoon: Boolean(product.comingSoon),
     });
-    setImageFile(null);
+    const existingGallery =
+      product.images && product.images.length > 0 ? product.images : [product.image];
+    setImageDrafts(
+      existingGallery.map((url, index) => ({
+        id: `existing-${product.id}-${index}`,
+        kind: "existing",
+        previewUrl: url,
+      }))
+    );
   };
 
   const handleDelete = async (productId: string) => {
@@ -418,6 +535,87 @@ export function AdminProducts({ locale }: AdminProductsProps) {
               />
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Ingredients</label>
+                <textarea
+                  value={form.ingredients}
+                  onChange={(event) =>
+                    setForm({ ...form, ingredients: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  rows={3}
+                  placeholder="Write exact ingredients from the product packaging."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Skin Type</label>
+                <input
+                  value={form.skinType}
+                  onChange={(event) =>
+                    setForm({ ...form, skinType: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="e.g. Oily, Dry, Combination, Sensitive"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Bundle Label</label>
+                <input
+                  value={form.bundleLabel}
+                  onChange={(event) =>
+                    setForm({ ...form, bundleLabel: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder='e.g. 1+1 Set, Economical Bundle'
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Scent</label>
+                <input
+                  value={form.scent}
+                  onChange={(event) =>
+                    setForm({ ...form, scent: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="e.g. Fragrance-free, Citrus, Rose"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Water Resistance</label>
+                <select
+                  value={form.waterResistance}
+                  onChange={(event) =>
+                    setForm({ ...form, waterResistance: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">Not specified</option>
+                  <option value="Water-resistant">Water-resistant</option>
+                  <option value="Waterproof">Waterproof</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Bundle Product</label>
+                <select
+                  value={form.bundleProductId}
+                  onChange={(event) =>
+                    setForm({ ...form, bundleProductId: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">No bundle linked</option>
+                  {products
+                    .filter((product) => !editingId || product.id !== editingId)
+                    .map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -452,28 +650,91 @@ export function AdminProducts({ locale }: AdminProductsProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Product Image</label>
+              <label className="block text-sm font-medium mb-1">Product Images</label>
               <div className="flex items-center gap-3">
                 <label
                   htmlFor="product-image-input"
                   className="inline-flex cursor-pointer items-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-muted"
                 >
-                  Choose file
+                  Choose files
                 </label>
                 <span className="text-sm text-muted-foreground">
-                  {imageFile?.name || "No file chosen"}
+                  {imageDrafts.length > 0
+                    ? `${imageDrafts.length} image${imageDrafts.length > 1 ? "s" : ""} selected`
+                    : "No images selected"}
                 </span>
               </div>
               <input
                 id="product-image-input"
                 type="file"
                 accept="image/*"
-                onChange={(event) =>
-                  setImageFile(event.target.files ? event.target.files[0] : null)
-                }
+                multiple
+                onChange={(event) => {
+                  addNewImageFiles(event.target.files);
+                  event.currentTarget.value = "";
+                }}
                 className="sr-only"
-                required={!isEditing}
+                required={!isEditing && imageDrafts.length === 0}
               />
+              {imageDrafts.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Drag and drop images to set display order.
+                  </p>
+                  {imageDrafts.map((image, index) => (
+                    <div
+                      key={image.id}
+                      draggable
+                      onDragStart={() => handleImageDragStart(index)}
+                      onDragOver={(event) => handleImageDragOver(event, index)}
+                      onDrop={(event) => handleImageDrop(event, index)}
+                      onDragEnd={handleImageDragEnd}
+                      className={`flex items-center gap-3 rounded-md border p-2 cursor-move ${
+                        dragOverIndex === index
+                          ? "border-primary bg-primary/5"
+                          : "border-border"
+                      }`}
+                    >
+                      <img
+                        src={image.previewUrl}
+                        alt={`Product image ${index + 1}`}
+                        className="h-16 w-16 rounded object-cover border"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Image {index + 1}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {image.kind === "existing" ? "Existing image" : image.file?.name || "New image"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          className="rounded border border-input px-2 py-1 text-xs"
+                          onClick={() => moveImage(index, "up")}
+                          disabled={index === 0}
+                        >
+                          Up
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded border border-input px-2 py-1 text-xs"
+                          onClick={() => moveImage(index, "down")}
+                          disabled={index === imageDrafts.length - 1}
+                        >
+                          Down
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded border border-red-200 px-2 py-1 text-xs text-red-600"
+                          onClick={() => removeImageAt(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {productsError && <p className="text-sm text-red-600">{productsError}</p>}

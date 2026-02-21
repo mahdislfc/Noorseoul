@@ -4,8 +4,13 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInfo } from "@/components/product/ProductInfo";
 import { getProductById } from "@/lib/data";
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await getProductById(params.id);
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const product = await getProductById(id);
 
   if (!product) {
     notFound();
@@ -38,14 +43,13 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 price: product.price,
                 oldPrice: product.originalPrice ?? undefined,
                 currency: product.currency,
-                description: product.description || "",
-                rating: 4.9,
-                reviews: 0,
-                tags: [
-                  ...(product.newArrival ? ["New Arrival"] : []),
-                  ...(product.bestSeller ? ["Best Seller"] : []),
-                  ...(product.comingSoon ? ["Coming Soon"] : []),
-                ],
+                description: product.description?.trim() || "",
+                ingredients: product.ingredients || "",
+                skinType: product.skinType || "",
+                scent: product.scent || "",
+                waterResistance: product.waterResistance || "",
+                bundleLabel: product.bundleLabel || "",
+                bundleProductId: product.bundleProductId || "",
                 images,
               }}
             />

@@ -12,6 +12,8 @@ import Image from "next/image"
 export function CartSidebar() {
     const { items, removeFromCart, addToCart, totalPrice, totalItems, isOpen, setIsOpen } = useCart()
     const t = useTranslations('Cart');
+    const currencies = Array.from(new Set(items.map((item) => (item.currency || "AED").toUpperCase())))
+    const cartCurrency = currencies.length === 1 ? currencies[0] : "AED"
 
     // Handle quantity updates by adding/removing single items
     const updateQuantity = (id: string, currentQuantity: number, change: number) => {
@@ -65,7 +67,7 @@ export function CartSidebar() {
                                         <div className="flex-1 flex flex-col justify-between">
                                             <div>
                                                 <h4 className="font-serif font-medium line-clamp-2">{item.name}</h4>
-                                                <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} AED</p>
+                                                <p className="text-sm text-muted-foreground">{item.price.toFixed(2)} {item.currency || cartCurrency}</p>
                                             </div>
                                             <div className="flex items-center justify-between mt-2">
                                                 <div className="flex items-center border rounded-md">
@@ -101,7 +103,7 @@ export function CartSidebar() {
                             <div className="space-y-2">
                                 <div className="flex justify-between text-base font-medium">
                                     <span>{t('subtotal')}</span>
-                                    <span>{totalPrice.toFixed(2)} AED</span>
+                                    <span>{totalPrice.toFixed(2)} {cartCurrency}</span>
                                 </div>
                                 <p className="text-xs text-muted-foreground text-center">Shipping & taxes calculated at checkout</p>
                             </div>

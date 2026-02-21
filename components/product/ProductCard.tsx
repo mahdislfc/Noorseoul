@@ -8,6 +8,7 @@ import { Minus, Plus } from "lucide-react"
 import { toast } from "sonner"
 import type { Product } from "@/lib/types"
 import { ProductQuickView } from "./ProductQuickView"
+import { Link } from "@/i18n/routing"
 
 export function ProductCard({ product }: { product: Product }) {
     const t = useTranslations('Product');
@@ -21,7 +22,8 @@ export function ProductCard({ product }: { product: Product }) {
             name: product.name,
             price: product.price,
             quantity: quantity,
-            image: product.image
+            image: product.image,
+            currency: product.currency || "USD",
         })
         toast.success(t('addedToCart'), {
             description: `${product.name} (x${quantity})`,
@@ -46,11 +48,12 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="group relative bg-white p-4 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 h-full flex flex-col">
             <div className="relative overflow-hidden rounded-lg aspect-[4/5] bg-secondary/20 mb-4">
                 {/* Fallback image logic if image missing */}
-                <div
-                    className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700 cursor-pointer"
-                    style={{ backgroundImage: `url('${imageUrl}')` }}
-                    onClick={() => setShowQuickView(true)}
-                />
+                <Link href={`/products/${product.id}`} aria-label={`View details for ${product.name}`}>
+                    <div
+                        className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700 cursor-pointer"
+                        style={{ backgroundImage: `url('${imageUrl}')` }}
+                    />
+                </Link>
                 <Button
                     variant="default"
                     size="sm"
@@ -68,7 +71,9 @@ export function ProductCard({ product }: { product: Product }) {
             <div className="text-center px-2 flex-col flex gap-2 flex-grow">
                 <div>
                     <p className="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">{product.category}</p>
-                    <h3 className="font-serif text-lg leading-tight line-clamp-2 min-h-[1.5em]">{product.name}</h3>
+                    <Link href={`/products/${product.id}`} className="hover:text-primary transition-colors">
+                        <h3 className="font-serif text-lg leading-tight line-clamp-2 min-h-[1.5em]">{product.name}</h3>
+                    </Link>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                     {product.originalPrice && (
@@ -76,6 +81,19 @@ export function ProductCard({ product }: { product: Product }) {
                     )}
                     <p className="text-primary font-bold text-lg">{product.price.toFixed(2)} {product.currency}</p>
                 </div>
+                <Link
+                    href={`/products/${product.id}`}
+                    className="text-xs font-semibold uppercase tracking-widest text-primary hover:underline"
+                >
+                    View Details
+                </Link>
+                <button
+                    type="button"
+                    onClick={() => setShowQuickView(true)}
+                    className="text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+                >
+                    Quick View
+                </button>
 
                 {/* Quantity Selector */}
                 <div className="flex items-center justify-center gap-3 mt-auto pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

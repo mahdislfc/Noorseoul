@@ -48,14 +48,16 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                 name: product.economicalOption.name,
                 price: product.economicalOption.price,
                 quantity: 1,
-                image: product.image
+                image: product.image,
+                currency: product.currency || "USD",
             }
             : {
                 id: product.id,
                 name: product.name,
                 price: product.price,
                 quantity: 1,
-                image: product.image
+                image: product.image,
+                currency: product.currency || "USD",
             }
 
         addToCart(itemToAdd)

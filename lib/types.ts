@@ -14,6 +14,12 @@ export interface Product {
   comingSoon?: boolean | null;
   size?: string | null;
   images?: string[];
+  ingredients?: string | null;
+  skinType?: string | null;
+  scent?: string | null;
+  waterResistance?: string | null;
+  bundleLabel?: string | null;
+  bundleProductId?: string | null;
   economicalOption?: {
     name: string;
     price: number;

@@ -9,8 +9,29 @@ import {
   normalizeDepartmentInput,
 } from "@/lib/product-taxonomy";
 import fs from "fs/promises";
+import {
+  getFallbackGalleryMap,
+  setFallbackGallery,
+} from "@/lib/product-gallery-fallback";
+import {
+  getFallbackMetadataMap,
+  setFallbackMetadata,
+} from "@/lib/product-metadata-fallback";
 
 export const runtime = "nodejs";
+
+function isGalleryRelationUnavailable(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  const code =
+    typeof error === "object" && error && "code" in error
+      ? String((error as { code?: string }).code || "")
+      : "";
+  return (
+    message.includes("Unknown field `images`") ||
+    message.includes("does not exist") ||
+    code === "P2021"
+  );
+}
 
 async function ensureAuthorized() {
   const session = await getAdminSessionCookie();
@@ -39,11 +60,41 @@ export async function GET() {
   const authError = await ensureAuthorized();
   if (authError) return authError;
 
-  const products = await prisma.product.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const products = await prisma.product.findMany({
+      include: { images: { orderBy: { sortOrder: "asc" } } },
+      orderBy: { createdAt: "desc" },
+    });
+    const metadataMap = await getFallbackMetadataMap();
 
-  return NextResponse.json({ products });
+    const normalized = products.map((product) => ({
+      ...product,
+      images: product.images.map((image) => image.url),
+      image: product.images[0]?.url || product.image,
+      ...(metadataMap[product.id] || {}),
+    }));
+
+    return NextResponse.json({ products: normalized });
+  } catch (error) {
+    if (!isGalleryRelationUnavailable(error)) throw error;
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    const galleryMap = await getFallbackGalleryMap();
+    const metadataMap = await getFallbackMetadataMap();
+    const normalized = products.map((product) => ({
+      ...product,
+      image: galleryMap[product.id]?.[0] || product.image,
+      images:
+        galleryMap[product.id]?.length
+          ? galleryMap[product.id]
+          : product.image
+            ? [product.image]
+            : [],
+      ...(metadataMap[product.id] || {}),
+    }));
+    return NextResponse.json({ products: normalized });
+  }
 }
 
 export async function POST(request: Request) {
@@ -66,21 +117,32 @@ export async function POST(request: Request) {
   const bestSeller = toBool(formData.get("bestSeller"));
   const newArrival = toBool(formData.get("newArrival"));
   const comingSoon = toBool(formData.get("comingSoon"));
-  const imageFile = formData.get("image");
+  const ingredients = String(formData.get("ingredients") || "").trim();
+  const skinType = String(formData.get("skinType") || "").trim();
+  const scent = String(formData.get("scent") || "").trim();
+  const waterResistance = String(formData.get("waterResistance") || "").trim();
+  const bundleLabel = String(formData.get("bundleLabel") || "").trim();
+  const bundleProductId = String(formData.get("bundleProductId") || "").trim();
+  const imageFiles = formData
+    .getAll("images")
+    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
 
   if (!name || !price || !brand || !category || !department) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  if (!(imageFile instanceof File)) {
-    return NextResponse.json({ error: "Image is required" }, { status: 400 });
+  if (imageFiles.length === 0) {
+    return NextResponse.json({ error: "At least one image is required" }, { status: 400 });
   }
 
-  if (!imageFile.type.startsWith("image/")) {
-    return NextResponse.json({ error: "Invalid image file" }, { status: 400 });
+  for (const imageFile of imageFiles) {
+    if (!imageFile.type.startsWith("image/")) {
+      return NextResponse.json({ error: "Invalid image file" }, { status: 400 });
+    }
   }
 
-  const image = await saveImage(imageFile);
+  const uploadedImages = await Promise.all(imageFiles.map((file) => saveImage(file)));
+  const image = uploadedImages[0];
 
   const originalPrice =
     originalPriceRaw && String(originalPriceRaw).trim()
@@ -103,6 +165,30 @@ export async function POST(request: Request) {
       comingSoon,
       size: size || null,
     },
+  });
+
+  if ((prisma as { productImage?: unknown }).productImage) {
+    try {
+      await (prisma as { productImage: { createMany: (args: unknown) => Promise<unknown> } }).productImage.createMany({
+        data: uploadedImages.map((url, index) => ({
+          productId: product.id,
+          url,
+          sortOrder: index,
+        })),
+      });
+    } catch {
+      await setFallbackGallery(product.id, uploadedImages);
+    }
+  } else {
+    await setFallbackGallery(product.id, uploadedImages);
+  }
+  await setFallbackMetadata(product.id, {
+    ingredients,
+    skinType,
+    scent,
+    waterResistance,
+    bundleLabel,
+    bundleProductId,
   });
 
   return NextResponse.json({ product }, { status: 201 });

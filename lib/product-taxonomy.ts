@@ -16,6 +16,8 @@ const CATEGORY_CANONICAL_MAP: Record<string, string> = {
   mist: "Mist/Oil",
   mists: "Mist/Oil",
   mistoil: "Mist/Oil",
+  sunscreen: "Sunscreen",
+  sunscreens: "Sunscreen",
 };
 
 const DEPARTMENT_CANONICAL_MAP: Record<string, string> = {
@@ -49,6 +51,7 @@ export const CATEGORY_OPTIONS = [
   "pad",
   "facial pack",
   "Patch",
+  "Sunscreen",
 ];
 
 export const DEPARTMENT_OPTIONS = [

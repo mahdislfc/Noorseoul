@@ -143,7 +143,8 @@ export default function DashboardPage() {
                     name: item.name,
                     price: item.price,
                     image: item.image,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    currency: "AED",
                 })
             })
             toast.success("Order items added to your bag!")
