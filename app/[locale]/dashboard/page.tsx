@@ -11,6 +11,13 @@ import { Package, User as UserIcon, Bell, LogOut, RefreshCw, Star, ReceiptText, 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import {
+    calculateAvailablePoints,
+    calculateEarnedPoints,
+    clearRewardPointsCacheOnce,
+    pointsFromOrderTotal,
+    readStoredSpentPoints
+} from "@/lib/reward-points"
 
 const PHONE_COUNTRIES = [
     { code: "+82", flag: "🇰🇷", label: "South Korea" },
@@ -56,26 +63,6 @@ const normalizeCountryCode = (rawCode: string) => {
     return digits ? `+${digits}` : ""
 }
 
-const pointsFromOrderTotal = (amount: number) => {
-    if (amount <= 0) return 0
-    if (amount <= 10) return 1
-    if (amount <= 19) return 2
-    return Math.floor(amount / 10) + 1
-}
-const SPENT_POINTS_KEY = "reward_spent_points"
-const CLAIMED_REWARDS_KEY = "reward_claimed_rewards"
-const FREE_SHIPPING_CLAIMED_KEY = "reward_free_shipping_claimed"
-const VOUCHER_15_CLAIMED_KEY = "reward_voucher_15_claimed"
-const VOUCHER_30_CLAIMED_KEY = "reward_voucher_30_claimed"
-const CHOOSE_PRODUCT_SELECTED_KEY = "reward_choose_product_selected"
-const TEST_BONUS_POINTS = 750
-const REWARD_COST: Record<string, number> = {
-    "choose-product": 75,
-    shipping: 100,
-    voucher15: 150,
-    voucher30: 300,
-}
-
 export default function DashboardPage() {
     const { user, isAuthenticated, isLoading, logout, updateProfile, orders } = useUser()
     const { addToCart } = useCart()
@@ -113,46 +100,12 @@ export default function DashboardPage() {
         }
     }, [user])
 
-    const completedOrders = orders.filter((order) => order.status === "Delivered")
-    const earnedPoints = completedOrders.reduce(
-        (sum, order) => sum + pointsFromOrderTotal(order.total),
-        0
-    )
-    const totalPoints = Math.max(0, earnedPoints + TEST_BONUS_POINTS - spentPoints)
+    const earnedPoints = calculateEarnedPoints(orders)
+    const totalPoints = calculateAvailablePoints(earnedPoints, spentPoints)
 
     useEffect(() => {
-        const userKey = user?.email?.toLowerCase() || "guest"
-        const storageKey = (baseKey: string) => `${baseKey}:${userKey}`
-        try {
-            const stored = Number(localStorage.getItem(storageKey(SPENT_POINTS_KEY)) || "0")
-            let nextSpentPoints = Number.isFinite(stored) ? Math.max(0, stored) : 0
-
-            const storedClaimedRewards = localStorage.getItem(storageKey(CLAIMED_REWARDS_KEY))
-            let claimedMap: Record<string, boolean> = {}
-            if (storedClaimedRewards) {
-                claimedMap = JSON.parse(storedClaimedRewards) as Record<string, boolean>
-            }
-
-            if (localStorage.getItem(storageKey(FREE_SHIPPING_CLAIMED_KEY)) === "true") claimedMap.shipping = true
-            if (localStorage.getItem(storageKey(VOUCHER_15_CLAIMED_KEY)) === "true") claimedMap.voucher15 = true
-            if (localStorage.getItem(storageKey(VOUCHER_30_CLAIMED_KEY)) === "true") claimedMap.voucher30 = true
-            if (localStorage.getItem(storageKey(CHOOSE_PRODUCT_SELECTED_KEY))) claimedMap["choose-product"] = true
-
-            const minimumSpentFromClaims = Object.entries(claimedMap).reduce((sum, [rewardId, isClaimed]) => {
-                if (!isClaimed) return sum
-                return sum + (REWARD_COST[rewardId] || 0)
-            }, 0)
-
-            if (nextSpentPoints < minimumSpentFromClaims) {
-                nextSpentPoints = minimumSpentFromClaims
-                localStorage.setItem(storageKey(SPENT_POINTS_KEY), String(nextSpentPoints))
-                localStorage.setItem(storageKey(CLAIMED_REWARDS_KEY), JSON.stringify(claimedMap))
-            }
-
-            setSpentPoints(nextSpentPoints)
-        } catch {
-            setSpentPoints(0)
-        }
+        clearRewardPointsCacheOnce()
+        setSpentPoints(readStoredSpentPoints(user?.email))
     }, [user?.email])
     const tab = searchParams.get("tab")
     const activeTab: 'overview' | 'orders' | 'profile' | 'points' =

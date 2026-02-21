@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useUser } from "@/context/UserContext"
 import { useRouter } from "@/i18n/routing"
+import { clearRewardPointsCacheOnce, TEST_BONUS_POINTS } from "@/lib/reward-points"
 import { Truck } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -37,7 +38,6 @@ const VOUCHER_30_CLAIMED_KEY = "reward_voucher_30_claimed"
 const SPENT_POINTS_KEY = "reward_spent_points"
 const CLAIMED_REWARDS_KEY = "reward_claimed_rewards"
 const CHOOSE_PRODUCT_SELECTED_KEY = "reward_choose_product_selected"
-const TEST_BONUS_POINTS = 750
 const REWARD_COST: Record<string, number> = {
     "choose-product": 75,
     shipping: 100,
@@ -87,6 +87,10 @@ export default function RewardsPage() {
         setPendingRewardProduct(productName)
         setIsConfirmChoiceOpen(true)
     }
+
+    useEffect(() => {
+        clearRewardPointsCacheOnce()
+    }, [])
 
     useEffect(() => {
         try {

@@ -8,6 +8,12 @@ import { useTranslations } from 'next-intl';
 import { useCart } from "@/context/CartContext"
 import { CartSidebar } from "@/components/cart/CartSidebar"
 import { useUser } from "@/context/UserContext"
+import {
+    calculateAvailablePoints,
+    calculateEarnedPoints,
+    clearRewardPointsCacheOnce,
+    readStoredSpentPoints
+} from "@/lib/reward-points"
 
 export function Header() {
     const t = useTranslations('Navigation');
@@ -15,11 +21,19 @@ export function Header() {
     const pathname = usePathname();
     const { totalItems, setIsOpen, clearCart } = useCart()
     const { isAuthenticated, logout, user, orders } = useUser()
-    const pointsBalance = Math.floor(orders.reduce((sum, order) => sum + order.total, 0))
+    const earnedPoints = calculateEarnedPoints(orders)
+    const pointsBalance = calculateAvailablePoints(
+        earnedPoints,
+        isAuthenticated ? readStoredSpentPoints(user?.email, { reconcile: false }) : 0
+    )
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
     const profileMenuRef = useRef<HTMLDivElement | null>(null)
+
+    useEffect(() => {
+        clearRewardPointsCacheOnce()
+    }, [])
 
     useEffect(() => {
         let ticking = false

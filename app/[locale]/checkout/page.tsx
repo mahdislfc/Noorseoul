@@ -8,6 +8,7 @@ import { useUser } from "@/context/UserContext"
 import { ChevronRight, CreditCard, Lock, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { clearRewardPointsCacheOnce } from "@/lib/reward-points"
 
 import { useLocale } from 'next-intl';
 
@@ -49,12 +50,16 @@ export default function CheckoutPage() {
     const storageKey = (baseKey: string) => `${baseKey}:${userKey}`
 
     const shippingCost = shippingRewardApplied ? 0 : BASE_SHIPPING_COST
-    const appliedDiscount = Math.min(voucherDiscountAmount, totalPrice)
-    const discountedSubtotal = Math.max(0, totalPrice - appliedDiscount)
+    const subtotal = totalPrice
+    const appliedDiscount = Math.min(voucherDiscountAmount, subtotal)
+    const discountedSubtotal = Math.max(0, subtotal - appliedDiscount)
+    const shippingDiscount = shippingRewardApplied ? BASE_SHIPPING_COST : 0
+    const totalSavings = appliedDiscount + shippingDiscount
     const vat = discountedSubtotal * 0.05
     const finalTotal = discountedSubtotal + shippingCost + vat
 
     useEffect(() => {
+        clearRewardPointsCacheOnce()
         try {
             const key = (baseKey: string) => `${baseKey}:${userKey}`
 
@@ -157,7 +162,12 @@ export default function CheckoutPage() {
         if (normalizedInput === normalizedVoucher15Code) {
             setVoucherDiscountAmount(15)
             setAppliedVoucherCode(normalizedVoucher15Code)
-            setAppliedRewards((current) => (current.includes("$15 Discount") ? current : [...current, "$15 Discount"]))
+            setAppliedRewards((current) => {
+                const withoutVoucher = current.filter(
+                    (reward) => reward !== "$15 Discount" && reward !== "$30 Discount"
+                )
+                return [...withoutVoucher, "$15 Discount"]
+            })
             setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
             setRewardCodeMessage(`Code ${normalizedInput} applied:`)
             setRewardCodeHighlight("$15 discount activated")
@@ -169,7 +179,12 @@ export default function CheckoutPage() {
         if (normalizedInput === normalizedVoucher30Code) {
             setVoucherDiscountAmount(30)
             setAppliedVoucherCode(normalizedVoucher30Code)
-            setAppliedRewards((current) => (current.includes("$30 Discount") ? current : [...current, "$30 Discount"]))
+            setAppliedRewards((current) => {
+                const withoutVoucher = current.filter(
+                    (reward) => reward !== "$15 Discount" && reward !== "$30 Discount"
+                )
+                return [...withoutVoucher, "$30 Discount"]
+            })
             setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
             setRewardCodeMessage(`Code ${normalizedInput} applied:`)
             setRewardCodeHighlight("$30 discount activated")
@@ -488,7 +503,7 @@ export default function CheckoutPage() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span className="font-bold">{discountedSubtotal.toFixed(2)} AED</span>
+                                    <span className="font-bold">{subtotal.toFixed(2)} AED</span>
                                 </div>
                                 {appliedDiscount > 0 && (
                                     <div className="flex justify-between">
@@ -498,9 +513,19 @@ export default function CheckoutPage() {
                                 )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">White-Glove Delivery</span>
-                                    <span className="text-primary font-bold uppercase tracking-tighter">
-                                        {shippingRewardApplied ? "Free (Reward Applied)" : `${shippingCost.toFixed(2)} AED`}
+                                    <span className="font-bold uppercase tracking-tighter">
+                                        {BASE_SHIPPING_COST.toFixed(2)} AED
                                     </span>
+                                </div>
+                                {shippingDiscount > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Shipping Reward</span>
+                                        <span className="font-bold text-emerald-700">-{shippingDiscount.toFixed(2)} AED</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Subtotal After Discounts</span>
+                                    <span className="font-bold">{discountedSubtotal.toFixed(2)} AED</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">VAT (5%)</span>
@@ -512,6 +537,11 @@ export default function CheckoutPage() {
                                 <span className="text-lg font-bold">Total</span>
                                 <span className="text-2xl font-black text-primary">{finalTotal.toFixed(2)} AED</span>
                             </div>
+                            {totalSavings > 0 && (
+                                <p className="text-sm font-semibold text-emerald-700">
+                                    You saved {totalSavings.toFixed(2)} AED
+                                </p>
+                            )}
 
                             {checkoutError && (
                                 <p className="text-sm text-red-600">{checkoutError}</p>
