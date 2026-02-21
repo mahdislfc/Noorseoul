@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, useRef } from "react"
+import { useUser } from "@/context/UserContext"
 
 export interface CartItem {
     id: string
@@ -25,6 +26,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+    const { isAuthenticated, isLoading } = useUser()
     const [items, setItems] = useState<CartItem[]>([])
     const [isOpen, setIsOpen] = useState(false)
     const hasHydratedRef = useRef(false)
@@ -61,7 +63,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
     }, [items])
 
+    // Cart is only available for authenticated users.
+    // When signed out, clear persisted cart data.
+    useEffect(() => {
+        if (isLoading || isAuthenticated) return
+
+        try {
+            localStorage.removeItem("cart")
+        } catch (error) {
+            console.error("Failed to clear cart from localStorage:", error)
+        }
+    }, [isAuthenticated, isLoading])
+
     const addToCart = (newItem: CartItem) => {
+        if (!isAuthenticated) return
         const normalizedCurrency = (newItem.currency || "AED").toUpperCase()
         setItems((prev) => {
             const existing = prev.find((item) => item.id === newItem.id)
@@ -84,6 +99,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     const removeFromCart = (id: string) => {
+        if (!isAuthenticated) return
         setItems((prev) => prev.filter((item) => item.id !== id))
     }
 
@@ -91,13 +107,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setItems([])
     }
 
-    const totalItems = items.reduce((acc, item) => acc + item.quantity, 0)
-    const totalPrice = items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+    const visibleItems = isAuthenticated ? items : []
+    const totalItems = visibleItems.reduce((acc, item) => acc + item.quantity, 0)
+    const totalPrice = visibleItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
 
     return (
         <CartContext.Provider
             value={{
-                items,
+                items: visibleItems,
                 addToCart,
                 removeFromCart,
                 clearCart,

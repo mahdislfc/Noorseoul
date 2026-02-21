@@ -267,7 +267,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => {
             setIsLoading(false)
             router.replace('/login')
-            router.refresh()
         }, 100)
     }
 

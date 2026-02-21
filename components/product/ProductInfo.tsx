@@ -30,6 +30,11 @@ export function ProductInfo({ product }: ProductInfoProps) {
     const router = useRouter()
     const [quantity, setQuantity] = useState(1)
     const [showAllIngredients, setShowAllIngredients] = useState(false)
+    const formatAmount = (amount: number) => (
+        Number.isInteger(amount) ? amount.toString() : amount.toFixed(2)
+    )
+    const totalPrice = product.price * quantity
+    const totalOldPrice = product.oldPrice ? product.oldPrice * quantity : null
     const ingredientLines = (product.ingredients || "")
         .split(/\r?\n/)
         .map((line) => line.trim())
@@ -67,10 +72,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
             <div className="flex flex-wrap items-end gap-4 mb-8">
                 <div className="flex items-baseline gap-4">
-                    <span className="text-3xl font-light text-primary">{product.price} {product.currency || "AED"}</span>
-                    {product.oldPrice && (
+                    <span className="text-3xl font-light text-primary">{formatAmount(totalPrice)} {product.currency || "AED"}</span>
+                    {totalOldPrice && (
                         <span className="text-lg opacity-40 line-through">
-                            {product.oldPrice} {product.currency || "AED"}
+                            {formatAmount(totalOldPrice)} {product.currency || "AED"}
                         </span>
                     )}
                 </div>

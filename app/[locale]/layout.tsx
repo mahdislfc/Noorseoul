@@ -43,6 +43,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/layout/Header";
+import { AbortErrorGuard } from "@/components/system/AbortErrorGuard";
 
 export default async function RootLayout({
   children,
@@ -68,6 +69,7 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <UserProvider>
             <CartProvider>
+              <AbortErrorGuard />
               <Header />
               {children}
               <Toaster />

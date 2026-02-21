@@ -90,7 +90,6 @@ export default function ResetPasswordPage() {
 
             toast.success("Password updated. You can sign in now.")
             router.push("/login")
-            router.refresh()
         } catch (error) {
             const message = error instanceof Error ? error.message : "Unable to update password."
             toast.error(message)

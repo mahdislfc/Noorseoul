@@ -20,7 +20,8 @@ export function Header() {
     const tCommon = useTranslations('Common');
     const pathname = usePathname();
     const { totalItems, setIsOpen, clearCart } = useCart()
-    const { isAuthenticated, logout, user, orders } = useUser()
+    const { isAuthenticated, isLoading, logout, user, orders } = useUser()
+    const visibleCartCount = isAuthenticated ? totalItems : 0
     const earnedPoints = calculateEarnedPoints(orders)
     const pointsBalance = calculateAvailablePoints(
         earnedPoints,
@@ -251,17 +252,19 @@ export function Header() {
                             </div>
                         )}
                     </div>
-                    <button
-                        className="relative hover:text-primary transition-colors"
-                        onClick={() => setIsOpen(true)}
-                    >
-                        <ShoppingBag className="w-6 h-6" />
-                        {totalItems > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-primary text-[10px] text-white font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                                {totalItems}
-                            </span>
-                        )}
-                    </button>
+                    {!isLoading && isAuthenticated && (
+                        <button
+                            className="relative hover:text-primary transition-colors"
+                            onClick={() => setIsOpen(true)}
+                        >
+                            <ShoppingBag className="w-6 h-6" />
+                            {visibleCartCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-primary text-[10px] text-white font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                    {visibleCartCount}
+                                </span>
+                            )}
+                        </button>
+                    )}
 
                     {/* Language Switcher */}
                     <div className="hidden md:flex items-center gap-2 text-sm font-semibold">

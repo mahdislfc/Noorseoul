@@ -11,6 +11,7 @@ import { Package, User as UserIcon, Bell, LogOut, RefreshCw, Star, ReceiptText, 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 import {
     calculateAvailablePoints,
     calculateEarnedPoints,
@@ -65,6 +66,7 @@ const normalizeCountryCode = (rawCode: string) => {
 
 export default function DashboardPage() {
     const { user, isAuthenticated, isLoading, logout, updateProfile, orders } = useUser()
+    const tAddress = useTranslations("DashboardAddress")
     const { addToCart } = useCart()
     const router = useRouter()
     const pathname = usePathname()
@@ -85,6 +87,7 @@ export default function DashboardPage() {
     const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false)
     const [isLocatingAddress, setIsLocatingAddress] = useState(false)
     const [spentPoints, setSpentPoints] = useState(0)
+    const [isEditingShippingAddress, setIsEditingShippingAddress] = useState(false)
 
     // Initialize states when user data is available
     useEffect(() => {
@@ -171,6 +174,7 @@ export default function DashboardPage() {
 
             if (result.success) {
                 toast.success("Profile updated successfully")
+                setIsEditingShippingAddress(false)
             } else {
                 toast.error(result.error || "Failed to update profile")
             }
@@ -201,7 +205,7 @@ export default function DashboardPage() {
             const longitude = position.coords.longitude
 
             const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), 12000)
+            const timeoutId = setTimeout(() => controller.abort("Location lookup timeout"), 12000)
 
             let resolvedAddress = ""
             try {
@@ -225,18 +229,20 @@ export default function DashboardPage() {
                         setPostcode(resolvedPostcode)
                     }
                 }
-            } catch {
-                // Fall back to coordinates if reverse geocoding is unavailable.
+            } catch (error) {
+                if (!(error instanceof DOMException && error.name === "AbortError")) {
+                    // Fall back to coordinates if reverse geocoding is unavailable.
+                }
             } finally {
                 clearTimeout(timeoutId)
             }
 
             if (resolvedAddress) {
                 setAddress(resolvedAddress)
-                toast.success("Address auto-filled from your current location. Click Save Changes to submit.")
+                toast.success(tAddress("addressAutofilled"))
             } else {
                 setAddress(`Current location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
-                toast.success("Location captured. Click Save Changes to submit.")
+                toast.success(tAddress("locationCaptured"))
             }
         } catch (error) {
             if (error instanceof GeolocationPositionError) {
@@ -264,6 +270,8 @@ export default function DashboardPage() {
     const filteredCountries = PHONE_COUNTRIES.filter((country) =>
         country.code.includes(countryCode) || country.label.toLowerCase().includes(countryCode.toLowerCase())
     )
+    const hasSavedShippingAddress = Boolean(user?.address?.trim())
+    const isShippingAddressLocked = hasSavedShippingAddress && !isEditingShippingAddress
 
     return (
         <div className="min-h-screen bg-background font-sans flex flex-col">
@@ -576,31 +584,58 @@ export default function DashboardPage() {
                                             <div className="md:col-span-2 space-y-2">
                                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                                     <label className="text-xs font-bold uppercase tracking-widest">Shipping Address</label>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={handleUseCurrentLocation}
-                                                        disabled={isLocatingAddress || isUpdating}
-                                                        className="gap-2"
-                                                    >
-                                                        <LocateFixed className="w-4 h-4" />
-                                                        {isLocatingAddress ? "Locating..." : "Use My Location"}
-                                                    </Button>
+                                                    <div className="flex items-center gap-2">
+                                                        {hasSavedShippingAddress && isShippingAddressLocked && (
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => setIsEditingShippingAddress(true)}
+                                                            >
+                                                                {tAddress("editAddress")}
+                                                            </Button>
+                                                        )}
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={handleUseCurrentLocation}
+                                                            disabled={isLocatingAddress || isUpdating || isShippingAddressLocked}
+                                                            className="gap-2"
+                                                        >
+                                                            <LocateFixed className="w-4 h-4" />
+                                                            {isLocatingAddress ? tAddress("locating") : tAddress("useMyLocation")}
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                                 <textarea
                                                     value={address}
                                                     onChange={e => setAddress(e.target.value)}
-                                                    className="w-full h-32 rounded-lg border border-border bg-transparent p-4 focus:ring-1 focus:ring-primary outline-none resize-none"
+                                                    readOnly={isShippingAddressLocked}
+                                                    className={cn(
+                                                        "w-full h-32 rounded-lg border border-border p-4 outline-none resize-none",
+                                                        isShippingAddressLocked
+                                                            ? "bg-secondary/10 text-muted-foreground cursor-not-allowed"
+                                                            : "bg-transparent focus:ring-1 focus:ring-primary"
+                                                    )}
                                                 />
+                                                {isShippingAddressLocked && (
+                                                    <p className="text-xs text-muted-foreground">{tAddress("fixedNote")}</p>
+                                                )}
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-xs font-bold uppercase tracking-widest opacity-70">Building Name/Number</label>
                                                 <input
                                                     value={building}
                                                     onChange={e => setBuilding(e.target.value)}
+                                                    readOnly={isShippingAddressLocked}
                                                     placeholder="e.g. Tower B, Building 17, Apt 304"
-                                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
+                                                    className={cn(
+                                                        "w-full h-12 rounded-lg border border-border px-4 outline-none",
+                                                        isShippingAddressLocked
+                                                            ? "bg-secondary/10 text-muted-foreground cursor-not-allowed"
+                                                            : "bg-transparent focus:ring-1 focus:ring-primary"
+                                                    )}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -608,14 +643,20 @@ export default function DashboardPage() {
                                                 <input
                                                     value={postcode}
                                                     onChange={e => setPostcode(e.target.value)}
+                                                    readOnly={isShippingAddressLocked}
                                                     placeholder="e.g. 12345"
-                                                    className="w-full h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
+                                                    className={cn(
+                                                        "w-full h-12 rounded-lg border border-border px-4 outline-none",
+                                                        isShippingAddressLocked
+                                                            ? "bg-secondary/10 text-muted-foreground cursor-not-allowed"
+                                                            : "bg-transparent focus:ring-1 focus:ring-primary"
+                                                    )}
                                                 />
                                             </div>
                                         </div>
                                         <div className="flex justify-end">
                                             <Button type="submit" size="lg" disabled={isUpdating}>
-                                                {isUpdating ? "Saving..." : "Save Changes"}
+                                                {isUpdating ? tAddress("saving") : tAddress("saveChanges")}
                                             </Button>
                                         </div>
                                     </form>

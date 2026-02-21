@@ -3,15 +3,24 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { ZoomIn } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface ProductGalleryProps {
     images: string[]
 }
 
 export function ProductGallery({ images }: ProductGalleryProps) {
+    const t = useTranslations("Home.badges")
     const [activeImage, setActiveImage] = useState(0)
+    const [showMoreThumbnails, setShowMoreThumbnails] = useState(false)
     const [isZoomActive, setIsZoomActive] = useState(false)
     const [pointerPos, setPointerPos] = useState({ x: 50, y: 50 })
+
+    const handleChangeImage = (index: number) => {
+        setActiveImage(index)
+        setIsZoomActive(false)
+        setPointerPos({ x: 50, y: 50 })
+    }
 
     const handlePointerMove = (event: React.MouseEvent<HTMLDivElement>) => {
         const { left, top, width, height } = event.currentTarget.getBoundingClientRect()
@@ -37,12 +46,6 @@ export function ProductGallery({ images }: ProductGalleryProps) {
         setIsZoomActive(true)
     }
 
-    const handleChangeImage = (index: number) => {
-        setActiveImage(index)
-        setIsZoomActive(false)
-        setPointerPos({ x: 50, y: 50 })
-    }
-
     return (
         <div className="space-y-4">
             <div
@@ -59,7 +62,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                 <img
                     src={images[activeImage]}
                     alt={`Product image ${activeImage + 1}`}
-                    className="h-full w-full object-contain transition-transform duration-200"
+                    className="h-full w-full object-contain transition-transform duration-150"
                     style={{
                         transformOrigin: `${pointerPos.x}% ${pointerPos.y}%`,
                         transform: isZoomActive ? "scale(2.2)" : "scale(1)",
@@ -67,7 +70,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                 />
                 <div className="absolute top-6 left-6 flex flex-col gap-2">
                     <span className="bg-primary px-3 py-1 rounded-full text-[10px] font-bold text-white uppercase tracking-widest">
-                        New Arrival
+                        {t("newArrival")}
                     </span>
                 </div>
                 <button
@@ -81,12 +84,13 @@ export function ProductGallery({ images }: ProductGalleryProps) {
             </div>
 
             {/* Thumbnails */}
-            <div className="grid grid-cols-4 gap-4">
-                {images.map((img, idx) => (
-                    <div
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+                {(showMoreThumbnails ? images : images.slice(0, 2)).map((img, idx) => (
+                    <button
+                        type="button"
                         key={idx}
                         className={cn(
-                            "aspect-square rounded-lg border-2 overflow-hidden cursor-pointer transition-colors",
+                            "h-12 w-12 sm:h-14 sm:w-14 rounded-lg border-2 overflow-hidden cursor-pointer transition-colors",
                             activeImage === idx ? "border-primary" : "border-transparent hover:border-primary/50"
                         )}
                         onClick={() => handleChangeImage(idx)}
@@ -95,8 +99,17 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                             className="h-full w-full bg-contain bg-center bg-no-repeat"
                             style={{ backgroundImage: `url('${img}')` }}
                         />
-                    </div>
+                    </button>
                 ))}
+                {images.length > 2 && (
+                    <button
+                        type="button"
+                        onClick={() => setShowMoreThumbnails((prev) => !prev)}
+                        className="h-12 px-3 sm:h-14 rounded-lg border border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                    >
+                        {showMoreThumbnails ? "See less" : "See more"}
+                    </button>
+                )}
             </div>
         </div>
     )

@@ -54,5 +54,79 @@
         "item": "item",
         "items": "items",
         "remove": "Remove"
+    },
+    "Home": {
+        "badges": {
+            "newArrival": "New Arrival"
+        },
+        "categories": {
+            "title": "Beauty Essentials",
+            "subtitle": "Discover our range of premium beauty products",
+            "viewAll": "View All Categories",
+            "makeup": "Makeup",
+            "skincare": "Skincare",
+            "newArrivals": "New Arrivals",
+            "bestSellers": "Best Sellers"
+        },
+        "discover": {
+            "title": "Discover",
+            "explore": "Explore",
+            "skincareBestSellers": "Skincare best sellers",
+            "skincareBestSellersDesc": "See trendy skincare products",
+            "makeupBestSellers": "Makeup best sellers",
+            "makeupBestSellersDesc": "See the trendy makeup products",
+            "giftSets": "Gift Sets",
+            "giftSetsDesc": "Curated collections for your loved ones.",
+            "nextArrivals": "Next Arrivals",
+            "nextArrivalsDesc": "Be the first to know what's coming next."
+        },
+        "brands": {
+            "title": "Top Brands in Korea",
+            "shopBrand": "Shop Brand",
+            "sold50": "50M+ Sold",
+            "sold40": "40M+ Sold",
+            "sold30": "30M+ Sold",
+            "sold20": "20M+ Sold",
+            "sold10": "10M+ Sold",
+            "cosrxDesc": "Minimalist skincare with high-performance ingredients.",
+            "laneigeDesc": "Advanced water science for luminous hydration.",
+            "innisfreeDesc": "Natural benefits from the pristine island of Jeju.",
+            "sulwhasooDesc": "Holistic beauty powered by Korean herbal medicine.",
+            "banilaDesc": "Skincare designed for makeup lovers."
+        }
+    },
+    "Tips": {
+        "skincareTitle": "Skincare best sellers",
+        "skincareSubtitle": "See trendy skincare products",
+        "makeupTitle": "Makeup best sellers",
+        "makeupSubtitle": "See the trendy makeup products"
+    },
+    "DashboardAddress": {
+        "editAddress": "Edit Address",
+        "locating": "Locating...",
+        "useMyLocation": "Use My Location",
+        "fixedNote": "Shipping address is fixed for this profile.",
+        "saving": "Saving...",
+        "saveChanges": "Save Changes",
+        "addressAutofilled": "Address auto-filled from your current location. Click Save Changes to submit.",
+        "locationCaptured": "Location captured. Click Save Changes to submit."
+    },
+    "Footer": {
+        "brandLine": "Experience the best of Seoul's luxury beauty in the Middle East.",
+        "discover": "Discover",
+        "skincareMiracles": "Skincare Miracles",
+        "makeupTrends": "Makeup Trends",
+        "giftSets": "Gift Sets",
+        "theHouse": "The House",
+        "ourStory": "Our Story",
+        "support": "Support",
+        "shippingReturns": "Shipping & Returns",
+        "orderTracking": "Order Tracking",
+        "requestProduct": "Request a Product",
+        "faq": "FAQ",
+        "contactUs": "Contact Us",
+        "rights": "Noor Seoul . All rights reserved.",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service"
     }
 }

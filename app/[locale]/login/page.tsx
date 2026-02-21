@@ -31,7 +31,6 @@ export default function LoginPage() {
             if (event === "SIGNED_IN" && !hasRedirectedRef.current) {
                 hasRedirectedRef.current = true
                 router.replace('/')
-                router.refresh()
             }
         })
 
@@ -81,7 +80,6 @@ export default function LoginPage() {
             toast.success("Welcome back!")
             hasRedirectedRef.current = true
             router.replace('/')
-            router.refresh()
             // Fallback in case client routing is blocked by stale state.
             setTimeout(() => {
                 window.location.assign(`/${locale}/`)

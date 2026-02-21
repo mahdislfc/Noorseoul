@@ -15,6 +15,11 @@ export function ProductCard({ product }: { product: Product }) {
     const { addToCart, setIsOpen } = useCart()
     const [quantity, setQuantity] = useState(1)
     const [showQuickView, setShowQuickView] = useState(false)
+    const formatAmount = (amount: number) => (
+        Number.isInteger(amount) ? amount.toString() : amount.toFixed(2)
+    )
+    const totalPrice = product.price * quantity
+    const totalOriginalPrice = product.originalPrice ? product.originalPrice * quantity : null
 
     const handleAddToCart = () => {
         addToCart({
@@ -76,10 +81,10 @@ export function ProductCard({ product }: { product: Product }) {
                     </Link>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                    {product.originalPrice && (
-                        <span className="text-gray-400 line-through text-sm">{product.originalPrice.toFixed(2)} {product.currency}</span>
+                    {totalOriginalPrice && (
+                        <span className="text-gray-400 line-through text-sm">{formatAmount(totalOriginalPrice)} {product.currency}</span>
                     )}
-                    <p className="text-primary font-bold text-lg">{product.price.toFixed(2)} {product.currency}</p>
+                    <p className="text-primary font-bold text-lg">{formatAmount(totalPrice)} {product.currency}</p>
                 </div>
                 <Link
                     href={`/products/${product.id}`}
