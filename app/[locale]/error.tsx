@@ -2,6 +2,18 @@
 
 import { useEffect } from "react"
 
+function isAbortLikeError(error: Error & { digest?: string }) {
+    if (error?.name?.toLowerCase() === "aborterror") {
+        return true
+    }
+
+    const message = (error?.message || "").toLowerCase()
+    return (
+        message.includes("signal is aborted without reason") ||
+        message.includes("signal is aborted")
+    )
+}
+
 export default function LocaleError({
     error,
     reset,
@@ -10,14 +22,12 @@ export default function LocaleError({
     reset: () => void
 }) {
     useEffect(() => {
-        const message = (error?.message || "").toLowerCase()
-        if (message.includes("signal is aborted without reason") || message.includes("signal is aborted")) {
+        if (isAbortLikeError(error)) {
             reset()
         }
     }, [error, reset])
 
-    const message = (error?.message || "").toLowerCase()
-    if (message.includes("signal is aborted without reason") || message.includes("signal is aborted")) {
+    if (isAbortLikeError(error)) {
         return null
     }
 

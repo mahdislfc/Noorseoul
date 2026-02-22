@@ -205,7 +205,7 @@ export default function DashboardPage() {
             const longitude = position.coords.longitude
 
             const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort("Location lookup timeout"), 12000)
+            const timeoutId = setTimeout(() => controller.abort(), 12000)
 
             let resolvedAddress = ""
             try {

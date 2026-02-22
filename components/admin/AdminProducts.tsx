@@ -860,6 +860,11 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                       <p className="text-xs text-muted-foreground">
                         {new Date(order.createdAt).toLocaleString()}
                       </p>
+                      {order.orderNote && (
+                        <p className="mt-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-900">
+                          {order.orderNote}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-sm font-semibold">

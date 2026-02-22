@@ -18,6 +18,7 @@ const POINTS_CACHE_BASE_KEYS = [
 ]
 
 export const REWARD_COST: Record<string, number> = {
+    "first-purchase-sample": 0,
     "choose-product": 75,
     shipping: 100,
     voucher15: 150,

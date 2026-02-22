@@ -239,7 +239,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         // Start background cleanup
         const performCleanup = async () => {
             const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort("Logout cleanup timeout"), 2000)
+            const timeoutId = setTimeout(() => controller.abort(), 2000)
 
             try {
                 // Fire and forget server-side signout
@@ -284,7 +284,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 postcode: data.postcode ?? user.postcode
             }
             const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort("Profile update timed out"), 30000)
+            const timeoutId = setTimeout(() => controller.abort(), 30000)
 
             let response: Response
             try {

@@ -3,8 +3,8 @@ import { AdminProducts } from "@/components/admin/AdminProducts";
 export default async function AdminPage({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = params;
+  const { locale } = await params;
   return <AdminProducts locale={locale} />;
 }

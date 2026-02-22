@@ -47,6 +47,7 @@ model Order {
   firstName     String
   lastName      String
   city          String
+  orderNote     String?
   currency      String      @default("AED")
   subtotal      Float
   vat           Float

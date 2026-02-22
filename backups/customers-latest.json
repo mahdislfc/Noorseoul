@@ -12,5 +12,19 @@
     "membershipTier": "Member",
     "createdAt": "2026-02-21T15:29:49.621Z",
     "updatedAt": "2026-02-21T15:29:49.621Z"
+  },
+  {
+    "id": "65f58a61-d2a5-405b-8d27-6a76220dc260",
+    "email": "tkdkky2010@gmail.com",
+    "firstName": "j",
+    "lastName": "k",
+    "phone": "",
+    "address": "Gomdallae-ro 19-gil, Hwagok 1(il)-dong, Gangseo-gu, Seoul, 07772, South Korea",
+    "building": "",
+    "postcode": "",
+    "city": "",
+    "membershipTier": "Member",
+    "createdAt": "2026-02-22T15:47:38.370Z",
+    "updatedAt": "2026-02-22T15:47:38.370Z"
   }
 ]

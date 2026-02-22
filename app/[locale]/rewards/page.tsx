@@ -17,7 +17,12 @@ const pointsFromOrderTotal = (amount: number) => {
 }
 
 const REWARD_OPTIONS = [
-    { id: "sample-kit", points: 50, title: "Mini Sample Skincare Kit", description: "Redeem a mini skincare sample kit." },
+    {
+        id: "first-purchase-sample",
+        points: 0,
+        title: "1 Sample Skincare Product (First Purchase)",
+        description: "Requires at least 3 items in checkout and works only for your first purchase."
+    },
     {
         id: "choose-product",
         points: 75,
@@ -31,6 +36,9 @@ const REWARD_OPTIONS = [
 
 const FREE_SHIPPING_CODE_KEY = "reward_free_shipping_code"
 const FREE_SHIPPING_CLAIMED_KEY = "reward_free_shipping_claimed"
+const FIRST_PURCHASE_SAMPLE_CODE_KEY = "reward_first_purchase_sample_code"
+const FIRST_PURCHASE_SAMPLE_CLAIMED_KEY = "reward_first_purchase_sample_claimed"
+const FIRST_PURCHASE_SAMPLE_USED_KEY = "reward_first_purchase_sample_used"
 const VOUCHER_15_CODE_KEY = "reward_voucher_15_code"
 const VOUCHER_15_CLAIMED_KEY = "reward_voucher_15_claimed"
 const VOUCHER_30_CODE_KEY = "reward_voucher_30_code"
@@ -39,6 +47,7 @@ const SPENT_POINTS_KEY = "reward_spent_points"
 const CLAIMED_REWARDS_KEY = "reward_claimed_rewards"
 const CHOOSE_PRODUCT_SELECTED_KEY = "reward_choose_product_selected"
 const REWARD_COST: Record<string, number> = {
+    "first-purchase-sample": 0,
     "choose-product": 75,
     shipping: 100,
     voucher15: 150,
@@ -55,7 +64,8 @@ export default function RewardsPage() {
     )
     const [spentPoints, setSpentPoints] = useState(0)
     const totalPoints = Math.max(0, earnedPoints + TEST_BONUS_POINTS - spentPoints)
-    const [isMiniKitOpen, setIsMiniKitOpen] = useState(false)
+    const [isConfirmFirstPurchaseSampleOpen, setIsConfirmFirstPurchaseSampleOpen] = useState(false)
+    const [isFirstPurchaseSampleOpen, setIsFirstPurchaseSampleOpen] = useState(false)
     const [isChooseProductOpen, setIsChooseProductOpen] = useState(false)
     const [isConfirmChoiceOpen, setIsConfirmChoiceOpen] = useState(false)
     const [isConfirmFreeShippingOpen, setIsConfirmFreeShippingOpen] = useState(false)
@@ -70,6 +80,9 @@ export default function RewardsPage() {
     const [isFreeShippingClaimed, setIsFreeShippingClaimed] = useState(false)
     const [voucher15Code, setVoucher15Code] = useState("")
     const [voucher30Code, setVoucher30Code] = useState("")
+    const [firstPurchaseSampleCode, setFirstPurchaseSampleCode] = useState("")
+    const [isFirstPurchaseSampleClaimed, setIsFirstPurchaseSampleClaimed] = useState(false)
+    const [isFirstPurchaseSampleUsed, setIsFirstPurchaseSampleUsed] = useState(false)
     const [isVoucher15Claimed, setIsVoucher15Claimed] = useState(false)
     const [isVoucher30Claimed, setIsVoucher30Claimed] = useState(false)
     const [claimedRewards, setClaimedRewards] = useState<Record<string, boolean>>({})
@@ -77,6 +90,7 @@ export default function RewardsPage() {
     const userKey = user?.email?.toLowerCase() || "guest"
     const storageKey = (baseKey: string) => `${baseKey}:${userKey}`
     const chooseProductReward = REWARD_OPTIONS.find((reward) => reward.id === "choose-product")
+    const isFirstPurchaseEligible = orders.length === 0
     const hasClaimedChooseProduct = Boolean(claimedRewards["choose-product"])
     const canSelectChooseProduct = hasClaimedChooseProduct || totalPoints >= (chooseProductReward?.points ?? 75)
     const effectiveSelectedRewardProduct = selectedRewardProduct
@@ -99,6 +113,9 @@ export default function RewardsPage() {
 
             const stored = localStorage.getItem(key(FREE_SHIPPING_CODE_KEY))
             const claimed = localStorage.getItem(key(FREE_SHIPPING_CLAIMED_KEY)) === "true"
+            const firstPurchaseSampleStored = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_CODE_KEY))
+            const firstPurchaseSampleClaimed = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_CLAIMED_KEY)) === "true"
+            const firstPurchaseSampleUsed = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_USED_KEY)) === "true"
             const voucher15Stored = localStorage.getItem(key(VOUCHER_15_CODE_KEY))
             const voucher15Claimed = localStorage.getItem(key(VOUCHER_15_CLAIMED_KEY)) === "true"
             const voucher30Stored = localStorage.getItem(key(VOUCHER_30_CODE_KEY))
@@ -116,6 +133,7 @@ export default function RewardsPage() {
 
             if (selectedProduct) claimedMap["choose-product"] = true
 
+            if (firstPurchaseSampleClaimed) claimedMap["first-purchase-sample"] = true
             if (claimed) claimedMap.shipping = true
             if (voucher15Claimed) claimedMap.voucher15 = true
             if (voucher30Claimed) claimedMap.voucher30 = true
@@ -135,6 +153,9 @@ export default function RewardsPage() {
             queueMicrotask(() => {
                 setFreeShippingCode(stored && claimed ? stored : "")
                 setIsFreeShippingClaimed(claimed)
+                setFirstPurchaseSampleCode(firstPurchaseSampleStored && firstPurchaseSampleClaimed ? firstPurchaseSampleStored : "")
+                setIsFirstPurchaseSampleClaimed(firstPurchaseSampleClaimed)
+                setIsFirstPurchaseSampleUsed(firstPurchaseSampleUsed)
                 setVoucher15Code(voucher15Stored && voucher15Claimed ? voucher15Stored : "")
                 setIsVoucher15Claimed(voucher15Claimed)
                 setVoucher30Code(voucher30Stored && voucher30Claimed ? voucher30Stored : "")
@@ -179,6 +200,36 @@ export default function RewardsPage() {
     const generateVoucherCode = (amount: 15 | 30) => {
         const suffix = Math.random().toString(36).slice(2, 8).toUpperCase()
         return `V${amount}-${suffix}`
+    }
+    const generateFirstPurchaseSampleCode = () => {
+        const suffix = Math.random().toString(36).slice(2, 8).toUpperCase()
+        return `SAMPLE-${suffix}`
+    }
+
+    const handleClaimFirstPurchaseSample = (canClaim: boolean) => {
+        if (!canClaim) return
+        const wasClaimed = hasClaimedReward("first-purchase-sample")
+        setIsConfirmFirstPurchaseSampleOpen(false)
+        let code = firstPurchaseSampleCode
+        if (!code) {
+            code = generateFirstPurchaseSampleCode()
+            setFirstPurchaseSampleCode(code)
+            try {
+                localStorage.setItem(storageKey(FIRST_PURCHASE_SAMPLE_CODE_KEY), code)
+            } catch {
+                // ignore storage issues
+            }
+        }
+        setIsFirstPurchaseSampleClaimed(true)
+        try {
+            localStorage.setItem(storageKey(FIRST_PURCHASE_SAMPLE_CLAIMED_KEY), "true")
+            if (!wasClaimed) {
+                persistClaimedReward("first-purchase-sample")
+            }
+        } catch {
+            // ignore storage issues
+        }
+        setIsFirstPurchaseSampleOpen(true)
     }
 
     const handleClaimFreeShipping = (canClaim: boolean) => {
@@ -291,23 +342,30 @@ export default function RewardsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {REWARD_OPTIONS.map((reward) => {
                             const rewardClaimed = hasClaimedReward(reward.id)
-                            const canClaim = rewardClaimed || totalPoints >= reward.points
+                            const requiresFirstPurchase = reward.id === "first-purchase-sample"
+                            const isRewardUsed = reward.id === "first-purchase-sample" && isFirstPurchaseSampleUsed
+                            const canClaimByPoints = rewardClaimed || totalPoints >= reward.points
+                            const canClaim = requiresFirstPurchase
+                                ? rewardClaimed || (isFirstPurchaseEligible && !isRewardUsed)
+                                : canClaimByPoints
                             return (
                                 <div
                                     key={reward.id}
                                     className="rounded-xl border border-border p-6 bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/30"
                                 >
-                                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Requires {reward.points} points</p>
+                                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                                        {reward.id === "first-purchase-sample" ? "First order only" : `Requires ${reward.points} points`}
+                                    </p>
                                     <h2 className="font-serif text-2xl font-bold mt-2">{reward.title}</h2>
                                     <p className="text-sm text-muted-foreground mt-2">{reward.description}</p>
-                                    {reward.id === "sample-kit" && (
+                                    {reward.id === "first-purchase-sample" && (
                                         <Button
                                             type="button"
                                             variant="outline"
                                             className="mt-5 mr-3"
-                                            onClick={() => setIsMiniKitOpen(true)}
+                                            onClick={() => setIsFirstPurchaseSampleOpen(true)}
                                         >
-                                            View Kit Details
+                                            View Reward Code
                                         </Button>
                                     )}
                                     {reward.id === "choose-product" && (
@@ -344,10 +402,23 @@ export default function RewardsPage() {
                                                     setIsConfirmVoucherOpen(true)
                                                 }
                                             }
+                                            if (reward.id === "first-purchase-sample") {
+                                                if (rewardClaimed) {
+                                                    setIsFirstPurchaseSampleOpen(true)
+                                                } else if (canClaim) {
+                                                    setIsConfirmFirstPurchaseSampleOpen(true)
+                                                }
+                                            }
                                         }}
                                     >
-                                        {rewardClaimed ? "Already claimed" : canClaim ? "Claim Reward" : "Not enough points"}
+                                        {isRewardUsed ? "Already used" : rewardClaimed ? "Already claimed" : canClaim ? "Claim Reward" : "Not enough points"}
                                     </Button>
+                                    {reward.id === "first-purchase-sample" && isFirstPurchaseSampleClaimed && firstPurchaseSampleCode && !isFirstPurchaseSampleUsed && (
+                                        <div className="mt-4 rounded-lg border border-[#D4AF37] bg-[#D4AF37]/20 p-3">
+                                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Your First Purchase Sample Code</p>
+                                            <p className="text-base font-bold text-foreground mt-1">{firstPurchaseSampleCode}</p>
+                                        </div>
+                                    )}
                                     {reward.id === "shipping" && isFreeShippingClaimed && freeShippingCode && (
                                         <div className="mt-4 rounded-lg border border-[#D4AF37] bg-[#D4AF37]/20 p-3">
                                             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Your Free Shipping Code</p>
@@ -372,30 +443,82 @@ export default function RewardsPage() {
                     </div>
                 </div>
             </main>
-            <Dialog open={isMiniKitOpen} onOpenChange={setIsMiniKitOpen}>
-                <DialogContent className="sm:max-w-3xl p-0 overflow-hidden">
-                    <div className="p-6 border-b border-border">
-                        <DialogHeader>
-                            <DialogTitle className="font-serif text-2xl">Mini Sample Skincare Kit</DialogTitle>
-                            <DialogDescription>
-                                A curated starter set to test Noor Seoul bestsellers before buying full size.
-                            </DialogDescription>
-                        </DialogHeader>
+            <Dialog open={isConfirmFirstPurchaseSampleOpen} onOpenChange={setIsConfirmFirstPurchaseSampleOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Activate First Purchase Sample</DialogTitle>
+                        <DialogDescription>
+                            Do you want to activate a code for 1 sample skincare product? This is valid only on your first purchase with at least 3 items.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="h-12"
+                            onClick={() => setIsConfirmFirstPurchaseSampleOpen(false)}
+                        >
+                            No
+                        </Button>
+                        <Button
+                            type="button"
+                            className="h-12 bg-[#D4AF37] text-black hover:bg-[#c39f2f]"
+                            onClick={() => handleClaimFirstPurchaseSample(true)}
+                        >
+                            Yes
+                        </Button>
                     </div>
-
-                    <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="h-36 rounded-md border-2 border-dashed border-border/80" />
-                            <div className="h-36 rounded-md border-2 border-dashed border-border/80" />
-                            <div className="h-36 rounded-md border-2 border-dashed border-border/80" />
+                </DialogContent>
+            </Dialog>
+            <Dialog open={isFirstPurchaseSampleOpen} onOpenChange={setIsFirstPurchaseSampleOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>First Purchase Sample Reward</DialogTitle>
+                        <DialogDescription>
+                            Apply this code at checkout. Valid only on your first purchase and only when your cart has at least 3 items.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {isFirstPurchaseSampleUsed ? (
+                        <div className="rounded-lg border border-border bg-secondary/10 p-4 text-center">
+                            <p className="text-sm text-muted-foreground">This first-purchase sample reward has already been used.</p>
                         </div>
-
-                        <div className="rounded-lg border border-border bg-secondary/10 p-5">
-                            <p className="text-sm text-muted-foreground">
-                                Kit images and product details will be added here.
-                            </p>
+                    ) : !isFirstPurchaseSampleClaimed ? (
+                        <div className="rounded-lg border border-border bg-secondary/10 p-4 text-center space-y-3">
+                            {!isFirstPurchaseEligible ? (
+                                <p className="text-sm text-muted-foreground">This reward is only available before your first purchase.</p>
+                            ) : (
+                                <>
+                                    <p className="text-sm text-muted-foreground">You are eligible. Claim this reward to generate your code.</p>
+                                    <Button
+                                        type="button"
+                                        className="w-full bg-[#D4AF37] text-black hover:bg-[#c39f2f]"
+                                        onClick={() => {
+                                            setIsFirstPurchaseSampleOpen(false)
+                                            setIsConfirmFirstPurchaseSampleOpen(true)
+                                        }}
+                                    >
+                                        Claim Reward
+                                    </Button>
+                                </>
+                            )}
                         </div>
-                    </div>
+                    ) : (
+                        <div className="rounded-lg border border-[#D4AF37] bg-[#D4AF37]/20 p-4 text-center">
+                            <p className="text-xs uppercase tracking-widest text-muted-foreground">Sample Reward Code</p>
+                            <div className="mt-1 flex items-center justify-center gap-2">
+                                <p className="text-xl font-bold">{firstPurchaseSampleCode}</p>
+                                <Button type="button" variant="outline" className="h-8 px-3 text-xs" onClick={() => handleCopyCode(firstPurchaseSampleCode)}>
+                                    Copy
+                                </Button>
+                            </div>
+                            {copiedCode === firstPurchaseSampleCode && (
+                                <p className="text-xs text-emerald-700 mt-1">Code copied</p>
+                            )}
+                        </div>
+                    )}
+                    <Button type="button" className="w-full bg-[#D4AF37] text-black hover:bg-[#c39f2f]" onClick={() => router.push('/checkout')}>
+                        Go to Checkout
+                    </Button>
                 </DialogContent>
             </Dialog>
             <Dialog open={isChooseProductOpen} onOpenChange={setIsChooseProductOpen}>

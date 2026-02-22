@@ -12,6 +12,15 @@ interface IncomingOrderItem {
   image: string;
 }
 
+function isMissingOrderNoteColumnError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2022"
+  );
+}
+
 function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
 }
@@ -38,11 +47,65 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const orders = await prisma.order.findMany({
-    where: { customerEmail: user.email },
-    orderBy: { createdAt: "desc" },
-    include: { items: true },
-  });
+  let orders: Array<{
+    id: string;
+    createdAt: Date;
+    status: string;
+    total: number;
+    orderNote?: string | null;
+    items: Array<{
+      id: string;
+      name: string;
+      price: number;
+      quantity: number;
+      image: string;
+    }>;
+  }> = [];
+
+  try {
+    orders = await prisma.order.findMany({
+      where: { customerEmail: user.email },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        createdAt: true,
+        status: true,
+        total: true,
+        orderNote: true,
+        items: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            quantity: true,
+            image: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    if (!isMissingOrderNoteColumnError(error)) throw error;
+
+    orders = await prisma.order.findMany({
+      where: { customerEmail: user.email },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        createdAt: true,
+        status: true,
+        total: true,
+        items: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            quantity: true,
+            image: true,
+          },
+        },
+      },
+    });
+  }
 
   return NextResponse.json({
     orders: orders.map((order) => ({
@@ -69,6 +132,7 @@ export async function POST(request: Request) {
   const lastName = String(body?.lastName || "").trim();
   const city = String(body?.city || "").trim();
   const currency = String(body?.currency || "AED").trim().toUpperCase() || "AED";
+  const firstPurchaseSampleApplied = body?.firstPurchaseSampleApplied === true;
   const items = Array.isArray(body?.items) ? (body.items as IncomingOrderItem[]) : [];
 
   if (!email || !firstName || !lastName || !city) {
@@ -108,6 +172,34 @@ export async function POST(request: Request) {
     );
   }
 
+  let orderNote: string | null = null;
+  if (firstPurchaseSampleApplied) {
+    const totalItemQuantity = normalizedItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+
+    if (totalItemQuantity < 3) {
+      return NextResponse.json(
+        { error: "Sample reward requires at least 3 items" },
+        { status: 400 }
+      );
+    }
+
+    const existingOrderCount = await prisma.order.count({
+      where: { customerEmail: email },
+    });
+
+    if (existingOrderCount > 0) {
+      return NextResponse.json(
+        { error: "Sample reward is only valid for the first order" },
+        { status: 400 }
+      );
+    }
+
+    orderNote = `${firstName} ${lastName}'s first order + sample skincare product.`;
+  }
+
   const subtotal = roundCurrency(
     normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   );
@@ -122,6 +214,7 @@ export async function POST(request: Request) {
       firstName,
       lastName,
       city,
+      orderNote,
       currency,
       subtotal,
       vat,
@@ -138,6 +231,33 @@ export async function POST(request: Request) {
       },
     },
     include: { items: true },
+  }).catch(async (error) => {
+    if (!isMissingOrderNoteColumnError(error)) throw error;
+
+    return prisma.order.create({
+      data: {
+        orderNumber: createOrderNumber(),
+        customerEmail: email,
+        firstName,
+        lastName,
+        city,
+        currency,
+        subtotal,
+        vat,
+        shipping,
+        total,
+        items: {
+          create: normalizedItems.map((item) => ({
+            productId: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+        },
+      },
+      include: { items: true },
+    });
   });
 
   return NextResponse.json(

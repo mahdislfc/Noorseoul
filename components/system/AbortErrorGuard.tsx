@@ -3,6 +3,19 @@
 import { useEffect } from "react"
 
 function isKnownAbortSignalError(value: unknown) {
+    if (value instanceof DOMException && value.name === "AbortError") {
+        return true
+    }
+
+    if (
+        typeof value === "object" &&
+        value &&
+        "name" in value &&
+        String((value as { name?: unknown }).name || "").toLowerCase() === "aborterror"
+    ) {
+        return true
+    }
+
     const message =
         value instanceof Error
             ? value.message
@@ -28,7 +41,7 @@ export function AbortErrorGuard() {
         }
 
         const onError = (event: ErrorEvent) => {
-            if (isKnownAbortSignalError(event.error)) {
+            if (isKnownAbortSignalError(event.error) || isKnownAbortSignalError(event.message)) {
                 event.preventDefault()
             }
         }

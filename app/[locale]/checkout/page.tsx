@@ -16,11 +16,12 @@ export default function CheckoutPage() {
     const locale = useLocale();
     const isRtl = locale === 'ar';
     const { items, totalPrice, clearCart } = useCart()
-    const { user } = useUser()
+    const { user, orders } = useUser()
     const [activeStep, setActiveStep] = useState(1)
     const [email, setEmail] = useState("")
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
+    const [address, setAddress] = useState("")
     const [city, setCity] = useState("Seoul")
     const [placingOrder, setPlacingOrder] = useState(false)
     const [checkoutError, setCheckoutError] = useState("")
@@ -30,6 +31,9 @@ export default function CheckoutPage() {
     const [shippingRewardApplied, setShippingRewardApplied] = useState(false)
     const [activeVoucher15Code, setActiveVoucher15Code] = useState("")
     const [activeVoucher30Code, setActiveVoucher30Code] = useState("")
+    const [activeFirstPurchaseSampleCode, setActiveFirstPurchaseSampleCode] = useState("")
+    const [isFirstPurchaseSampleApplied, setIsFirstPurchaseSampleApplied] = useState(false)
+    const [hasUsedFirstPurchaseSample, setHasUsedFirstPurchaseSample] = useState(false)
     const [appliedRewards, setAppliedRewards] = useState<string[]>([])
     const [appliedCodeValues, setAppliedCodeValues] = useState<string[]>([])
     const [voucherDiscountAmount, setVoucherDiscountAmount] = useState(0)
@@ -40,6 +44,9 @@ export default function CheckoutPage() {
 
     const FREE_SHIPPING_CODE_KEY = "reward_free_shipping_code"
     const FREE_SHIPPING_CLAIMED_KEY = "reward_free_shipping_claimed"
+    const FIRST_PURCHASE_SAMPLE_CODE_KEY = "reward_first_purchase_sample_code"
+    const FIRST_PURCHASE_SAMPLE_CLAIMED_KEY = "reward_first_purchase_sample_claimed"
+    const FIRST_PURCHASE_SAMPLE_USED_KEY = "reward_first_purchase_sample_used"
     const VOUCHER_15_CODE_KEY = "reward_voucher_15_code"
     const VOUCHER_15_CLAIMED_KEY = "reward_voucher_15_claimed"
     const VOUCHER_30_CODE_KEY = "reward_voucher_30_code"
@@ -59,6 +66,21 @@ export default function CheckoutPage() {
     const totalSavings = appliedDiscount + shippingDiscount
     const vat = discountedSubtotal * 0.05
     const finalTotal = discountedSubtotal + shippingCost + vat
+    const totalItemQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
+
+    useEffect(() => {
+        if (!user) return
+
+        setEmail((current) => current.trim() ? current : (user.email || ""))
+        setFirstName((current) => current.trim() ? current : (user.firstName || ""))
+        setLastName((current) => current.trim() ? current : (user.lastName || ""))
+        setAddress((current) => current.trim() ? current : (user.address || ""))
+        setCity((current) => {
+            if (current.trim() && current !== "Seoul") return current
+            const profileCity = user.city?.trim()
+            return profileCity || current || "Seoul"
+        })
+    }, [user])
 
     useEffect(() => {
         clearRewardPointsCacheOnce()
@@ -80,6 +102,16 @@ export default function CheckoutPage() {
             } else {
                 setActiveFreeShippingCode("")
             }
+
+            const firstPurchaseSampleCode = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_CODE_KEY))
+            const firstPurchaseSampleClaimed = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_CLAIMED_KEY)) === "true"
+            const firstPurchaseSampleUsed = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_USED_KEY)) === "true"
+            if (firstPurchaseSampleCode && firstPurchaseSampleClaimed && !firstPurchaseSampleUsed) {
+                setActiveFirstPurchaseSampleCode(firstPurchaseSampleCode)
+            } else {
+                setActiveFirstPurchaseSampleCode("")
+            }
+            setHasUsedFirstPurchaseSample(firstPurchaseSampleUsed)
 
             const voucher15Code = localStorage.getItem(key(VOUCHER_15_CODE_KEY))
             const voucher15Claimed = localStorage.getItem(key(VOUCHER_15_CLAIMED_KEY)) === "true"
@@ -105,6 +137,7 @@ export default function CheckoutPage() {
         const rawInput = typeof codeToApply === "string" ? codeToApply : rewardCodeInput
         const normalizedInput = rawInput.trim().toUpperCase()
         let latestShippingCode = activeFreeShippingCode
+        let latestFirstPurchaseSampleCode = activeFirstPurchaseSampleCode
         let latestVoucher15Code = activeVoucher15Code
         let latestVoucher30Code = activeVoucher30Code
 
@@ -112,6 +145,15 @@ export default function CheckoutPage() {
             const shippingCode = localStorage.getItem(storageKey(FREE_SHIPPING_CODE_KEY))
             const shippingClaimed = localStorage.getItem(storageKey(FREE_SHIPPING_CLAIMED_KEY)) === "true"
             latestShippingCode = shippingCode && shippingClaimed ? shippingCode : ""
+
+            const firstPurchaseSampleCode = localStorage.getItem(storageKey(FIRST_PURCHASE_SAMPLE_CODE_KEY))
+            const firstPurchaseSampleClaimed = localStorage.getItem(storageKey(FIRST_PURCHASE_SAMPLE_CLAIMED_KEY)) === "true"
+            const firstPurchaseSampleUsed = localStorage.getItem(storageKey(FIRST_PURCHASE_SAMPLE_USED_KEY)) === "true"
+            latestFirstPurchaseSampleCode =
+                firstPurchaseSampleCode && firstPurchaseSampleClaimed && !firstPurchaseSampleUsed
+                    ? firstPurchaseSampleCode
+                    : ""
+            setHasUsedFirstPurchaseSample(firstPurchaseSampleUsed)
 
             const voucher15Code = localStorage.getItem(storageKey(VOUCHER_15_CODE_KEY))
             const voucher15Claimed = localStorage.getItem(storageKey(VOUCHER_15_CLAIMED_KEY)) === "true"
@@ -122,6 +164,7 @@ export default function CheckoutPage() {
             latestVoucher30Code = voucher30Code && voucher30Claimed ? voucher30Code : ""
 
             setActiveFreeShippingCode(latestShippingCode)
+            setActiveFirstPurchaseSampleCode(latestFirstPurchaseSampleCode)
             setActiveVoucher15Code(latestVoucher15Code)
             setActiveVoucher30Code(latestVoucher30Code)
         } catch {
@@ -129,6 +172,7 @@ export default function CheckoutPage() {
         }
 
         const normalizedShippingCode = latestShippingCode.trim().toUpperCase()
+        const normalizedFirstPurchaseSampleCode = latestFirstPurchaseSampleCode.trim().toUpperCase()
         const normalizedVoucher15Code = latestVoucher15Code.trim().toUpperCase()
         const normalizedVoucher30Code = latestVoucher30Code.trim().toUpperCase()
 
@@ -141,6 +185,7 @@ export default function CheckoutPage() {
 
         if (
             !normalizedShippingCode &&
+            !normalizedFirstPurchaseSampleCode &&
             !normalizedVoucher15Code &&
             !normalizedVoucher30Code
         ) {
@@ -154,8 +199,44 @@ export default function CheckoutPage() {
             setShippingRewardApplied(true)
             setAppliedRewards((current) => (current.includes("Free Shipping") ? current : [...current, "Free Shipping"]))
             setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
-            setRewardCodeMessage(`Code ${normalizedInput} applied:`)
-            setRewardCodeHighlight("Free shipping activated")
+            setRewardCodeMessage(`Code ${normalizedInput} applied.`)
+            setRewardCodeHighlight("")
+            setIsRewardCodeMessageSuccess(true)
+            setRewardCodeInput("")
+            return
+        }
+
+        if (normalizedInput === normalizedFirstPurchaseSampleCode) {
+            if (hasUsedFirstPurchaseSample) {
+                setRewardCodeMessage("This sample reward code was already used.")
+                setRewardCodeHighlight("")
+                setIsRewardCodeMessageSuccess(false)
+                return
+            }
+
+            if (orders.length > 0) {
+                setRewardCodeMessage("This sample reward is valid only for your first purchase.")
+                setRewardCodeHighlight("")
+                setIsRewardCodeMessageSuccess(false)
+                return
+            }
+
+            if (totalItemQuantity < 3) {
+                setRewardCodeMessage("Add at least 3 items to your bag to use this sample reward.")
+                setRewardCodeHighlight("")
+                setIsRewardCodeMessageSuccess(false)
+                return
+            }
+
+            setIsFirstPurchaseSampleApplied(true)
+            setAppliedRewards((current) => (
+                current.includes("1 Sample Skincare Product")
+                    ? current
+                    : [...current, "1 Sample Skincare Product"]
+            ))
+            setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
+            setRewardCodeMessage(`Code ${normalizedInput} applied.`)
+            setRewardCodeHighlight("")
             setIsRewardCodeMessageSuccess(true)
             setRewardCodeInput("")
             return
@@ -171,8 +252,8 @@ export default function CheckoutPage() {
                 return [...withoutVoucher, "$15 Discount"]
             })
             setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
-            setRewardCodeMessage(`Code ${normalizedInput} applied:`)
-            setRewardCodeHighlight("$15 discount activated")
+            setRewardCodeMessage(`Code ${normalizedInput} applied.`)
+            setRewardCodeHighlight("")
             setIsRewardCodeMessageSuccess(true)
             setRewardCodeInput("")
             return
@@ -188,8 +269,8 @@ export default function CheckoutPage() {
                 return [...withoutVoucher, "$30 Discount"]
             })
             setAppliedCodeValues((current) => (current.includes(normalizedInput) ? current : [...current, normalizedInput]))
-            setRewardCodeMessage(`Code ${normalizedInput} applied:`)
-            setRewardCodeHighlight("$30 discount activated")
+            setRewardCodeMessage(`Code ${normalizedInput} applied.`)
+            setRewardCodeHighlight("")
             setIsRewardCodeMessageSuccess(true)
             setRewardCodeInput("")
             return
@@ -200,7 +281,7 @@ export default function CheckoutPage() {
         setIsRewardCodeMessageSuccess(false)
     }
 
-    const availableCodes = [activeFreeShippingCode, activeVoucher15Code, activeVoucher30Code]
+    const availableCodes = [activeFirstPurchaseSampleCode, activeFreeShippingCode, activeVoucher15Code, activeVoucher30Code]
         .map((code) => code.trim().toUpperCase())
         .filter((code) => Boolean(code) && !appliedCodeValues.includes(code))
 
@@ -242,8 +323,10 @@ export default function CheckoutPage() {
                     email,
                     firstName,
                     lastName,
+                    address,
                     city,
                     currency: cartCurrency,
+                    firstPurchaseSampleApplied: isFirstPurchaseSampleApplied,
                     items,
                 }),
             })
@@ -254,6 +337,21 @@ export default function CheckoutPage() {
             }
 
             setSuccessOrderNumber(data?.order?.orderNumber || "")
+            if (isFirstPurchaseSampleApplied && activeFirstPurchaseSampleCode) {
+                try {
+                    localStorage.setItem(storageKey(FIRST_PURCHASE_SAMPLE_USED_KEY), "true")
+                    localStorage.removeItem(storageKey(FIRST_PURCHASE_SAMPLE_CODE_KEY))
+                    setHasUsedFirstPurchaseSample(true)
+                } catch {
+                    // ignore storage issues
+                }
+                setActiveFirstPurchaseSampleCode("")
+                setIsFirstPurchaseSampleApplied(false)
+                setRewardCodeInput("")
+                setRewardCodeMessage("")
+                setRewardCodeHighlight("")
+                setIsRewardCodeMessageSuccess(false)
+            }
             if (shippingRewardApplied && activeFreeShippingCode) {
                 try {
                     localStorage.removeItem(storageKey(FREE_SHIPPING_CODE_KEY))
@@ -380,6 +478,16 @@ export default function CheckoutPage() {
                                                     value={lastName}
                                                     onChange={(event) => setLastName(event.target.value)}
                                                     className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-2 md:col-span-2">
+                                                <label className="text-xs font-bold uppercase tracking-widest">Address</label>
+                                                <input
+                                                    type="text"
+                                                    value={address}
+                                                    onChange={(event) => setAddress(event.target.value)}
+                                                    className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none"
+                                                    placeholder="Street, building, apartment"
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-2 md:col-span-2">

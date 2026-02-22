@@ -49,6 +49,7 @@ export interface AdminOrder {
   firstName: string;
   lastName: string;
   city: string;
+  orderNote?: string | null;
   currency: string;
   subtotal: number;
   vat: number;
