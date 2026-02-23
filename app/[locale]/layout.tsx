@@ -38,6 +38,7 @@ export const viewport = {
 
 import { CartProvider } from "@/context/CartContext";
 import { UserProvider } from "@/context/UserContext";
+import { DisplayCurrencyProvider } from "@/context/DisplayCurrencyContext";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -53,7 +54,7 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const isSupportedLocale = locale === "en" || locale === "ar";
+  const isSupportedLocale = locale === "en" || locale === "ar" || locale === "fa";
 
   // Ensure that the incoming `locale` is valid
   if (!isSupportedLocale) {
@@ -61,19 +62,21 @@ export default async function RootLayout({
   }
 
   const messages = await getMessages();
-  const dir = locale === 'ar' ? 'rtl' : 'ltr';
+  const dir = locale === 'ar' || locale === "fa" ? 'rtl' : 'ltr';
 
   return (
     <html lang={locale} dir={dir} className={`${manrope.variable} ${cormorant.variable} ${playfair.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased text-foreground bg-background">
         <NextIntlClientProvider messages={messages}>
           <UserProvider>
-            <CartProvider>
-              <AbortErrorGuard />
-              <Header />
-              {children}
-              <Toaster />
-            </CartProvider>
+            <DisplayCurrencyProvider locale={locale}>
+              <CartProvider>
+                <AbortErrorGuard />
+                <Header />
+                {children}
+                <Toaster />
+              </CartProvider>
+            </DisplayCurrencyProvider>
           </UserProvider>
         </NextIntlClientProvider>
       </body>

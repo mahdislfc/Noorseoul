@@ -1,0 +1,330 @@
+{
+    "Navigation": {
+        "bestSellers": "پرفروش ترین ها",
+        "makeup": "آرایش",
+        "skincare": "مراقبت پوست",
+        "newArrivals": "جدیدترین ها"
+    },
+    "Hero": {
+        "headline": "سئول در دستان شما",
+        "subheadline": "هر کجا که هستید",
+        "shopNow": "خرید کنید",
+        "becomeMember": "عضو شوید",
+        "memberOffer": "اعضا برای اولین سفارش ۱۰٪ تخفیف می گیرند"
+    },
+    "Register": {
+        "title": "عضو شوید",
+        "subtitle": "برای مزایای ویژه و پرداخت سریع تر به Noor Seoul بپیوندید.",
+        "firstName": "نام",
+        "lastName": "نام خانوادگی",
+        "phone": "شماره تلفن",
+        "email": "ایمیل",
+        "password": "رمز عبور",
+        "shippingAddress": "آدرس ارسال",
+        "city": "شهر",
+        "paymentInfo": "اطلاعات پرداخت (پروفایل امن)",
+        "cardNumber": "شماره کارت",
+        "expiry": "MM / YY",
+        "cvc": "CVC",
+        "optIn": "من را از محصولات جدید و پیشنهادهای ویژه باخبر کنید",
+        "submit": "عضویت و ذخیره",
+        "memberBenefit": "اطلاعات خود را برای پرداخت یک کلیکی ذخیره کنید."
+    },
+    "Common": {
+        "searchPlaceholder": "جستجوی محصولات...",
+        "account": "حساب کاربری",
+        "signInOrRegister": "ورود / ثبت نام",
+        "myProfile": "پروفایل من",
+        "orders": "سفارش ها",
+        "points": "جم",
+        "logout": "خروج",
+        "signIn": "ورود",
+        "register": "ثبت نام"
+    },
+    "Product": {
+        "addToCart": "افزودن به سبد",
+        "addedToCart": "به سبد اضافه شد",
+        "bundleItemAdded": "آیتم باندل به سبد اضافه شد",
+        "dealAddedToCart": "پیشنهاد ویژه به سبد اضافه شد",
+        "viewCart": "مشاهده سبد",
+        "viewDetails": "مشاهده جزئیات",
+        "sale": "تخفیف",
+        "skinType": "نوع پوست",
+        "scent": "رایحه",
+        "waterResistance": "مقاومت در برابر آب",
+        "ingredients": "ترکیبات",
+        "readMore": "بیشتر بخوانید",
+        "readLess": "کمتر بخوانید",
+        "buyCheaper": "ارزان تر بخرید",
+        "quantityShort": "تعداد",
+        "size": "سایز",
+        "economicalSetHint": "با انتخاب بسته اقتصادی بیشتر صرفه جویی کنید.",
+        "decreaseQuantity": "کاهش تعداد",
+        "increaseQuantity": "افزایش تعداد",
+        "similarProducts": "محصولات مشابه",
+        "noSimilarProducts": "هنوز محصول مشابهی لینک نشده است.",
+        "seeMore": "مشاهده بیشتر",
+        "seeLess": "مشاهده کمتر",
+        "home": "خانه"
+    },
+    "Cart": {
+        "title": "سبد خرید شما",
+        "subtotal": "جمع جزء",
+        "checkout": "تسویه حساب",
+        "continueShopping": "ادامه خرید",
+        "empty": "سبد خرید شما خالی است",
+        "item": "محصول",
+        "items": "محصول",
+        "remove": "حذف"
+    },
+    "Checkout": {
+        "title": "تسویه حساب",
+        "steps": {
+            "bag": "سبد",
+            "details": "جزئیات",
+            "confirmation": "تایید"
+        },
+        "sections": {
+            "information": "اطلاعات",
+            "shipping": "ارسال",
+            "payment": "پرداخت"
+        },
+        "fields": {
+            "emailAddress": "ایمیل",
+            "firstName": "نام",
+            "lastName": "نام خانوادگی",
+            "address": "آدرس",
+            "city": "شهر",
+            "cardNumber": "شماره کارت",
+            "expiry": "تاریخ انقضا",
+            "cvc": "CVC"
+        },
+        "placeholders": {
+            "email": "email@example.com",
+            "address": "خیابان، ساختمان، واحد"
+        },
+        "actions": {
+            "continueToShipping": "ادامه به ارسال",
+            "continueToPayment": "ادامه به پرداخت",
+            "apply": "اعمال",
+            "remove": "حذف",
+            "decreaseQuantityOf": "کاهش تعداد {name}",
+            "increaseQuantityOf": "افزایش تعداد {name}",
+            "removeProduct": "حذف {name}",
+            "placingOrder": "در حال ثبت سفارش...",
+            "completePurchase": "تکمیل خرید"
+        },
+        "payment": {
+            "encryptedSecure": "رمزگذاری شده و امن",
+            "encryptionNote": "اطلاعات پرداخت شما با رمزنگاری SSL 256-bit محافظت می شود."
+        },
+        "summary": {
+            "title": "خلاصه سفارش",
+            "discountRewardCode": "کد تخفیف / جایزه",
+            "enterCodeOrChoose": "کد را وارد کنید یا از لیست انتخاب کنید",
+            "enterCode": "کد را وارد کنید",
+            "claimedRewards": "جوایز اعمال شده",
+            "subtotal": "جمع جزء",
+            "voucherDiscount": "تخفیف ووچر",
+            "delivery": "ارسال ویژه",
+            "shippingPolicy": "سیاست ارسال: کمتر از $100 = $10، از $100 تا $200 = $18، از $200.01 تا $250 = $20، بالاتر از $250 = $25.",
+            "shippingReward": "جایزه ارسال",
+            "subtotalAfterDiscounts": "جمع بعد از تخفیف",
+            "vat": "مالیات بر ارزش افزوده (5%)",
+            "total": "مجموع",
+            "youSaved": "شما {amount} صرفه جویی کردید"
+        },
+        "messages": {
+            "enterRewardCode": "لطفا کد جایزه را وارد کنید.",
+            "noActiveRewardCode": "کد جایزه فعالی پیدا نشد.",
+            "codeApplied": "کد {code} اعمال شد.",
+            "sampleCodeUsed": "این کد نمونه قبلا استفاده شده است.",
+            "sampleFirstPurchaseOnly": "این جایزه نمونه فقط برای اولین خرید معتبر است.",
+            "sampleNeedsThreeItems": "برای استفاده از جایزه نمونه، حداقل 3 کالا به سبد اضافه کنید.",
+            "invalidCode": "کد نامعتبر است. لطفا بررسی و دوباره تلاش کنید.",
+            "completeDetails": "لطفا اطلاعات تماس و ارسال را کامل کنید.",
+            "bagEmpty": "سبد خرید شما خالی است.",
+            "failedToPlaceOrder": "ثبت سفارش ناموفق بود",
+            "orderPlaced": "سفارش با موفقیت ثبت شد. شماره سفارش: {orderNumber}"
+        },
+        "rewards": {
+            "freeShipping": "ارسال رایگان",
+            "sample": "1 محصول نمونه مراقبت پوست",
+            "discount10": "تخفیف $10",
+            "discount20": "تخفیف $20",
+            "discount30": "تخفیف $30"
+        }
+    },
+    "RequestProduct": {
+        "title": "درخواست محصول",
+        "subtitle": "دنبال یک محصول زیبایی کره ای خاص هستید؟ به ما اطلاع دهید تا برای شما پیدا کنیم.",
+        "fields": {
+            "productName": "نام محصول",
+            "commentOptional": "توضیح (اختیاری)",
+            "productPicture": "تصویر محصول",
+            "noFileChosen": "فایلی انتخاب نشده"
+        },
+        "placeholders": {
+            "productName": "مثلا: COSRX Advanced Snail 96 Mucin Essence",
+            "comment": "هر جزئیاتی را بنویسید: نوع پوست، سایز، مدل دقیق..."
+        },
+        "actions": {
+            "uploadImage": "آپلود تصویر",
+            "sending": "در حال ارسال...",
+            "sendRequest": "ارسال درخواست"
+        },
+        "success": {
+            "sent": "ممنون. درخواست محصول شما برای ادمین ارسال شد."
+        },
+        "errors": {
+            "nameRequired": "نام محصول الزامی است",
+            "imageRequired": "تصویر الزامی است",
+            "invalidImage": "فایل تصویر نامعتبر است",
+            "failed": "ارسال درخواست ناموفق بود"
+        }
+    },
+    "Home": {
+        "badges": {
+            "newArrival": "جدید"
+        },
+        "categories": {
+            "title": "ضروریات زیبایی",
+            "subtitle": "مجموعه ای از محصولات زیبایی پریمیوم را کشف کنید",
+            "viewAll": "مشاهده همه دسته بندی ها",
+            "makeup": "آرایش",
+            "skincare": "مراقبت پوست",
+            "newArrivals": "جدیدترین ها",
+            "bestSellers": "پرفروش ترین ها"
+        },
+        "discover": {
+            "title": "کشف کنید",
+            "explore": "مشاهده",
+            "skincareBestSellers": "پرفروش ترین های مراقبت پوست",
+            "skincareBestSellersDesc": "محصولات ترند مراقبت پوست را ببینید",
+            "makeupBestSellers": "پرفروش ترین های آرایشی",
+            "makeupBestSellersDesc": "محصولات آرایشی ترند را ببینید",
+            "giftSets": "ست های هدیه",
+            "giftSetsDesc": "مجموعه های منتخب برای عزیزان شما.",
+            "nextArrivals": "محصولات آینده",
+            "nextArrivalsDesc": "اولین نفر باشید که از محصولات آینده باخبر می شوید."
+        },
+        "brands": {
+            "title": "برندهای برتر کره",
+            "shopBrand": "خرید از برند",
+            "seeAllBrands": "مشاهده همه برندها",
+            "sold50": "بیش از 50M فروش",
+            "sold40": "بیش از 40M فروش",
+            "sold30": "بیش از 30M فروش",
+            "sold20": "بیش از 20M فروش",
+            "sold10": "بیش از 10M فروش",
+            "cosrxDesc": "مراقبت پوستی مینیمال با ترکیبات پرفورمنس بالا.",
+            "laneigeDesc": "فناوری پیشرفته آبرسانی برای پوستی درخشان.",
+            "innisfreeDesc": "مزایای طبیعی برگرفته از جزیره پاک ججو.",
+            "sulwhasooDesc": "زیبایی جامع با الهام از طب گیاهی کره ای.",
+            "banilaDesc": "مراقبت پوستی طراحی شده برای دوستداران آرایش."
+        }
+    },
+    "Tips": {
+        "skincareTitle": "پرفروش ترین های مراقبت پوست",
+        "skincareSubtitle": "محصولات ترند مراقبت پوست را ببینید",
+        "makeupTitle": "پرفروش ترین های آرایشی",
+        "makeupSubtitle": "محصولات آرایشی ترند را ببینید"
+    },
+    "DashboardAddress": {
+        "editAddress": "ویرایش آدرس",
+        "locating": "در حال یافتن موقعیت...",
+        "useMyLocation": "استفاده از موقعیت من",
+        "fixedNote": "آدرس ارسال برای این پروفایل ثابت است.",
+        "saving": "در حال ذخیره...",
+        "saveChanges": "ذخیره تغییرات",
+        "addressAutofilled": "آدرس از موقعیت فعلی شما تکمیل شد. برای ثبت، روی ذخیره تغییرات کلیک کنید.",
+        "locationCaptured": "موقعیت ثبت شد. برای ثبت، روی ذخیره تغییرات کلیک کنید."
+    },
+    "Dashboard": {
+        "header": {
+            "hello": "سلام، {name}"
+        },
+        "membership": {
+            "member": "عضو"
+        },
+        "actions": {
+            "logOut": "خروج"
+        },
+        "tabs": {
+            "overview": "نمای کلی",
+            "orderHistory": "تاریخچه سفارش",
+            "myProfile": "پروفایل من",
+            "gems": "جم"
+        },
+        "notifications": {
+            "label": "اعلان ها",
+            "enabled": "اعلان ها فعال شد",
+            "disabled": "اعلان ها غیرفعال شد"
+        },
+        "overview": {
+            "title": "سفارش ها و جم",
+            "gemsReceived": "جم دریافتی"
+        },
+        "orders": {
+            "order": "سفارش",
+            "noItems": "کالایی وجود ندارد",
+            "recentOrders": "سفارش های اخیر",
+            "viewDetails": "مشاهده جزئیات",
+            "reorder": "سفارش مجدد",
+            "qty": "تعداد",
+            "total": "مجموع",
+            "orderNumber": "سفارش #{id}"
+        },
+        "profile": {
+            "editProfile": "ویرایش پروفایل",
+            "firstName": "نام",
+            "lastName": "نام خانوادگی",
+            "emailAddress": "ایمیل",
+            "phoneNumber": "شماره تلفن",
+            "countryCode": "کد کشور",
+            "toggleCountryCode": "نمایش گزینه های کد کشور",
+            "phonePlaceholder": "باقی شماره تلفن",
+            "shippingAddress": "آدرس ارسال",
+            "building": "نام/شماره ساختمان",
+            "buildingPlaceholder": "مثلا: برج B، ساختمان 17، واحد 304",
+            "postcode": "کد پستی",
+            "postcodePlaceholder": "مثلا: 12345"
+        },
+        "points": {
+            "yourGems": "جم های شما",
+            "availableGems": "جم قابل استفاده",
+            "claimReward": "دریافت جایزه",
+            "viewRewards": "مشاهده جوایز",
+            "earnInfo": "در حال حاضر بر اساس سفارش های تکمیل شده جم دریافت می کنید."
+        },
+        "toasts": {
+            "orderItemsAdded": "آیتم های سفارش به سبد شما اضافه شد.",
+            "profileUpdated": "پروفایل با موفقیت به روز شد",
+            "profileUpdateFailed": "به روزرسانی پروفایل ناموفق بود",
+            "unexpectedError": "یک خطای غیرمنتظره رخ داد",
+            "geolocationUnsupported": "موقعیت یابی در این مرورگر پشتیبانی نمی شود.",
+            "locationPermissionDenied": "دسترسی به موقعیت مکانی رد شد.",
+            "locationUnavailable": "موقعیت مکانی در حال حاضر در دسترس نیست.",
+            "locationTimeout": "زمان دریافت موقعیت مکانی به پایان رسید.",
+            "locationUnable": "دریافت موقعیت فعلی ممکن نیست."
+        }
+    },
+    "Footer": {
+        "brandLine": "بهترین زیبایی لوکس سئول را در خاورمیانه تجربه کنید.",
+        "discover": "کشف کنید",
+        "skincareMiracles": "معجزه های مراقبت پوست",
+        "makeupTrends": "ترندهای آرایشی",
+        "giftSets": "ست های هدیه",
+        "theHouse": "خانه برند",
+        "ourStory": "داستان ما",
+        "support": "پشتیبانی",
+        "shippingReturns": "ارسال و مرجوعی",
+        "orderTracking": "پیگیری سفارش",
+        "requestProduct": "درخواست محصول",
+        "faq": "سوالات متداول",
+        "contactUs": "تماس با ما",
+        "rights": "Noor Seoul . تمامی حقوق محفوظ است.",
+        "privacyPolicy": "حریم خصوصی",
+        "termsOfService": "شرایط استفاده"
+    }
+}

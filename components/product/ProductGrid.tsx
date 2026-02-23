@@ -12,11 +12,13 @@ interface ProductGridProps {
     brand?: string;
     discounted?: boolean;
     comingSoon?: boolean;
+    search?: string;
 }
 
-export async function ProductGrid({ category, department, newArrival, bestSeller, brand, discounted, comingSoon }: ProductGridProps) {
+export async function ProductGrid({ category, department, newArrival, bestSeller, brand, discounted, comingSoon, search }: ProductGridProps) {
     const locale = await getLocale();
     const products: Product[] = await getProducts(locale);
+    const normalizedSearch = (search || "").trim().toLowerCase();
 
     const filteredProducts = products.filter(product => {
         if (category && !categoriesMatch(category, product.category)) return false;
@@ -26,6 +28,7 @@ export async function ProductGrid({ category, department, newArrival, bestSeller
         if (brand && product.brand.toLowerCase() !== brand.toLowerCase()) return false;
         if (discounted && !product.originalPrice) return false;
         if (comingSoon && !product.comingSoon) return false;
+        if (normalizedSearch && !product.name.toLowerCase().includes(normalizedSearch)) return false;
         return true;
     });
 

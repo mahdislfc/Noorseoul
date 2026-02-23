@@ -5,6 +5,7 @@ export const CLAIMED_REWARDS_KEY = "reward_claimed_rewards"
 export const FREE_SHIPPING_CLAIMED_KEY = "reward_free_shipping_claimed"
 export const VOUCHER_15_CLAIMED_KEY = "reward_voucher_15_claimed"
 export const VOUCHER_30_CLAIMED_KEY = "reward_voucher_30_claimed"
+export const VOUCHER_50_CLAIMED_KEY = "reward_voucher_50_claimed"
 export const CHOOSE_PRODUCT_SELECTED_KEY = "reward_choose_product_selected"
 export const TEST_BONUS_POINTS = 0
 const POINTS_CACHE_RESET_KEY = "reward_points_cache_reset_v2"
@@ -14,15 +15,16 @@ const POINTS_CACHE_BASE_KEYS = [
     FREE_SHIPPING_CLAIMED_KEY,
     VOUCHER_15_CLAIMED_KEY,
     VOUCHER_30_CLAIMED_KEY,
+    VOUCHER_50_CLAIMED_KEY,
     CHOOSE_PRODUCT_SELECTED_KEY,
 ]
 
 export const REWARD_COST: Record<string, number> = {
     "first-purchase-sample": 0,
-    "choose-product": 75,
-    shipping: 100,
-    voucher15: 150,
-    voucher30: 300,
+    shipping: 400,
+    voucher15: 200,
+    voucher30: 350,
+    voucher50: 500,
 }
 
 export interface RewardOrderLike {
@@ -32,9 +34,7 @@ export interface RewardOrderLike {
 
 export const pointsFromOrderTotal = (amount: number) => {
     if (amount <= 0) return 0
-    if (amount <= 10) return 1
-    if (amount <= 19) return 2
-    return Math.floor(amount / 10) + 1
+    return Math.floor(amount)
 }
 
 export const calculateEarnedPoints = (orders: RewardOrderLike[]) => {
@@ -101,8 +101,7 @@ export const readStoredSpentPoints = (
         if (localStorage.getItem(getRewardStorageKey(FREE_SHIPPING_CLAIMED_KEY, userEmail)) === "true") claimedMap.shipping = true
         if (localStorage.getItem(getRewardStorageKey(VOUCHER_15_CLAIMED_KEY, userEmail)) === "true") claimedMap.voucher15 = true
         if (localStorage.getItem(getRewardStorageKey(VOUCHER_30_CLAIMED_KEY, userEmail)) === "true") claimedMap.voucher30 = true
-        if (localStorage.getItem(getRewardStorageKey(CHOOSE_PRODUCT_SELECTED_KEY, userEmail))) claimedMap["choose-product"] = true
-
+        if (localStorage.getItem(getRewardStorageKey(VOUCHER_50_CLAIMED_KEY, userEmail)) === "true") claimedMap.voucher50 = true
         const minimumSpentFromClaims = Object.entries(claimedMap).reduce((sum, [rewardId, isClaimed]) => {
             if (!isClaimed) return sum
             return sum + (REWARD_COST[rewardId] || 0)

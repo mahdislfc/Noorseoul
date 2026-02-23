@@ -63,6 +63,30 @@ function parseSimilarProductIds(value: FormDataEntryValue | null) {
   }
 }
 
+function buildEconomicalOption(
+  metadata: Record<string, unknown> | undefined
+) {
+  const name =
+    typeof metadata?.economicalOptionName === "string"
+      ? metadata.economicalOptionName.trim()
+      : "";
+  const price =
+    typeof metadata?.economicalOptionPrice === "number" &&
+    Number.isFinite(metadata.economicalOptionPrice) &&
+    metadata.economicalOptionPrice > 0
+      ? metadata.economicalOptionPrice
+      : null;
+  const quantity =
+    typeof metadata?.economicalOptionQuantity === "number" &&
+    Number.isInteger(metadata.economicalOptionQuantity) &&
+    metadata.economicalOptionQuantity > 1
+      ? metadata.economicalOptionQuantity
+      : undefined;
+
+  if (!name || typeof price !== "number") return undefined;
+  return { name, price, quantity };
+}
+
 async function saveImage(file: File) {
   const uploadDir = path.join(process.cwd(), "public", "uploads");
   await fs.mkdir(uploadDir, { recursive: true });
@@ -86,10 +110,13 @@ export async function GET() {
     const metadataMap = await getFallbackMetadataMap();
 
     const normalized = products.map((product) => ({
+      ...(metadataMap[product.id] || {}),
       ...product,
       images: product.images.map((image) => image.url),
       image: product.images[0]?.url || product.image,
-      ...(metadataMap[product.id] || {}),
+      economicalOption: buildEconomicalOption(
+        (metadataMap[product.id] || {}) as Record<string, unknown>
+      ),
     }));
 
     return NextResponse.json({ products: normalized });
@@ -101,6 +128,7 @@ export async function GET() {
     const galleryMap = await getFallbackGalleryMap();
     const metadataMap = await getFallbackMetadataMap();
     const normalized = products.map((product) => ({
+      ...(metadataMap[product.id] || {}),
       ...product,
       image: galleryMap[product.id]?.[0] || product.image,
       images:
@@ -109,7 +137,9 @@ export async function GET() {
           : product.image
             ? [product.image]
             : [],
-      ...(metadataMap[product.id] || {}),
+      economicalOption: buildEconomicalOption(
+        (metadataMap[product.id] || {}) as Record<string, unknown>
+      ),
     }));
     return NextResponse.json({ products: normalized });
   }
@@ -141,6 +171,21 @@ export async function POST(request: Request) {
   const waterResistance = String(formData.get("waterResistance") || "").trim();
   const bundleLabel = String(formData.get("bundleLabel") || "").trim();
   const bundleProductId = String(formData.get("bundleProductId") || "").trim();
+  const economicalOptionName = String(
+    formData.get("economicalOptionName") || ""
+  ).trim();
+  const economicalOptionPriceRaw = String(
+    formData.get("economicalOptionPrice") || ""
+  ).trim();
+  const economicalOptionQuantityRaw = String(
+    formData.get("economicalOptionQuantity") || ""
+  ).trim();
+  const economicalOptionPrice = economicalOptionPriceRaw
+    ? Number(economicalOptionPriceRaw)
+    : undefined;
+  const economicalOptionQuantity = economicalOptionQuantityRaw
+    ? Number(economicalOptionQuantityRaw)
+    : undefined;
   const similarProductIds = parseSimilarProductIds(
     formData.get("similarProductIds")
   );
@@ -211,6 +256,9 @@ export async function POST(request: Request) {
     bundleLabel,
     bundleProductId,
     similarProductIds,
+    economicalOptionName,
+    economicalOptionPrice,
+    economicalOptionQuantity,
   });
 
   return NextResponse.json({ product }, { status: 201 });

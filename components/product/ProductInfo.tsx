@@ -6,6 +6,10 @@ import { useCart } from "@/context/CartContext"
 import { Minus, Plus } from "lucide-react"
 import { useRouter } from "@/i18n/routing"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
+import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
+import { formatDisplayAmount } from "@/lib/display-currency"
 
 interface ProductInfoProps {
     product: {
@@ -21,6 +25,11 @@ interface ProductInfoProps {
         waterResistance?: string
         bundleLabel?: string
         bundleProductId?: string
+        economicalOption?: {
+            name: string
+            price: number
+            quantity?: number
+        }
         bundleProduct?: {
             id: string
             name: string
@@ -34,14 +43,14 @@ interface ProductInfoProps {
 }
 
 export function ProductInfo({ product }: ProductInfoProps) {
+    const t = useTranslations("Product")
+    const locale = useLocale()
+    const { currency: displayCurrency } = useDisplayCurrency()
     const { addToCart, setIsOpen } = useCart()
     const router = useRouter()
     const [quantity, setQuantity] = useState(1)
     const [bundleQuantity, setBundleQuantity] = useState(1)
     const [showAllIngredients, setShowAllIngredients] = useState(false)
-    const formatAmount = (amount: number) => (
-        Number.isInteger(amount) ? amount.toString() : amount.toFixed(2)
-    )
     const totalPrice = product.price * quantity
     const totalOldPrice = product.oldPrice ? product.oldPrice * quantity : null
     const ingredientLines = (product.ingredients || "")
@@ -52,6 +61,11 @@ export function ProductInfo({ product }: ProductInfoProps) {
         ? ingredientLines
         : ingredientLines.slice(0, 5)
     const hasMoreIngredients = ingredientLines.length > 5
+    const economicalOptionQuantity =
+        typeof product.economicalOption?.quantity === "number" &&
+            product.economicalOption.quantity > 1
+            ? product.economicalOption.quantity
+            : 1
 
     const handleAddToCart = () => {
         const addedItem = {
@@ -66,10 +80,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
             ,
             currency: product.currency || "USD"
         })
-        toast.success("Item added to cart", {
+        toast.success(t("addedToCart"), {
             description: `${product.name} (x${quantity})`,
             action: {
-                label: "View Cart",
+                label: t("viewCart"),
                 onClick: () => setIsOpen(true),
             },
         })
@@ -85,10 +99,29 @@ export function ProductInfo({ product }: ProductInfoProps) {
             image: product.bundleProduct.image,
             currency: product.bundleProduct.currency || "USD"
         })
-        toast.success("Bundle item added to cart", {
+        toast.success(t("bundleItemAdded"), {
             description: `${product.bundleProduct.name} (x${bundleQuantity})`,
             action: {
-                label: "View Cart",
+                label: t("viewCart"),
+                onClick: () => setIsOpen(true),
+            },
+        })
+    }
+
+    const handleAddEconomicalOptionToCart = () => {
+        if (!product.economicalOption) return
+        addToCart({
+            id: `${product.id}-eco`,
+            name: product.economicalOption.name,
+            price: product.economicalOption.price,
+            quantity: 1,
+            image: product.images[0],
+            currency: product.currency || "USD"
+        })
+        toast.success(t("dealAddedToCart"), {
+            description: `${product.economicalOption.name} (x1)`,
+            action: {
+                label: t("viewCart"),
                 onClick: () => setIsOpen(true),
             },
         })
@@ -100,10 +133,12 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
             <div className="flex flex-wrap items-end gap-4 mb-8">
                 <div className="flex items-baseline gap-4">
-                    <span className="text-3xl font-light text-primary">{formatAmount(totalPrice)} {product.currency || "AED"}</span>
+                    <span className="text-3xl font-light text-primary">
+                        {formatDisplayAmount(totalPrice, product.currency || "USD", displayCurrency, locale)}
+                    </span>
                     {totalOldPrice && (
                         <span className="text-lg opacity-40 line-through">
-                            {formatAmount(totalOldPrice)} {product.currency || "AED"}
+                            {formatDisplayAmount(totalOldPrice, product.currency || "USD", displayCurrency, locale)}
                         </span>
                     )}
                 </div>
@@ -127,7 +162,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                         className="px-6 py-3 shadow-lg shadow-primary/20"
                         onClick={handleAddToCart}
                     >
-                        Add to Cart
+                        {t("addToCart")}
                     </Button>
                 </div>
             </div>
@@ -142,25 +177,25 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 <div className="grid grid-cols-1 gap-4 mb-8">
                     {product.skinType?.trim() && (
                         <div className="rounded-lg border border-border p-4">
-                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Skin Type</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("skinType")}</p>
                             <p className="mt-2 text-sm font-medium">{product.skinType}</p>
                         </div>
                     )}
                     {product.scent?.trim() && (
                         <div className="rounded-lg border border-border p-4">
-                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Scent</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("scent")}</p>
                             <p className="mt-2 text-sm font-medium">{product.scent}</p>
                         </div>
                     )}
                     {product.waterResistance?.trim() && (
                         <div className="rounded-lg border border-border p-4">
-                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Water Resistance</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("waterResistance")}</p>
                             <p className="mt-2 text-sm font-medium">{product.waterResistance}</p>
                         </div>
                     )}
                     {product.ingredients?.trim() && (
                         <div className="rounded-lg border border-border p-4">
-                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Ingredients</p>
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t("ingredients")}</p>
                             <div className="mt-2 space-y-1 text-sm leading-relaxed text-foreground/80">
                                 {visibleIngredientLines.map((line, index) => (
                                     <p key={`${line}-${index}`}>{line}</p>
@@ -172,7 +207,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                     onClick={() => setShowAllIngredients((current) => !current)}
                                     className="mt-3 text-sm font-semibold text-primary hover:underline"
                                 >
-                                    {showAllIngredients ? "Read less" : "Read more"}
+                                    {showAllIngredients ? t("readLess") : t("readMore")}
                                 </button>
                             )}
                         </div>
@@ -180,58 +215,88 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 </div>
             )}
 
-            {product.bundleProduct && (
+            {(product.bundleProduct || product.economicalOption) && (
                 <div className="mb-8 rounded-lg border border-primary/25 bg-primary/5 p-4">
-                    <p className="text-xs font-bold uppercase tracking-widest text-primary/80">Economical Bundle</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-primary/80">{t("buyCheaper")}</p>
                     {product.bundleLabel?.trim() && (
                         <p className="mt-2 text-sm text-foreground/80">{product.bundleLabel}</p>
                     )}
-                    <div className="mt-3 rounded-md border border-border bg-background p-3">
-                        <div className="flex items-start gap-3">
-                            <img
-                                src={product.bundleProduct.image}
-                                alt={product.bundleProduct.name}
-                                className="h-16 w-16 rounded-md border object-cover"
-                            />
-                            <div className="flex-1">
-                                <p className="text-sm font-semibold leading-snug">{product.bundleProduct.name}</p>
-                                {product.bundleProduct.size?.trim() && (
-                                    <p className="mt-1 text-xs text-muted-foreground">Size: {product.bundleProduct.size}</p>
-                                )}
-                                <p className="mt-1 text-sm font-semibold text-primary">
-                                    {formatAmount(product.bundleProduct.price)} {product.bundleProduct.currency || "AED"}
-                                </p>
+                    <div className="mt-3 grid grid-cols-1 gap-3">
+                        {product.economicalOption && (
+                            <div className="rounded-md border border-border bg-background p-3">
+                                <p className="text-sm font-semibold">{product.economicalOption.name}</p>
+                                <div className="mt-1 flex items-center gap-2">
+                                    <p className="text-sm font-semibold text-primary">
+                                        {formatDisplayAmount(product.economicalOption.price, product.currency || "USD", displayCurrency, locale)}
+                                    </p>
+                                    {economicalOptionQuantity > 1 && (
+                                        <p className="text-xs text-muted-foreground">
+                                            {t("quantityShort")}: {economicalOptionQuantity}
+                                        </p>
+                                    )}
+                                    {economicalOptionQuantity > 1 && (
+                                        <p className="text-xs text-muted-foreground line-through">
+                                            {formatDisplayAmount(product.price * economicalOptionQuantity, product.currency || "USD", displayCurrency, locale)}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="mt-3">
+                                    <Button type="button" size="sm" onClick={handleAddEconomicalOptionToCart}>
+                                        {t("addToCart")}
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <div className="flex items-center border border-border rounded-md px-2">
-                                <button
-                                    type="button"
-                                    className="p-1 hover:text-primary transition-colors"
-                                    onClick={() => setBundleQuantity((current) => Math.max(1, current - 1))}
-                                >
-                                    <Minus className="w-3 h-3" />
-                                </button>
-                                <span className="w-8 text-center text-sm font-semibold">{bundleQuantity}</span>
-                                <button
-                                    type="button"
-                                    className="p-1 hover:text-primary transition-colors"
-                                    onClick={() => setBundleQuantity((current) => current + 1)}
-                                >
-                                    <Plus className="w-3 h-3" />
-                                </button>
+                        )}
+
+                        {product.bundleProduct && (
+                            <div className="rounded-md border border-border bg-background p-3">
+                                <div className="flex items-start gap-3">
+                                    <img
+                                        src={product.bundleProduct.image}
+                                        alt={product.bundleProduct.name}
+                                        className="h-16 w-16 rounded-md border object-cover"
+                                    />
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold leading-snug">{product.bundleProduct.name}</p>
+                                        {product.bundleProduct.size?.trim() && (
+                                            <p className="mt-1 text-xs text-muted-foreground">{t("size")}: {product.bundleProduct.size}</p>
+                                        )}
+                                        <p className="mt-1 text-sm font-semibold text-primary">
+                                            {formatDisplayAmount(product.bundleProduct.price, product.bundleProduct.currency || "USD", displayCurrency, locale)}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mt-3 flex flex-wrap items-center gap-2">
+                                    <div className="flex items-center border border-border rounded-md px-2">
+                                        <button
+                                            type="button"
+                                            className="p-1 hover:text-primary transition-colors"
+                                            onClick={() => setBundleQuantity((current) => Math.max(1, current - 1))}
+                                        >
+                                            <Minus className="w-3 h-3" />
+                                        </button>
+                                        <span className="w-8 text-center text-sm font-semibold">{bundleQuantity}</span>
+                                        <button
+                                            type="button"
+                                            className="p-1 hover:text-primary transition-colors"
+                                            onClick={() => setBundleQuantity((current) => current + 1)}
+                                        >
+                                            <Plus className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                    <Button type="button" size="sm" onClick={handleAddBundleToCart}>
+                                        {t("addToCart")}
+                                    </Button>
+                                    <button
+                                        type="button"
+                                        onClick={() => router.push(`/products/${product.bundleProduct?.id}`)}
+                                        className="text-sm font-semibold text-primary hover:underline"
+                                    >
+                                        {t("viewDetails")}
+                                    </button>
+                                </div>
                             </div>
-                            <Button type="button" size="sm" onClick={handleAddBundleToCart}>
-                                Add to Cart
-                            </Button>
-                            <button
-                                type="button"
-                                onClick={() => router.push(`/products/${product.bundleProduct?.id}`)}
-                                className="text-sm font-semibold text-primary hover:underline"
-                            >
-                                View Details
-                            </button>
-                        </div>
+                        )}
                     </div>
                 </div>
             )}

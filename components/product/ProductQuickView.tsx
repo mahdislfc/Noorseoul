@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import type { Product } from "@/lib/types"
-import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useCart } from "@/context/CartContext"
@@ -10,6 +10,9 @@ import { useTranslations } from 'next-intl'
 import { toast } from "sonner"
 import { Minus, Plus, ShoppingBag } from "lucide-react"
 import { Link } from "@/i18n/routing"
+import { useLocale } from "next-intl"
+import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
+import { formatDisplayAmount } from "@/lib/display-currency"
 
 interface ProductQuickViewProps {
     product: Product
@@ -20,6 +23,8 @@ interface ProductQuickViewProps {
 
 export function ProductQuickView({ product, open, onOpenChange, children }: ProductQuickViewProps) {
     const t = useTranslations('Product')
+    const locale = useLocale()
+    const { currency: displayCurrency } = useDisplayCurrency()
     const { addToCart } = useCart()
     const { setIsOpen } = useCart()
     const [selectedImage, setSelectedImage] = useState(product.image)
@@ -67,7 +72,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
         toast.success(t('addedToCart'), {
             description: `${itemToAdd.name} (x${quantity})`,
             action: {
-                label: 'View Cart',
+                label: t('viewCart'),
                 onClick: () => setIsOpen(true)
             }
         })
@@ -92,7 +97,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                             {typeof product.originalPrice === "number" &&
                                 product.originalPrice > product.price && (
                                     <div className="absolute top-3 left-3 z-10 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-wide">
-                                        Sale
+                                        {t("sale")}
                                     </div>
                                 )}
                             <div
@@ -131,17 +136,17 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                         </div>
 
                         <div className="text-2xl font-bold text-primary mb-6 flex items-baseline gap-2">
-                            <span>{currentPrice.toFixed(2)} {product.currency}</span>
+                            <span>{formatDisplayAmount(currentPrice, product.currency || "USD", displayCurrency, locale)}</span>
                             {product.originalPrice && !isEconomicalSet && (
                                 <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
-                                    {product.originalPrice.toFixed(2)} {product.currency}
+                                    {formatDisplayAmount(product.originalPrice, product.currency || "USD", displayCurrency, locale)}
                                 </span>
                             )}
                         </div>
 
                         {product.size && (
                             <div className="mb-6">
-                                <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground block mb-2">Size</span>
+                                <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground block mb-2">{t("size")}</span>
                                 <div className="inline-block px-3 py-1 bg-secondary/30 rounded-md text-sm font-medium">
                                     {product.size}
                                 </div>
@@ -165,10 +170,10 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                             {product.economicalOption.name}
                                         </label>
                                         <p className="text-xs text-muted-foreground">
-                                            Save with our economical set upgrade.
+                                            {t("economicalSetHint")}
                                         </p>
                                         <p className="text-sm font-bold mt-1">
-                                            {product.economicalOption.price.toFixed(2)} {product.currency}
+                                            {formatDisplayAmount(product.economicalOption.price, product.currency || "USD", displayCurrency, locale)}
                                         </p>
                                     </div>
                                 </div>
@@ -183,7 +188,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                             type="button"
                                             className="h-8 w-8 inline-flex items-center justify-center rounded-sm hover:text-primary transition-colors"
                                             onClick={() => setQuantity((current) => Math.max(1, current - 1))}
-                                            aria-label="Decrease quantity"
+                                            aria-label={t("decreaseQuantity")}
                                         >
                                             <Minus className="w-4 h-4" />
                                         </button>
@@ -192,7 +197,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                             type="button"
                                             className="h-8 w-8 inline-flex items-center justify-center rounded-sm hover:text-primary transition-colors"
                                             onClick={() => setQuantity((current) => current + 1)}
-                                            aria-label="Increase quantity"
+                                            aria-label={t("increaseQuantity")}
                                         >
                                             <Plus className="w-4 h-4" />
                                         </button>
@@ -211,7 +216,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                     className="block text-center text-sm font-semibold uppercase tracking-widest text-primary hover:underline"
                                     onClick={() => onOpenChange(false)}
                                 >
-                                    View details
+                                    {t("viewDetails")}
                                 </Link>
                             </div>
                         </div>

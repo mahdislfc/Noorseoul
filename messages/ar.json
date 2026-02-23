@@ -36,14 +36,36 @@
         "signInOrRegister": "تسجيل الدخول / التسجيل",
         "myProfile": "ملفي الشخصي",
         "orders": "الطلبات",
-        "points": "النقاط",
+        "points": "الجواهر",
         "logout": "تسجيل الخروج",
         "signIn": "تسجيل الدخول",
         "register": "إنشاء حساب"
     },
     "Product": {
         "addToCart": "أضف إلى السلة",
-        "addedToCart": "تمت الإضافة إلى السلة"
+        "addedToCart": "تمت الإضافة إلى السلة",
+        "bundleItemAdded": "تمت إضافة عنصر الباقة إلى السلة",
+        "dealAddedToCart": "تمت إضافة العرض إلى السلة",
+        "viewCart": "عرض السلة",
+        "viewDetails": "عرض التفاصيل",
+        "sale": "تخفيض",
+        "skinType": "نوع البشرة",
+        "scent": "العطر",
+        "waterResistance": "مقاومة الماء",
+        "ingredients": "المكونات",
+        "readMore": "اقرأ المزيد",
+        "readLess": "اقرأ أقل",
+        "buyCheaper": "اشترِ بسعر أقل",
+        "quantityShort": "الكمية",
+        "size": "الحجم",
+        "economicalSetHint": "وفري أكثر مع ترقية الباقة الاقتصادية.",
+        "decreaseQuantity": "تقليل الكمية",
+        "increaseQuantity": "زيادة الكمية",
+        "similarProducts": "منتجات مشابهة",
+        "noSimilarProducts": "لا توجد منتجات مشابهة مرتبطة بعد.",
+        "seeMore": "عرض المزيد",
+        "seeLess": "عرض أقل",
+        "home": "الرئيسية"
     },
     "Cart": {
         "title": "سلة التسوق",
@@ -54,6 +76,112 @@
         "item": "عنصر",
         "items": "عناصر",
         "remove": "إزالة"
+    },
+    "Checkout": {
+        "title": "الدفع",
+        "steps": {
+            "bag": "السلة",
+            "details": "التفاصيل",
+            "confirmation": "التأكيد"
+        },
+        "sections": {
+            "information": "المعلومات",
+            "shipping": "الشحن",
+            "payment": "الدفع"
+        },
+        "fields": {
+            "emailAddress": "البريد الإلكتروني",
+            "firstName": "الاسم الأول",
+            "lastName": "اسم العائلة",
+            "address": "العنوان",
+            "city": "المدينة",
+            "cardNumber": "رقم البطاقة",
+            "expiry": "تاريخ الانتهاء",
+            "cvc": "رمز الأمان"
+        },
+        "placeholders": {
+            "email": "email@example.com",
+            "address": "الشارع، المبنى، الشقة"
+        },
+        "actions": {
+            "continueToShipping": "المتابعة إلى الشحن",
+            "continueToPayment": "المتابعة إلى الدفع",
+            "apply": "تطبيق",
+            "remove": "إزالة",
+            "decreaseQuantityOf": "تقليل كمية {name}",
+            "increaseQuantityOf": "زيادة كمية {name}",
+            "removeProduct": "إزالة {name}",
+            "placingOrder": "جارٍ تنفيذ الطلب...",
+            "completePurchase": "إتمام الشراء"
+        },
+        "payment": {
+            "encryptedSecure": "مشفر وآمن",
+            "encryptionNote": "تفاصيل الدفع الخاصة بك محمية بتشفير SSL 256-بت."
+        },
+        "summary": {
+            "title": "ملخص الطلب",
+            "discountRewardCode": "كود الخصم / المكافأة",
+            "enterCodeOrChoose": "أدخلي الكود أو اختاري من القائمة",
+            "enterCode": "أدخلي الكود",
+            "claimedRewards": "المكافآت المفعلة",
+            "subtotal": "المجموع الفرعي",
+            "voucherDiscount": "خصم القسيمة",
+            "delivery": "توصيل وايت-غلوف",
+            "shippingPolicy": "سياسة الشحن: أقل من $100 = $10، من $100 إلى $200 = $18، من $200.01 إلى $250 = $20، أكثر من $250 = $25.",
+            "shippingReward": "مكافأة الشحن",
+            "subtotalAfterDiscounts": "المجموع بعد الخصومات",
+            "vat": "ضريبة القيمة المضافة (5%)",
+            "total": "الإجمالي",
+            "youSaved": "لقد وفرتِ {amount}"
+        },
+        "messages": {
+            "enterRewardCode": "يرجى إدخال كود المكافأة.",
+            "noActiveRewardCode": "لا يوجد كود مكافأة نشط.",
+            "codeApplied": "تم تطبيق الكود {code}.",
+            "sampleCodeUsed": "تم استخدام كود عينة المكافأة مسبقاً.",
+            "sampleFirstPurchaseOnly": "هذه العينة متاحة فقط للطلب الأول.",
+            "sampleNeedsThreeItems": "أضيفي 3 عناصر على الأقل لاستخدام مكافأة العينة.",
+            "invalidCode": "الكود غير صحيح. يرجى التحقق والمحاولة مجدداً.",
+            "completeDetails": "يرجى إكمال بيانات التواصل والشحن.",
+            "bagEmpty": "سلتك فارغة.",
+            "failedToPlaceOrder": "فشل تنفيذ الطلب",
+            "orderPlaced": "تم تنفيذ الطلب بنجاح. رقم الطلب: {orderNumber}"
+        },
+        "rewards": {
+            "freeShipping": "شحن مجاني",
+            "sample": "منتج عناية بالبشرة (عينة واحدة)",
+            "discount10": "خصم $10",
+            "discount20": "خصم $20",
+            "discount30": "خصم $30"
+        }
+    },
+    "RequestProduct": {
+        "title": "طلب منتج",
+        "subtitle": "هل تبحثين عن منتج تجميل كوري محدد؟ أخبرينا وسنحاول توفيره لك.",
+        "fields": {
+            "productName": "اسم المنتج",
+            "commentOptional": "ملاحظة (اختياري)",
+            "productPicture": "صورة المنتج",
+            "noFileChosen": "لم يتم اختيار ملف"
+        },
+        "placeholders": {
+            "productName": "مثال: COSRX Advanced Snail 96 Mucin Essence",
+            "comment": "أضيفي أي تفاصيل: نوع البشرة، الحجم، الإصدار المحدد..."
+        },
+        "actions": {
+            "uploadImage": "رفع صورة",
+            "sending": "جارٍ الإرسال...",
+            "sendRequest": "إرسال الطلب"
+        },
+        "success": {
+            "sent": "شكراً لك. تم إرسال طلب المنتج إلى الإدارة."
+        },
+        "errors": {
+            "nameRequired": "اسم المنتج مطلوب",
+            "imageRequired": "الصورة مطلوبة",
+            "invalidImage": "ملف الصورة غير صالح",
+            "failed": "فشل إرسال الطلب"
+        }
     },
     "Home": {
         "badges": {
@@ -83,6 +211,7 @@
         "brands": {
             "title": "أبرز العلامات التجارية في كوريا",
             "shopBrand": "تسوقي العلامة",
+            "seeAllBrands": "عرض جميع العلامات",
             "sold50": "+50 مليون مبيعاً",
             "sold40": "+40 مليون مبيعاً",
             "sold30": "+30 مليون مبيعاً",
@@ -110,6 +239,75 @@
         "saveChanges": "حفظ التغييرات",
         "addressAutofilled": "تم تعبئة العنوان تلقائياً من موقعك الحالي. اضغطي حفظ التغييرات للإرسال.",
         "locationCaptured": "تم التقاط الموقع. اضغطي حفظ التغييرات للإرسال."
+    },
+    "Dashboard": {
+        "header": {
+            "hello": "مرحباً، {name}"
+        },
+        "membership": {
+            "member": "عضو"
+        },
+        "actions": {
+            "logOut": "تسجيل الخروج"
+        },
+        "tabs": {
+            "overview": "نظرة عامة",
+            "orderHistory": "سجل الطلبات",
+            "myProfile": "ملفي الشخصي",
+            "gems": "الجواهر"
+        },
+        "notifications": {
+            "label": "الإشعارات",
+            "enabled": "تم تفعيل الإشعارات",
+            "disabled": "تم إيقاف الإشعارات"
+        },
+        "overview": {
+            "title": "الطلبات والجواهر",
+            "gemsReceived": "الجواهر المستلمة"
+        },
+        "orders": {
+            "order": "الطلب",
+            "noItems": "لا توجد عناصر",
+            "recentOrders": "الطلبات الأخيرة",
+            "viewDetails": "عرض التفاصيل",
+            "reorder": "إعادة الطلب",
+            "qty": "الكمية",
+            "total": "الإجمالي",
+            "orderNumber": "الطلب رقم {id}"
+        },
+        "profile": {
+            "editProfile": "تعديل الملف الشخصي",
+            "firstName": "الاسم الأول",
+            "lastName": "اسم العائلة",
+            "emailAddress": "البريد الإلكتروني",
+            "phoneNumber": "رقم الهاتف",
+            "countryCode": "رمز الدولة",
+            "toggleCountryCode": "تبديل خيارات رمز الدولة",
+            "phonePlaceholder": "بقية رقم الهاتف",
+            "shippingAddress": "عنوان الشحن",
+            "building": "اسم/رقم المبنى",
+            "buildingPlaceholder": "مثال: برج B، مبنى 17، شقة 304",
+            "postcode": "الرمز البريدي",
+            "postcodePlaceholder": "مثال: 12345"
+        },
+        "points": {
+            "yourGems": "جواهرك",
+            "availableGems": "الجواهر المتاحة",
+            "claimReward": "استبدال مكافأة",
+            "viewRewards": "عرض المكافآت",
+            "earnInfo": "تكتسبين الجواهر حالياً بناءً على الطلبات المكتملة."
+        },
+        "toasts": {
+            "orderItemsAdded": "تمت إضافة عناصر الطلب إلى سلتك.",
+            "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
+            "profileUpdateFailed": "تعذر تحديث الملف الشخصي",
+            "unexpectedError": "حدث خطأ غير متوقع",
+            "geolocationUnsupported": "المتصفح لا يدعم تحديد الموقع.",
+            "locationPermissionDenied": "تم رفض إذن الموقع.",
+            "locationUnavailable": "الموقع غير متاح حالياً.",
+            "locationTimeout": "انتهت مهلة تحديد الموقع.",
+            "locationUnable": "تعذر الحصول على موقعك الحالي."
+        }
     },
     "Footer": {
         "brandLine": "اختبري أفضل ما في جمال سيول الفاخر في الشرق الأوسط.",

@@ -36,14 +36,36 @@
         "signInOrRegister": "Sign In / Register",
         "myProfile": "My Profile",
         "orders": "Orders",
-        "points": "Points",
+        "points": "Gems",
         "logout": "Logout",
         "signIn": "Sign In",
         "register": "Register"
     },
     "Product": {
         "addToCart": "Add to Cart",
-        "addedToCart": "Added to cart"
+        "addedToCart": "Added to cart",
+        "bundleItemAdded": "Bundle item added to cart",
+        "dealAddedToCart": "Deal added to cart",
+        "viewCart": "View Cart",
+        "viewDetails": "View details",
+        "sale": "Sale",
+        "skinType": "Skin Type",
+        "scent": "Scent",
+        "waterResistance": "Water Resistance",
+        "ingredients": "Ingredients",
+        "readMore": "Read more",
+        "readLess": "Read less",
+        "buyCheaper": "Buy Cheaper",
+        "quantityShort": "Qty",
+        "size": "Size",
+        "economicalSetHint": "Save with our economical set upgrade.",
+        "decreaseQuantity": "Decrease quantity",
+        "increaseQuantity": "Increase quantity",
+        "similarProducts": "Similar products",
+        "noSimilarProducts": "No similar products linked yet.",
+        "seeMore": "See more",
+        "seeLess": "See less",
+        "home": "Home"
     },
     "Cart": {
         "title": "Your Cart",
@@ -54,6 +76,112 @@
         "item": "item",
         "items": "items",
         "remove": "Remove"
+    },
+    "Checkout": {
+        "title": "Checkout",
+        "steps": {
+            "bag": "Bag",
+            "details": "Details",
+            "confirmation": "Confirmation"
+        },
+        "sections": {
+            "information": "Information",
+            "shipping": "Shipping",
+            "payment": "Payment"
+        },
+        "fields": {
+            "emailAddress": "Email Address",
+            "firstName": "First Name",
+            "lastName": "Last Name",
+            "address": "Address",
+            "city": "City",
+            "cardNumber": "Card Number",
+            "expiry": "Expiry",
+            "cvc": "CVC"
+        },
+        "placeholders": {
+            "email": "email@example.com",
+            "address": "Street, building, apartment"
+        },
+        "actions": {
+            "continueToShipping": "Continue to Shipping",
+            "continueToPayment": "Continue to Payment",
+            "apply": "Apply",
+            "remove": "Remove",
+            "decreaseQuantityOf": "Decrease quantity of {name}",
+            "increaseQuantityOf": "Increase quantity of {name}",
+            "removeProduct": "Remove {name}",
+            "placingOrder": "Placing Order...",
+            "completePurchase": "Complete Purchase"
+        },
+        "payment": {
+            "encryptedSecure": "Encrypted & Secure",
+            "encryptionNote": "Your payment details are protected by 256-bit SSL encryption."
+        },
+        "summary": {
+            "title": "Order Summary",
+            "discountRewardCode": "Discount / Reward Code",
+            "enterCodeOrChoose": "Enter code or choose from list",
+            "enterCode": "Enter code",
+            "claimedRewards": "Claimed rewards",
+            "subtotal": "Subtotal",
+            "voucherDiscount": "Voucher Discount",
+            "delivery": "White-Glove Delivery",
+            "shippingPolicy": "Shipping policy: below $100 = $10, $100-$200 = $18, $200.01-$250 = $20, above $250 = $25.",
+            "shippingReward": "Shipping Reward",
+            "subtotalAfterDiscounts": "Subtotal After Discounts",
+            "vat": "VAT (5%)",
+            "total": "Total",
+            "youSaved": "You saved {amount}"
+        },
+        "messages": {
+            "enterRewardCode": "Please enter a reward code.",
+            "noActiveRewardCode": "No active reward code found.",
+            "codeApplied": "Code {code} applied.",
+            "sampleCodeUsed": "This sample reward code was already used.",
+            "sampleFirstPurchaseOnly": "This sample reward is valid only for your first purchase.",
+            "sampleNeedsThreeItems": "Add at least 3 items to your bag to use this sample reward.",
+            "invalidCode": "Invalid code. Please check and try again.",
+            "completeDetails": "Please complete your contact and shipping details.",
+            "bagEmpty": "Your bag is empty.",
+            "failedToPlaceOrder": "Failed to place order",
+            "orderPlaced": "Order placed successfully. Order number: {orderNumber}"
+        },
+        "rewards": {
+            "freeShipping": "Free Shipping",
+            "sample": "1 Sample Skincare Product",
+            "discount10": "$10 Discount",
+            "discount20": "$20 Discount",
+            "discount30": "$30 Discount"
+        }
+    },
+    "RequestProduct": {
+        "title": "Request a Product",
+        "subtitle": "Looking for a specific Korean beauty product? Let us know and we'll try to find it for you.",
+        "fields": {
+            "productName": "Product name",
+            "commentOptional": "Comment (optional)",
+            "productPicture": "Product picture",
+            "noFileChosen": "No file chosen"
+        },
+        "placeholders": {
+            "productName": "e.g. COSRX Advanced Snail 96 Mucin Essence",
+            "comment": "Add any details: skin type, size, exact variant..."
+        },
+        "actions": {
+            "uploadImage": "Upload image",
+            "sending": "Sending...",
+            "sendRequest": "Send request"
+        },
+        "success": {
+            "sent": "Thanks. Your product request was sent to admin."
+        },
+        "errors": {
+            "nameRequired": "Product name is required",
+            "imageRequired": "Image is required",
+            "invalidImage": "Invalid image file",
+            "failed": "Failed to submit request"
+        }
     },
     "Home": {
         "badges": {
@@ -83,6 +211,7 @@
         "brands": {
             "title": "Top Brands in Korea",
             "shopBrand": "Shop Brand",
+            "seeAllBrands": "See all brands",
             "sold50": "50M+ Sold",
             "sold40": "40M+ Sold",
             "sold30": "30M+ Sold",
@@ -110,6 +239,75 @@
         "saveChanges": "Save Changes",
         "addressAutofilled": "Address auto-filled from your current location. Click Save Changes to submit.",
         "locationCaptured": "Location captured. Click Save Changes to submit."
+    },
+    "Dashboard": {
+        "header": {
+            "hello": "Hello, {name}"
+        },
+        "membership": {
+            "member": "Member"
+        },
+        "actions": {
+            "logOut": "Log Out"
+        },
+        "tabs": {
+            "overview": "Overview",
+            "orderHistory": "Order History",
+            "myProfile": "My Profile",
+            "gems": "Gems"
+        },
+        "notifications": {
+            "label": "Notifications",
+            "enabled": "Notifications enabled",
+            "disabled": "Notifications disabled"
+        },
+        "overview": {
+            "title": "Orders & Gems",
+            "gemsReceived": "Gems Received"
+        },
+        "orders": {
+            "order": "Order",
+            "noItems": "No items",
+            "recentOrders": "Recent Orders",
+            "viewDetails": "View details",
+            "reorder": "Reorder",
+            "qty": "Qty",
+            "total": "Total",
+            "orderNumber": "Order #{id}"
+        },
+        "profile": {
+            "editProfile": "Edit Profile",
+            "firstName": "First Name",
+            "lastName": "Last Name",
+            "emailAddress": "Email Address",
+            "phoneNumber": "Phone Number",
+            "countryCode": "Country code",
+            "toggleCountryCode": "Toggle country code options",
+            "phonePlaceholder": "Rest of phone number",
+            "shippingAddress": "Shipping Address",
+            "building": "Building Name/Number",
+            "buildingPlaceholder": "e.g. Tower B, Building 17, Apt 304",
+            "postcode": "Postcode / ZIP",
+            "postcodePlaceholder": "e.g. 12345"
+        },
+        "points": {
+            "yourGems": "Your Gems",
+            "availableGems": "Available Gems",
+            "claimReward": "Claim Reward",
+            "viewRewards": "View Rewards",
+            "earnInfo": "You currently earn gems based on completed orders."
+        },
+        "toasts": {
+            "orderItemsAdded": "Order items added to your bag!",
+            "profileUpdated": "Profile updated successfully",
+            "profileUpdateFailed": "Failed to update profile",
+            "unexpectedError": "An unexpected error occurred",
+            "geolocationUnsupported": "Geolocation is not supported on this browser.",
+            "locationPermissionDenied": "Location permission was denied.",
+            "locationUnavailable": "Location is currently unavailable.",
+            "locationTimeout": "Timed out while getting your location.",
+            "locationUnable": "Unable to get your current location."
+        }
     },
     "Footer": {
         "brandLine": "Experience the best of Seoul's luxury beauty in the Middle East.",

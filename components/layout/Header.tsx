@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { Link, usePathname } from "@/i18n/routing"
-import { Search, User, ShoppingBag, Menu, X, Gem, Package, Star, LogOut, LogIn, UserPlus, ChevronRight } from "lucide-react"
+import { Search, User, ShoppingBag, Menu, X, Gem, Package, Star, LogOut, LogIn, UserPlus, ChevronRight, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from 'next-intl';
 import { useCart } from "@/context/CartContext"
 import { CartSidebar } from "@/components/cart/CartSidebar"
 import { useUser } from "@/context/UserContext"
+import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
+import type { DisplayCurrency } from "@/lib/display-currency"
 import {
     calculateAvailablePoints,
     calculateEarnedPoints,
@@ -19,6 +21,7 @@ export function Header() {
     const t = useTranslations('Navigation');
     const tCommon = useTranslations('Common');
     const pathname = usePathname();
+    const { currency, setCurrency, allowedCurrencies } = useDisplayCurrency()
     const { totalItems, setIsOpen, clearCart } = useCart()
     const { isAuthenticated, isLoading, logout, user, orders } = useUser()
     const visibleCartCount = isAuthenticated ? totalItems : 0
@@ -31,6 +34,11 @@ export function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
     const profileMenuRef = useRef<HTMLDivElement | null>(null)
+    const formatCurrencyOptionLabel = (option: DisplayCurrency) => {
+        if (option === "USD") return "$ USD"
+        if (option === "AED") return "د.إ AED"
+        return "T Toman"
+    }
 
     useEffect(() => {
         clearRewardPointsCacheOnce()
@@ -268,9 +276,28 @@ export function Header() {
 
                     {/* Language Switcher */}
                     <div className="hidden md:flex items-center gap-2 text-sm font-semibold">
+                        <div className="flex items-center gap-2 h-9 rounded-full border border-border/80 bg-secondary/20 px-3">
+                            <Wallet className="w-4 h-4 text-primary/80" />
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Currency</span>
+                            <select
+                                value={currency}
+                                onChange={(event) => setCurrency(event.target.value as DisplayCurrency)}
+                                className="h-7 rounded-md bg-transparent px-1 text-xs font-semibold outline-none"
+                                aria-label="Select currency"
+                            >
+                                {allowedCurrencies.map((option) => (
+                                    <option key={option} value={option}>
+                                        {formatCurrencyOptionLabel(option)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <span className="text-muted-foreground/50">|</span>
                         <Link href="/" locale="en" className="hover:text-primary transition-colors">EN</Link>
                         <span className="text-muted-foreground/50">|</span>
                         <Link href="/" locale="ar" className="hover:text-primary transition-colors">AR</Link>
+                        <span className="text-muted-foreground/50">|</span>
+                        <Link href="/" locale="fa" className="hover:text-primary transition-colors">FA</Link>
                     </div>
 
                     {/* Mobile Menu Toggle */}
@@ -290,6 +317,29 @@ export function Header() {
                     <Link href="/skincare" onClick={() => setIsMobileMenuOpen(false)}>{t('skincare')}</Link>
                     <Link href="/new-arrivals" onClick={() => setIsMobileMenuOpen(false)}>{t('newArrivals')}</Link>
                     <Link href="/best-sellers" onClick={() => setIsMobileMenuOpen(false)}>{t('bestSellers')}</Link>
+                    <div className="flex items-center gap-4 text-base font-semibold pt-2">
+                        <div className="flex items-center gap-2 h-10 rounded-full border border-border/80 bg-secondary/20 px-3">
+                            <Wallet className="w-4 h-4 text-primary/80" />
+                            <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Currency</span>
+                            <select
+                                value={currency}
+                                onChange={(event) => setCurrency(event.target.value as DisplayCurrency)}
+                                className="h-8 rounded-md bg-transparent px-1 text-sm outline-none"
+                                aria-label="Select currency"
+                            >
+                                {allowedCurrencies.map((option) => (
+                                    <option key={option} value={option}>
+                                        {formatCurrencyOptionLabel(option)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <Link href="/" locale="en" onClick={() => setIsMobileMenuOpen(false)}>EN</Link>
+                        <span className="text-muted-foreground/50">|</span>
+                        <Link href="/" locale="ar" onClick={() => setIsMobileMenuOpen(false)}>AR</Link>
+                        <span className="text-muted-foreground/50">|</span>
+                        <Link href="/" locale="fa" onClick={() => setIsMobileMenuOpen(false)}>FA</Link>
+                    </div>
                 </div>
             )}
             <CartSidebar />

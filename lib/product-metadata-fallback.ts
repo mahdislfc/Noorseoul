@@ -11,12 +11,20 @@ export interface ProductMetadata {
   bundleLabel?: string;
   bundleProductId?: string;
   similarProductIds?: string[];
+  economicalOptionName?: string;
+  economicalOptionPrice?: number;
+  economicalOptionQuantity?: number;
 }
 
 type MetadataStore = Record<string, ProductMetadata>;
 
 function sanitize(value?: string) {
   return (value || "").trim();
+}
+
+function sanitizeNumber(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return value;
 }
 
 function normalizeIdList(value?: string[]) {
@@ -38,6 +46,15 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
   const bundleLabel = sanitize(input.bundleLabel);
   const bundleProductId = sanitize(input.bundleProductId);
   const similarProductIds = normalizeIdList(input.similarProductIds);
+  const economicalOptionName = sanitize(input.economicalOptionName);
+  const economicalOptionPrice = sanitizeNumber(input.economicalOptionPrice);
+  const economicalOptionQuantityRaw = sanitizeNumber(input.economicalOptionQuantity);
+  const economicalOptionQuantity =
+    typeof economicalOptionQuantityRaw === "number" &&
+    Number.isInteger(economicalOptionQuantityRaw) &&
+    economicalOptionQuantityRaw > 1
+      ? economicalOptionQuantityRaw
+      : undefined;
 
   return {
     ingredients: ingredients || undefined,
@@ -47,6 +64,12 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
     bundleLabel: bundleLabel || undefined,
     bundleProductId: bundleProductId || undefined,
     similarProductIds: similarProductIds.length > 0 ? similarProductIds : undefined,
+    economicalOptionName: economicalOptionName || undefined,
+    economicalOptionPrice:
+      typeof economicalOptionPrice === "number" && economicalOptionPrice > 0
+        ? economicalOptionPrice
+        : undefined,
+    economicalOptionQuantity,
   };
 }
 
@@ -90,7 +113,10 @@ export async function setFallbackMetadata(productId: string, metadata: ProductMe
       normalized.waterResistance ||
       normalized.bundleLabel ||
       normalized.bundleProductId ||
-      (normalized.similarProductIds && normalized.similarProductIds.length > 0)
+      (normalized.similarProductIds && normalized.similarProductIds.length > 0) ||
+      normalized.economicalOptionName ||
+      (typeof normalized.economicalOptionPrice === "number" &&
+        normalized.economicalOptionPrice > 0)
   );
 
   if (hasAnyValue) {

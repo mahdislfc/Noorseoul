@@ -38,15 +38,15 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     const pathname = request.nextUrl.pathname
-    const localeMatch = pathname.match(/^\/(en|ar)(?:\/|$)/)
+    const localeMatch = pathname.match(/^\/(en|ar|fa)(?:\/|$)/)
     const localePrefix = localeMatch ? `/${localeMatch[1]}` : ""
-    const isLocalizedDashboard = /^\/(en|ar)\/dashboard(?:\/|$)/.test(pathname)
+    const isLocalizedDashboard = /^\/(en|ar|fa)\/dashboard(?:\/|$)/.test(pathname)
     const isRootDashboard = /^\/dashboard(?:\/|$)/.test(pathname)
     const isDashboardRoute = isLocalizedDashboard || isRootDashboard
 
     const isPublicAuthRoute =
-        /^\/(en|ar)\/login(?:\/|$)/.test(pathname) ||
-        /^\/(en|ar)\/register(?:\/|$)/.test(pathname) ||
+        /^\/(en|ar|fa)\/login(?:\/|$)/.test(pathname) ||
+        /^\/(en|ar|fa)\/register(?:\/|$)/.test(pathname) ||
         /^\/login(?:\/|$)/.test(pathname) ||
         /^\/register(?:\/|$)/.test(pathname) ||
         /^\/auth(?:\/|$)/.test(pathname)

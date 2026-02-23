@@ -10,6 +10,7 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ images }: ProductGalleryProps) {
     const t = useTranslations("Home.badges")
+    const tProduct = useTranslations("Product")
     const [activeImage, setActiveImage] = useState(0)
     const [showMoreThumbnails, setShowMoreThumbnails] = useState(false)
     const [isZoomActive, setIsZoomActive] = useState(false)
@@ -98,7 +99,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                         onClick={() => setShowMoreThumbnails((prev) => !prev)}
                         className="h-12 px-3 sm:h-14 rounded-lg border border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
                     >
-                        {showMoreThumbnails ? "See less" : "See more"}
+                        {showMoreThumbnails ? tProduct("seeLess") : tProduct("seeMore")}
                     </button>
                 )}
             </div>

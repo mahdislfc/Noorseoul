@@ -24,6 +24,7 @@ export interface Product {
   economicalOption?: {
     name: string;
     price: number;
+    quantity?: number;
   };
 }
 

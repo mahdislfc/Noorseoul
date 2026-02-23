@@ -65,6 +65,7 @@ const normalizeCountryCode = (rawCode: string) => {
 }
 
 export default function DashboardPage() {
+    const t = useTranslations("Dashboard")
     const { user, isAuthenticated, isLoading, logout, updateProfile, orders } = useUser()
     const tAddress = useTranslations("DashboardAddress")
     const { addToCart } = useCart()
@@ -150,7 +151,7 @@ export default function DashboardPage() {
                     currency: "AED",
                 })
             })
-            toast.success("Order items added to your bag!")
+            toast.success(t("toasts.orderItemsAdded"))
             document.dispatchEvent(new CustomEvent('open-cart'))
         }
     }
@@ -173,13 +174,13 @@ export default function DashboardPage() {
             })
 
             if (result.success) {
-                toast.success("Profile updated successfully")
+                toast.success(t("toasts.profileUpdated"))
                 setIsEditingShippingAddress(false)
             } else {
-                toast.error(result.error || "Failed to update profile")
+                toast.error(result.error || t("toasts.profileUpdateFailed"))
             }
         } catch {
-            toast.error("An unexpected error occurred")
+            toast.error(t("toasts.unexpectedError"))
         } finally {
             setIsUpdating(false)
         }
@@ -187,7 +188,7 @@ export default function DashboardPage() {
 
     const handleUseCurrentLocation = async () => {
         if (!navigator.geolocation) {
-            toast.error("Geolocation is not supported on this browser.")
+            toast.error(t("toasts.geolocationUnsupported"))
             return
         }
 
@@ -247,16 +248,16 @@ export default function DashboardPage() {
         } catch (error) {
             if (error instanceof GeolocationPositionError) {
                 if (error.code === error.PERMISSION_DENIED) {
-                    toast.error("Location permission was denied.")
+                    toast.error(t("toasts.locationPermissionDenied"))
                 } else if (error.code === error.POSITION_UNAVAILABLE) {
-                    toast.error("Location is currently unavailable.")
+                    toast.error(t("toasts.locationUnavailable"))
                 } else if (error.code === error.TIMEOUT) {
-                    toast.error("Timed out while getting your location.")
+                    toast.error(t("toasts.locationTimeout"))
                 } else {
-                    toast.error("Unable to get your current location.")
+                    toast.error(t("toasts.locationUnable"))
                 }
             } else {
-                toast.error("Unable to get your current location.")
+                toast.error(t("toasts.locationUnable"))
             }
         } finally {
             setIsLocatingAddress(false)
@@ -272,6 +273,10 @@ export default function DashboardPage() {
     )
     const hasSavedShippingAddress = Boolean(user?.address?.trim())
     const isShippingAddressLocked = hasSavedShippingAddress && !isEditingShippingAddress
+    const membershipTierRaw = user?.membershipTier || "Member"
+    const membershipTierLabel = membershipTierRaw.toLowerCase() === "member"
+        ? t("membership.member")
+        : membershipTierRaw
 
     return (
         <div className="min-h-screen bg-background font-sans flex flex-col">
@@ -281,15 +286,15 @@ export default function DashboardPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                         <div>
-                            <h1 className="font-serif text-4xl font-bold mb-2">Hello, {user?.firstName || user?.name.split(' ')[0]}</h1>
+                            <h1 className="font-serif text-4xl font-bold mb-2">{t("header.hello", { name: user?.firstName || user?.name.split(' ')[0] })}</h1>
                             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                 <span className="w-2 h-2 rounded-full bg-primary" />
-                                {user?.membershipTier}
+                                {membershipTierLabel}
                             </div>
                         </div>
                         <Button variant="outline" onClick={logout} className="gap-2">
                             <LogOut className="w-4 h-4" />
-                            Log Out
+                            {t("actions.logOut")}
                         </Button>
                     </div>
 
@@ -300,36 +305,36 @@ export default function DashboardPage() {
                                 onClick={() => switchTab('overview')}
                                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left", activeTab === 'overview' ? "bg-primary text-primary-foreground" : "hover:bg-secondary/50")}
                             >
-                                <Package className="w-4 h-4" /> Overview
+                                <Package className="w-4 h-4" /> {t("tabs.overview")}
                             </button>
                             <button
                                 onClick={() => switchTab('orders')}
                                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left", activeTab === 'orders' ? "bg-primary text-primary-foreground" : "hover:bg-secondary/50")}
                             >
-                                <ReceiptText className="w-4 h-4" /> Order History
+                                <ReceiptText className="w-4 h-4" /> {t("tabs.orderHistory")}
                             </button>
                             <button
                                 onClick={() => switchTab('profile')}
                                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left", activeTab === 'profile' ? "bg-primary text-primary-foreground" : "hover:bg-secondary/50")}
                             >
-                                <UserIcon className="w-4 h-4" /> My Profile
+                                <UserIcon className="w-4 h-4" /> {t("tabs.myProfile")}
                             </button>
                             <button
                                 onClick={() => switchTab('points')}
                                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium text-left", activeTab === 'points' ? "bg-primary text-primary-foreground" : "hover:bg-secondary/50")}
                             >
-                                <Star className="w-4 h-4" /> Points
+                                <Star className="w-4 h-4" /> {t("tabs.gems")}
                             </button>
                             <div className="pt-4 mt-4 border-t border-border">
                                 <div className="flex items-center justify-between px-4 py-3">
                                     <div className="flex items-center gap-3 text-muted-foreground">
                                         <Bell className="w-4 h-4" />
-                                        <span className="text-sm">Notifications</span>
+                                        <span className="text-sm">{t("notifications.label")}</span>
                                     </div>
                                     <button
                                         onClick={() => {
                                             setNotificationsEnabled(!notificationsEnabled)
-                                            toast.success(notificationsEnabled ? "Notifications disabled" : "Notifications enabled")
+                                            toast.success(notificationsEnabled ? t("notifications.disabled") : t("notifications.enabled"))
                                         }}
                                         className={cn("w-10 h-6 rounded-full p-1 transition-colors duration-300", notificationsEnabled ? "bg-primary" : "bg-gray-300")}
                                     >
@@ -345,11 +350,11 @@ export default function DashboardPage() {
                             {/* OVERVIEW TAB */}
                             {activeTab === 'overview' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                                    <h2 className="font-serif text-2xl font-bold mb-6">Orders & Points</h2>
+                                    <h2 className="font-serif text-2xl font-bold mb-6">{t("overview.title")}</h2>
                                     <div className="bg-surface border border-border rounded-xl overflow-hidden">
                                         <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-border text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                                            <p className="col-span-8">Order</p>
-                                            <p className="col-span-4 text-right">Points Received</p>
+                                            <p className="col-span-8">{t("orders.order")}</p>
+                                            <p className="col-span-4 text-right">{t("overview.gemsReceived")}</p>
                                         </div>
                                         {orders.map((order) => (
                                             <button
@@ -366,7 +371,7 @@ export default function DashboardPage() {
                                                     <p className="text-xs text-muted-foreground">
                                                         {order.items.length > 0
                                                             ? `${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ""}`
-                                                            : "No items"}
+                                                            : t("orders.noItems")}
                                                     </p>
                                                 </div>
                                                 <p className="col-span-4 text-right font-bold text-pink-500 group-hover:text-pink-600">
@@ -381,7 +386,7 @@ export default function DashboardPage() {
                             {/* ORDERS TAB */}
                             {activeTab === 'orders' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                                    <h2 className="font-serif text-2xl font-bold mb-6">Recent Orders</h2>
+                                    <h2 className="font-serif text-2xl font-bold mb-6">{t("orders.recentOrders")}</h2>
                                     {orders.map(order => (
                                         <div
                                             id={`order-card-${order.id}`}
@@ -399,12 +404,12 @@ export default function DashboardPage() {
                                         >
                                             <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-border pb-4">
                                                 <div>
-                                                    <p className="text-sm font-bold opacity-50 uppercase tracking-wider">Order #{order.id}</p>
+                                                    <p className="text-sm font-bold opacity-50 uppercase tracking-wider">{t("orders.orderNumber", { id: order.id })}</p>
                                                     <p className="text-sm text-muted-foreground">{order.date}</p>
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-xs font-semibold uppercase tracking-wider text-primary/70 opacity-0 translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0">
-                                                        View details
+                                                        {t("orders.viewDetails")}
                                                     </span>
                                                     <span className={cn("px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
                                                         order.status === 'Delivered' ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
@@ -419,7 +424,7 @@ export default function DashboardPage() {
                                                         }}
                                                         className="gap-2"
                                                     >
-                                                        <RefreshCw className="w-3 h-3" /> Reorder
+                                                        <RefreshCw className="w-3 h-3" /> {t("orders.reorder")}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -431,7 +436,7 @@ export default function DashboardPage() {
                                                         </div>
                                                         <div className="flex-1">
                                                             <p className="font-semibold text-sm">{item.name}</p>
-                                                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                                                            <p className="text-xs text-muted-foreground">{t("orders.qty")}: {item.quantity}</p>
                                                         </div>
                                                         <p className="font-bold text-sm">{item.price.toFixed(2)} AED</p>
                                                     </div>
@@ -445,7 +450,7 @@ export default function DashboardPage() {
                                             {selectedOrder && (
                                                 <>
                                                     <DialogHeader className="p-6 border-b border-border">
-                                                        <DialogTitle className="font-serif text-2xl">Order #{selectedOrder.id}</DialogTitle>
+                                                        <DialogTitle className="font-serif text-2xl">{t("orders.orderNumber", { id: selectedOrder.id })}</DialogTitle>
                                                         <DialogDescription className="text-sm">
                                                             {selectedOrder.date}
                                                         </DialogDescription>
@@ -467,7 +472,7 @@ export default function DashboardPage() {
                                                                 </div>
                                                                 <div className="flex-1">
                                                                     <p className="font-semibold">{item.name}</p>
-                                                                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                                                                    <p className="text-sm text-muted-foreground">{t("orders.qty")}: {item.quantity}</p>
                                                                 </div>
                                                                 <p className="font-bold text-sm">{item.price.toFixed(2)} AED</p>
                                                             </div>
@@ -476,12 +481,12 @@ export default function DashboardPage() {
 
                                                     <div className="p-6 border-t border-border flex items-center justify-between gap-4">
                                                         <div>
-                                                            <p className="text-xs uppercase tracking-widest text-muted-foreground">Total</p>
+                                                            <p className="text-xs uppercase tracking-widest text-muted-foreground">{t("orders.total")}</p>
                                                             <p className="text-xl font-bold">{selectedOrder.total.toFixed(2)} AED</p>
                                                         </div>
                                                         <Button onClick={() => handleReorder(selectedOrder.id)} className="gap-2">
                                                             <RefreshCw className="w-4 h-4" />
-                                                            Reorder
+                                                            {t("orders.reorder")}
                                                         </Button>
                                                     </div>
                                                 </>
@@ -494,11 +499,11 @@ export default function DashboardPage() {
                             {/* PROFILE TAB */}
                             {activeTab === 'profile' && (
                                 <div className="bg-surface border border-border rounded-xl p-8 shadow-sm animate-in fade-in slide-in-from-right-4">
-                                    <h2 className="font-serif text-2xl font-bold mb-6">Edit Profile</h2>
+                                    <h2 className="font-serif text-2xl font-bold mb-6">{t("profile.editProfile")}</h2>
                                     <form onSubmit={handleUpdateProfile} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">First Name</label>
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">{t("profile.firstName")}</label>
                                                 <input
                                                     value={firstName}
                                                     onChange={e => setFirstName(e.target.value)}
@@ -506,7 +511,7 @@ export default function DashboardPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Last Name</label>
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">{t("profile.lastName")}</label>
                                                 <input
                                                     value={lastName}
                                                     onChange={e => setLastName(e.target.value)}
@@ -514,11 +519,11 @@ export default function DashboardPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Email Address</label>
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">{t("profile.emailAddress")}</label>
                                                 <input disabled value={user?.email} className="w-full h-12 rounded-lg border border-border bg-secondary/10 px-4 text-muted-foreground cursor-not-allowed" />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest">Phone Number</label>
+                                                <label className="text-xs font-bold uppercase tracking-widest">{t("profile.phoneNumber")}</label>
                                                 <div className="flex gap-2">
                                                     <div className="relative w-36">
                                                         <div className="h-12 rounded-lg border border-border bg-transparent px-3 flex items-center gap-2">
@@ -540,13 +545,13 @@ export default function DashboardPage() {
                                                             }}
                                                             placeholder="+82"
                                                             className="w-full bg-transparent outline-none text-sm font-medium"
-                                                            aria-label="Country code"
+                                                            aria-label={t("profile.countryCode")}
                                                         />
                                                         <button
                                                             type="button"
                                                             onClick={() => setIsCountryDropdownOpen((prev) => !prev)}
                                                             className="text-muted-foreground"
-                                                            aria-label="Toggle country code options"
+                                                            aria-label={t("profile.toggleCountryCode")}
                                                         >
                                                             <ChevronDown className="w-4 h-4" />
                                                         </button>
@@ -576,14 +581,14 @@ export default function DashboardPage() {
                                                         inputMode="numeric"
                                                         value={phoneNumber}
                                                         onChange={e => setPhoneNumber(e.target.value)}
-                                                        placeholder="Rest of phone number"
+                                                        placeholder={t("profile.phonePlaceholder")}
                                                         className="flex-1 h-12 rounded-lg border border-border bg-transparent px-4 focus:ring-1 focus:ring-primary outline-none"
                                                     />
                                                 </div>
                                             </div>
                                             <div className="md:col-span-2 space-y-2">
                                                 <div className="flex flex-wrap items-center justify-between gap-3">
-                                                    <label className="text-xs font-bold uppercase tracking-widest">Shipping Address</label>
+                                                    <label className="text-xs font-bold uppercase tracking-widest">{t("profile.shippingAddress")}</label>
                                                     <div className="flex items-center gap-2">
                                                         {hasSavedShippingAddress && isShippingAddressLocked && (
                                                             <Button
@@ -624,12 +629,12 @@ export default function DashboardPage() {
                                                 )}
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Building Name/Number</label>
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">{t("profile.building")}</label>
                                                 <input
                                                     value={building}
                                                     onChange={e => setBuilding(e.target.value)}
                                                     readOnly={isShippingAddressLocked}
-                                                    placeholder="e.g. Tower B, Building 17, Apt 304"
+                                                    placeholder={t("profile.buildingPlaceholder")}
                                                     className={cn(
                                                         "w-full h-12 rounded-lg border border-border px-4 outline-none",
                                                         isShippingAddressLocked
@@ -639,12 +644,12 @@ export default function DashboardPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">Postcode / ZIP</label>
+                                                <label className="text-xs font-bold uppercase tracking-widest opacity-70">{t("profile.postcode")}</label>
                                                 <input
                                                     value={postcode}
                                                     onChange={e => setPostcode(e.target.value)}
                                                     readOnly={isShippingAddressLocked}
-                                                    placeholder="e.g. 12345"
+                                                    placeholder={t("profile.postcodePlaceholder")}
                                                     className={cn(
                                                         "w-full h-12 rounded-lg border border-border px-4 outline-none",
                                                         isShippingAddressLocked
@@ -666,25 +671,25 @@ export default function DashboardPage() {
                             {/* POINTS TAB */}
                             {activeTab === 'points' && (
                                 <div className="bg-surface border border-border rounded-xl p-8 shadow-sm animate-in fade-in slide-in-from-right-4">
-                                    <h2 className="font-serif text-2xl font-bold mb-6">Your Points</h2>
+                                    <h2 className="font-serif text-2xl font-bold mb-6">{t("points.yourGems")}</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="rounded-xl border border-border p-6 bg-secondary/10">
-                                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Available Points</p>
+                                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">{t("points.availableGems")}</p>
                                             <p className="text-4xl font-bold">{totalPoints}</p>
                                         </div>
                                         <div className="rounded-xl border border-border p-6 bg-secondary/10">
-                                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Claim Reward</p>
+                                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">{t("points.claimReward")}</p>
                                             <Button
                                                 type="button"
                                                 onClick={() => router.push('/rewards')}
                                                 className="mt-2"
                                             >
-                                                View Rewards
+                                                {t("points.viewRewards")}
                                             </Button>
                                         </div>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-6">
-                                        You currently earn points based on completed orders.
+                                        {t("points.earnInfo")}
                                     </p>
                                 </div>
                             )}

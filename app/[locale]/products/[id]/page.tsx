@@ -3,43 +3,80 @@ import { Footer } from "@/components/layout/Footer";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInfo } from "@/components/product/ProductInfo";
 import { SimilarProductsSection } from "@/components/product/SimilarProductsSection";
-import { getProductById, getProducts } from "@/lib/data";
+import { getProductById, getProductsByIds } from "@/lib/data";
 import type { Product } from "@/lib/types";
+import { getTranslations } from "next-intl/server";
+
+function isAbortLikeError(error: unknown) {
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return true;
+  }
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error && "message" in error
+        ? String((error as { message?: unknown }).message || "")
+        : "";
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("signal is aborted without reason") ||
+    normalized.includes("signal is aborted") ||
+    normalized.includes("aborterror")
+  );
+}
 
 export default async function ProductPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }) {
   const { id } = await params;
-  const product = await getProductById(id);
+  const t = await getTranslations("Product");
+  let product: Product | null = null;
+  try {
+    product = await getProductById(id);
+  } catch (error) {
+    if (isAbortLikeError(error)) {
+      notFound();
+    }
+    throw error;
+  }
 
   if (!product) {
     notFound();
   }
 
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
-  const bundleProductId = product.bundleProductId?.trim();
-  const bundleProduct =
-    bundleProductId && bundleProductId !== product.id
-      ? await getProductById(bundleProductId)
-      : null;
   const similarProductIds = product.similarProductIds || [];
-  let similarProducts: Product[] = [];
-  if (similarProductIds.length > 0) {
-    const allProducts = await getProducts();
-    const productsById = new Map(allProducts.map((item) => [item.id, item]));
-    similarProducts = similarProductIds
-      .map((similarId) => productsById.get(similarId))
-      .filter((item): item is Product => Boolean(item));
+  const bundleProductId = product.bundleProductId?.trim();
+  const relatedIds = [
+    ...(bundleProductId ? [bundleProductId] : []),
+    ...similarProductIds,
+  ].filter((relatedId) => relatedId && relatedId !== product.id);
+  let relatedProducts: Product[] = [];
+  try {
+    relatedProducts = await getProductsByIds(relatedIds);
+  } catch (error) {
+    if (!isAbortLikeError(error)) {
+      throw error;
+    }
   }
+  const relatedProductsById = new Map(
+    relatedProducts.map((relatedProduct) => [relatedProduct.id, relatedProduct])
+  );
+  const bundleProduct = bundleProductId
+    ? relatedProductsById.get(bundleProductId) || null
+    : null;
+  const similarProducts: Product[] = similarProductIds
+    .map((similarId) => relatedProductsById.get(similarId))
+    .filter((item): item is Product => Boolean(item));
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background">
       <main className="flex-grow pt-24 pb-12">
         <div className="container mx-auto px-6 lg:px-20 mb-8">
           <nav className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-50">
-            <span>Home</span>
+            <span>{t("home")}</span>
             <span>/</span>
             <span>{product.department}</span>
             <span>/</span>
@@ -66,6 +103,7 @@ export default async function ProductPage({
                 waterResistance: product.waterResistance || "",
                 bundleLabel: product.bundleLabel || "",
                 bundleProductId: product.bundleProductId || "",
+                economicalOption: product.economicalOption,
                 bundleProduct: bundleProduct
                   ? {
                       id: bundleProduct.id,

@@ -127,6 +127,21 @@ export async function PUT(
   const waterResistance = String(formData.get("waterResistance") || "").trim();
   const bundleLabel = String(formData.get("bundleLabel") || "").trim();
   const bundleProductId = String(formData.get("bundleProductId") || "").trim();
+  const economicalOptionName = String(
+    formData.get("economicalOptionName") || ""
+  ).trim();
+  const economicalOptionPriceRaw = String(
+    formData.get("economicalOptionPrice") || ""
+  ).trim();
+  const economicalOptionQuantityRaw = String(
+    formData.get("economicalOptionQuantity") || ""
+  ).trim();
+  const economicalOptionPrice = economicalOptionPriceRaw
+    ? Number(economicalOptionPriceRaw)
+    : undefined;
+  const economicalOptionQuantity = economicalOptionQuantityRaw
+    ? Number(economicalOptionQuantityRaw)
+    : undefined;
   const similarProductIds = parseSimilarProductIds(
     formData.get("similarProductIds")
   ).filter((productId) => productId !== id);
@@ -292,6 +307,9 @@ export async function PUT(
     bundleLabel,
     bundleProductId,
     similarProductIds,
+    economicalOptionName,
+    economicalOptionPrice,
+    economicalOptionQuantity,
   });
 
   return NextResponse.json({ product });

@@ -9,16 +9,18 @@ import { toast } from "sonner"
 import type { Product } from "@/lib/types"
 import { ProductQuickView } from "./ProductQuickView"
 import { Link } from "@/i18n/routing"
+import { useLocale } from "next-intl"
+import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
+import { formatDisplayAmount } from "@/lib/display-currency"
 
 export function ProductCard({ product }: { product: Product }) {
     const t = useTranslations('Product');
+    const locale = useLocale()
+    const { currency: displayCurrency } = useDisplayCurrency()
     const { addToCart, setIsOpen } = useCart()
     const [quantity, setQuantity] = useState(1)
     const [showQuickView, setShowQuickView] = useState(false)
     const [hasSeenQuickView, setHasSeenQuickView] = useState(false)
-    const formatAmount = (amount: number) => (
-        Number.isInteger(amount) ? amount.toString() : amount.toFixed(2)
-    )
     const totalPrice = product.price * quantity
     const totalOriginalPrice = product.originalPrice ? product.originalPrice * quantity : null
 
@@ -34,7 +36,7 @@ export function ProductCard({ product }: { product: Product }) {
         toast.success(t('addedToCart'), {
             description: `${product.name} (x${quantity})`,
             action: {
-                label: 'View Cart',
+                label: t('viewCart'),
                 onClick: () => setIsOpen(true)
             }
         })
@@ -83,7 +85,7 @@ export function ProductCard({ product }: { product: Product }) {
                 </Button>
                 {product.originalPrice && (
                     <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-sm">
-                        SALE
+                        {t("sale")}
                     </div>
                 )}
             </div>
@@ -100,15 +102,19 @@ export function ProductCard({ product }: { product: Product }) {
                 </div>
                 <div className="flex items-center justify-center gap-2">
                     {totalOriginalPrice && (
-                        <span className="text-gray-400 line-through text-sm">{formatAmount(totalOriginalPrice)} {product.currency}</span>
+                        <span className="text-gray-400 line-through text-sm">
+                            {formatDisplayAmount(totalOriginalPrice, product.currency || "USD", displayCurrency, locale)}
+                        </span>
                     )}
-                    <p className="text-primary font-bold text-lg">{formatAmount(totalPrice)} {product.currency}</p>
+                    <p className="text-primary font-bold text-lg">
+                        {formatDisplayAmount(totalPrice, product.currency || "USD", displayCurrency, locale)}
+                    </p>
                 </div>
                 <Link
                     href={`/products/${product.id}`}
                     className="text-xs font-semibold uppercase tracking-widest text-primary hover:underline"
                 >
-                    View Details
+                    {t("viewDetails")}
                 </Link>
 
                 {/* Quantity Selector */}

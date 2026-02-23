@@ -8,8 +8,8 @@ const handleIntl = createMiddleware(routing);
 
 export default async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
-    const isLocalizedAdminRoute = /^\/(en|ar)\/admin(?:\/|$)/.test(pathname);
-    const isAdminLoginRoute = /^\/(en|ar)\/admin\/login\/?$/.test(pathname);
+    const isLocalizedAdminRoute = /^\/(en|ar|fa)\/admin(?:\/|$)/.test(pathname);
+    const isAdminLoginRoute = /^\/(en|ar|fa)\/admin\/login\/?$/.test(pathname);
 
     if (isLocalizedAdminRoute && !isAdminLoginRoute) {
         const adminSession = request.cookies.get("admin_session")?.value;
@@ -44,5 +44,5 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
     // Match only internationalized pathnames
-    matcher: ['/', '/(ar|en)/:path*', '/(ar|en)']
+    matcher: ['/', '/(ar|en|fa)/:path*', '/(ar|en|fa)']
 };

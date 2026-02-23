@@ -32,6 +32,9 @@ const emptyForm = {
   waterResistance: "",
   bundleLabel: "",
   bundleProductId: "",
+  economicalOptionName: "",
+  economicalOptionPrice: "",
+  economicalOptionQuantity: "",
   similarProductIds: [] as string[],
   price: "",
   originalPrice: "",
@@ -294,6 +297,15 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       waterResistance: product.waterResistance || "",
       bundleLabel: product.bundleLabel || "",
       bundleProductId: product.bundleProductId || "",
+      economicalOptionName: product.economicalOption?.name || "",
+      economicalOptionPrice:
+        typeof product.economicalOption?.price === "number"
+          ? String(product.economicalOption.price)
+          : "",
+      economicalOptionQuantity:
+        typeof product.economicalOption?.quantity === "number"
+          ? String(product.economicalOption.quantity)
+          : "",
       similarProductIds: product.similarProductIds || [],
       price: String(product.price),
       originalPrice: product.originalPrice ? String(product.originalPrice) : "",
@@ -650,6 +662,44 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                       </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Economical Option Name</label>
+                <input
+                  value={form.economicalOptionName}
+                  onChange={(event) =>
+                    setForm({ ...form, economicalOptionName: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="e.g. 2 items deal"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Economical Option Price</label>
+                <input
+                  value={form.economicalOptionPrice}
+                  onChange={(event) =>
+                    setForm({ ...form, economicalOptionPrice: event.target.value })
+                  }
+                  type="number"
+                  step="0.01"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="e.g. 35"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Economical Option Quantity</label>
+                <input
+                  value={form.economicalOptionQuantity}
+                  onChange={(event) =>
+                    setForm({ ...form, economicalOptionQuantity: event.target.value })
+                  }
+                  type="number"
+                  min={2}
+                  step="1"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="e.g. 2"
+                />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-1">Similar Products</label>
@@ -1072,24 +1122,6 @@ export function AdminProducts({ locale }: AdminProductsProps) {
         </section>
       ) : (
         <section className="space-y-6">
-          <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
-            <h2 className="text-xl font-semibold">Mini Sample Kit</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Replace these frames with your final mini kit images.
-            </p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="h-36 rounded-md border-2 border-dashed border-border/80 flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">
-                Upload Kit Image 1
-              </div>
-              <div className="h-36 rounded-md border-2 border-dashed border-border/80 flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">
-                Upload Kit Image 2
-              </div>
-              <div className="h-36 rounded-md border-2 border-dashed border-border/80 flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">
-                Upload Kit Image 3
-              </div>
-            </div>
-          </div>
-
           <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
             <h2 className="text-xl font-semibold">Choose Product Reward</h2>
             <p className="text-sm text-muted-foreground mt-1">

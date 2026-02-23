@@ -2,8 +2,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function RequestProductPage() {
+  const t = useTranslations("RequestProduct");
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -32,18 +34,23 @@ export default function RequestProductPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        throw new Error(data?.error || "Failed to submit request");
+        throw new Error(data?.error || t("errors.failed"));
       }
 
       setName("");
       setNote("");
       setImageFile(null);
-      setSuccess("Thanks. Your product request was sent to admin.");
+      setSuccess(t("success.sent"));
     } catch (submitError) {
+      const rawError =
+        submitError instanceof Error ? submitError.message : t("errors.failed");
+      let localizedError = rawError;
+      if (rawError === "Product name is required") localizedError = t("errors.nameRequired");
+      if (rawError === "Image is required") localizedError = t("errors.imageRequired");
+      if (rawError === "Invalid image file") localizedError = t("errors.invalidImage");
+      if (rawError === "Failed to submit request") localizedError = t("errors.failed");
       setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Failed to submit request"
+        localizedError
       );
     } finally {
       setSubmitting(false);
@@ -53,12 +60,11 @@ export default function RequestProductPage() {
   return (
     <div className="container mx-auto px-6 lg:px-20 py-12 mt-20">
       <h1 className="font-serif text-4xl md:text-5xl mb-8 text-center">
-        Request a Product
+        {t("title")}
       </h1>
       <div className="max-w-3xl mx-auto">
         <p className="text-muted-foreground text-center text-2xl leading-relaxed">
-          Looking for a specific Korean beauty product? Let us know and we&apos;ll
-          try to find it for you.
+          {t("subtitle")}
         </p>
 
         <form
@@ -67,43 +73,43 @@ export default function RequestProductPage() {
         >
           <div>
             <label className="block text-sm font-medium mb-2">
-              Product name
+              {t("fields.productName")}
             </label>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              placeholder="e.g. COSRX Advanced Snail 96 Mucin Essence"
+              placeholder={t("placeholders.productName")}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Comment (optional)
+              {t("fields.commentOptional")}
             </label>
             <textarea
               value={note}
               onChange={(event) => setNote(event.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              placeholder="Add any details: skin type, size, exact variant..."
+              placeholder={t("placeholders.comment")}
               rows={4}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Product picture
+              {t("fields.productPicture")}
             </label>
             <div className="flex items-center gap-3 flex-wrap">
               <label
                 htmlFor="requested-product-image"
                 className="inline-flex cursor-pointer items-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-muted"
               >
-                Upload image
+                {t("actions.uploadImage")}
               </label>
               <span className="text-sm text-muted-foreground">
-                {imageFile?.name || "No file chosen"}
+                {imageFile?.name || t("fields.noFileChosen")}
               </span>
             </div>
             <input
@@ -126,7 +132,7 @@ export default function RequestProductPage() {
             disabled={submitting}
             className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
-            {submitting ? "Sending..." : "Send request"}
+            {submitting ? t("actions.sending") : t("actions.sendRequest")}
           </button>
         </form>
       </div>
