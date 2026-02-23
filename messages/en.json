@@ -128,6 +128,7 @@
             "voucherDiscount": "Voucher Discount",
             "delivery": "White-Glove Delivery",
             "shippingPolicy": "Shipping policy: below $100 = $10, $100-$200 = $18, $200.01-$250 = $20, above $250 = $25.",
+            "gemsEstimate": "You will receive {count} gems after this purchase.",
             "shippingReward": "Shipping Reward",
             "subtotalAfterDiscounts": "Subtotal After Discounts",
             "vat": "VAT (5%)",
@@ -160,12 +161,14 @@
         "subtitle": "Looking for a specific Korean beauty product? Let us know and we'll try to find it for you.",
         "fields": {
             "productName": "Product name",
+            "productUrlOptional": "Product URL (optional)",
             "commentOptional": "Comment (optional)",
             "productPicture": "Product picture",
             "noFileChosen": "No file chosen"
         },
         "placeholders": {
             "productName": "e.g. COSRX Advanced Snail 96 Mucin Essence",
+            "productUrl": "https://example.com/product-page",
             "comment": "Add any details: skin type, size, exact variant..."
         },
         "actions": {
@@ -180,6 +183,7 @@
             "nameRequired": "Product name is required",
             "imageRequired": "Image is required",
             "invalidImage": "Invalid image file",
+            "invalidProductUrl": "Invalid product URL",
             "failed": "Failed to submit request"
         }
     },

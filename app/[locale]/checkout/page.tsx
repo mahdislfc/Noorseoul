@@ -8,7 +8,7 @@ import { useUser } from "@/context/UserContext"
 import { ChevronRight, CreditCard, Lock, Minus, Plus, ShieldCheck, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { clearRewardPointsCacheOnce } from "@/lib/reward-points"
+import { clearRewardPointsCacheOnce, pointsFromOrderTotal } from "@/lib/reward-points"
 import { getShippingCostForSubtotal } from "@/lib/shipping"
 import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
 import { formatDisplayAmount } from "@/lib/display-currency"
@@ -74,6 +74,7 @@ export default function CheckoutPage() {
     const totalSavings = appliedDiscount + shippingDiscount
     const vat = discountedSubtotal * 0.05
     const finalTotal = discountedSubtotal + shippingCost + vat
+    const estimatedGems = pointsFromOrderTotal(finalTotal)
     const totalItemQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
     const displayMoney = (amount: number) => formatDisplayAmount(amount, cartCurrency, displayCurrency, locale)
     const rewardFreeShipping = t("rewards.freeShipping")
@@ -727,6 +728,11 @@ export default function CheckoutPage() {
                                 <p className="text-xs text-muted-foreground -mt-1">
                                     {t("summary.shippingPolicy")}
                                 </p>
+                                <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
+                                    <p className="text-xs font-semibold text-primary">
+                                        {t("summary.gemsEstimate", { count: estimatedGems })}
+                                    </p>
+                                </div>
                                 {shippingDiscount > 0 && (
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">{t("summary.shippingReward")}</span>

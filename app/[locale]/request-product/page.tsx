@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 export default function RequestProductPage() {
   const t = useTranslations("RequestProduct");
   const [name, setName] = useState("");
+  const [productUrl, setProductUrl] = useState("");
   const [note, setNote] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -22,6 +23,7 @@ export default function RequestProductPage() {
     try {
       const formData = new FormData();
       formData.append("name", name);
+      formData.append("productUrl", productUrl);
       formData.append("note", note);
       if (imageFile) {
         formData.append("image", imageFile);
@@ -38,6 +40,7 @@ export default function RequestProductPage() {
       }
 
       setName("");
+      setProductUrl("");
       setNote("");
       setImageFile(null);
       setSuccess(t("success.sent"));
@@ -48,6 +51,7 @@ export default function RequestProductPage() {
       if (rawError === "Product name is required") localizedError = t("errors.nameRequired");
       if (rawError === "Image is required") localizedError = t("errors.imageRequired");
       if (rawError === "Invalid image file") localizedError = t("errors.invalidImage");
+      if (rawError === "Invalid product URL") localizedError = t("errors.invalidProductUrl");
       if (rawError === "Failed to submit request") localizedError = t("errors.failed");
       setError(
         localizedError
@@ -81,6 +85,19 @@ export default function RequestProductPage() {
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               placeholder={t("placeholders.productName")}
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              {t("fields.productUrlOptional")}
+            </label>
+            <input
+              type="url"
+              value={productUrl}
+              onChange={(event) => setProductUrl(event.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder={t("placeholders.productUrl")}
             />
           </div>
 

@@ -72,6 +72,8 @@ export function ShippingReturnsClient({ locale }: Props) {
             processing1: "عادة يتم تجهيز الطلب خلال 1 إلى 2 يوم عمل.",
             processing2: "قد تختلف مدة التوصيل حسب المنطقة وشركة الشحن وفترات الضغط الموسمية.",
             processing3: "بعد شحن الطلب، سيتم تزويدكم بمعلومات التتبع لمتابعة الشحنة.",
+            processing4:
+                "إذا رغبتِ في استلام طلبك أسرع من الوقت التقديري، يرجى التواصل معنا لطلب الشحن السريع مقابل رسوم إضافية (سيتم إضافة رقم التواصل لاحقاً).",
             returnsTitle: "الاسترجاع واسترداد المبلغ",
             returns1: "في حال وجود أي مشكلة في الطلب، يرجى التواصل مع فريق الدعم في أقرب وقت ممكن.",
             returns2: "للنظر في طلب الاسترجاع، يجب أن تكون المنتجات غير مستخدمة وبحالتهـا الأصلية ومع التغليف الأصلي.",
@@ -79,7 +81,31 @@ export function ShippingReturnsClient({ locale }: Props) {
             rewardTitle: "مكافأة الشحن المجاني",
             reward1: "نوفر مكافأة الشحن المجاني ضمن برنامج الجواهر.",
             reward2: "يمكن استبدال هذه المكافأة عند الوصول إلى 400 جوهرة.",
-            reward3: "بعد الاستبدال، يمكن استخدام الشحن المجاني في عملية الشراء التالية المؤهلة وفق الرصيد النشط واستخدام الكود."
+            reward3: "بعد الاستبدال، يمكن استخدام الشحن المجاني في عملية الشراء التالية المؤهلة وفق الرصيد النشط واستخدام الكود.",
+            policyLine1:
+                "جميع أوقات الشحن والتسليم تقديرية وليست مضمونة. نور سيول غير مسؤولة عن أي تأخير ناتج عن عوامل خارج نطاق سيطرتها مثل إجراءات الجمارك أو مشكلات شركات الشحن أو الأحوال الجوية أو حالات القوة القاهرة.",
+            policyLine2:
+                "رسوم الشحن غير قابلة للاسترداد ما لم توافق نور سيول صراحة على خلاف ذلك.",
+            policyLine3:
+                "يتم شحن الطلبات فقط إلى العنوان الذي يقدمه العميل عند إتمام الدفع. العميل مسؤول عن التأكد من دقة عنوان التسليم.",
+            customsTitle: "الجمارك والرسوم والضرائب",
+            customs1:
+                "يتحمل العملاء وحدهم مسؤولية أي رسوم جمركية أو رسوم استيراد أو ضرائب أو أي تكاليف أخرى مطلوبة في بلدهم.",
+            customs2:
+                "أي تأخير ناتج عن التخليص الجمركي خارج عن سيطرة نور سيول ولا يؤهل للاسترداد أو الإلغاء.",
+            lostTitle: "الشحنات المفقودة أو المتضررة",
+            lost1:
+                "نور سيول غير مسؤولة عن الطرود المفقودة أو المتضررة أثناء النقل. ومع ذلك، سنقوم بالمساعدة في تقديم مطالبة لدى شركة الشحن للشحنات المفقودة أو المتضررة.",
+            lost2:
+                "يجب على العملاء الإبلاغ عن العناصر المتضررة أو المفقودة خلال 48 ساعة من استلام الطلب. قد يُطلب تقديم مستندات داعمة مثل صور الضرر.",
+            changesTitle: "التعديلات والإلغاء",
+            changes1:
+                "لا يمكن تعديل الطلبات أو إلغاؤها أو استردادها بعد شحنها.",
+            changes2:
+                "إذا رغبتِ في إلغاء الطلب أو تعديله، يرجى التواصل معنا فورًا بعد إتمام الطلب. سنبذل قصارى جهدنا لتلبية الطلب، لكن لا يمكننا ضمان إجراء التعديلات.",
+            nonReturnableTitle: "المنتجات غير القابلة للإرجاع",
+            nonReturnable1:
+                "جميع مستحضرات التجميل المباعة من نور سيول غير قابلة للإرجاع أو الاسترداد بسبب لوائح النظافة والسلامة."
         }
         : isPersian
             ? {
@@ -103,6 +129,8 @@ export function ShippingReturnsClient({ locale }: Props) {
                 processing1: "سفارش ها معمولا طی 1 تا 2 روز کاری پردازش می شوند.",
                 processing2: "زمان تحویل ممکن است بر اساس موقعیت شما، عملکرد شرکت حمل و دوره های پرترافیک متفاوت باشد.",
                 processing3: "پس از ارسال سفارش، اطلاعات رهگیری برای شما ارسال می شود.",
+                processing4:
+                    "اگر می خواهید سفارش خود را زودتر از زمان تخمینی دریافت کنید، برای ارسال اکسپرس با هزینه اضافی با ما تماس بگیرید (شماره تماس بعدا اضافه می شود).",
                 returnsTitle: "مرجوعی و بازپرداخت",
                 returns1: "در صورت وجود هرگونه مشکل در سفارش، لطفا در سریع ترین زمان با تیم پشتیبانی تماس بگیرید.",
                 returns2: "برای بررسی مرجوعی، کالا باید استفاده نشده، در وضعیت اولیه و با بسته بندی اصلی باشد.",
@@ -110,7 +138,31 @@ export function ShippingReturnsClient({ locale }: Props) {
                 rewardTitle: "پاداش ارسال رایگان",
                 reward1: "پاداش ارسال رایگان در برنامه Gems ارائه می شود.",
                 reward2: "این پاداش با 400 Gem قابل دریافت است.",
-                reward3: "پس از دریافت، ارسال رایگان برای اولین تسویه حساب واجد شرایط بعدی شما اعمال می شود."
+                reward3: "پس از دریافت، ارسال رایگان برای اولین تسویه حساب واجد شرایط بعدی شما اعمال می شود.",
+                policyLine1:
+                    "تمام زمان بندی های ارسال و تحویل تقریبی هستند و تضمین نمی شوند. نور سئول مسئول تاخیرهای ناشی از عوامل خارج از کنترل خود مانند فرآیندهای گمرکی، مشکلات شرکت حمل، شرایط آب و هوایی یا فورس ماژور نیست.",
+                policyLine2:
+                    "هزینه های ارسال غیرقابل استرداد هستند مگر اینکه نور سئول صراحتا با آن موافقت کند.",
+                policyLine3:
+                    "سفارش ها فقط به آدرسی که مشتری هنگام تسویه حساب ثبت کرده ارسال می شوند. مسئولیت صحت آدرس تحویل بر عهده مشتری است.",
+                customsTitle: "گمرک، عوارض و مالیات",
+                customs1:
+                    "مسئولیت هرگونه هزینه گمرکی، عوارض واردات، مالیات یا سایر هزینه های الزامی کشور مقصد صرفا بر عهده مشتری است.",
+                customs2:
+                    "تاخیرهای ناشی از ترخیص گمرکی خارج از کنترل نور سئول است و شامل بازپرداخت یا لغو سفارش نمی شود.",
+                lostTitle: "مرسوله های مفقود یا آسیب دیده",
+                lost1:
+                    "نور سئول مسئول بسته های مفقود یا آسیب دیده در حین حمل نیست. با این حال، ما در ثبت درخواست خسارت نزد شرکت حمل برای مرسوله های مفقود یا آسیب دیده همکاری می کنیم.",
+                lost2:
+                    "مشتریان باید حداکثر تا 48 ساعت پس از دریافت سفارش، موارد آسیب دیده یا کسری را گزارش کنند. ممکن است مدارک پشتیبان مانند عکس آسیب لازم باشد.",
+                changesTitle: "تغییرات و لغو سفارش",
+                changes1:
+                    "پس از ارسال سفارش، امکان تغییر، لغو یا بازپرداخت وجود ندارد.",
+                changes2:
+                    "اگر قصد لغو یا اصلاح سفارش خود را دارید، بلافاصله پس از ثبت سفارش با ما تماس بگیرید. ما تمام تلاش خود را برای همکاری انجام می دهیم، اما اعمال تغییرات قابل تضمین نیست.",
+                nonReturnableTitle: "کالاهای غیرقابل مرجوعی",
+                nonReturnable1:
+                    "تمام محصولات آرایشی و بهداشتی فروخته شده توسط نور سئول به دلیل مقررات بهداشت و ایمنی، غیرقابل مرجوعی و غیرقابل بازپرداخت هستند."
             }
             : {
             title: "Shipping & Returns",
@@ -133,6 +185,8 @@ export function ShippingReturnsClient({ locale }: Props) {
             processing1: "Orders are normally processed within 1 to 2 business days.",
             processing2: "Delivery timelines may vary depending on your location, courier operations, and peak periods.",
             processing3: "Once your order is shipped, tracking details will be shared so you can follow your delivery.",
+            processing4:
+                "If you wish to receive your order earlier than the estimated time, please contact us for Express shipping for an extra charge (phone number will be added later).",
             returnsTitle: "Returns & Refunds",
             returns1: "If there is an issue with your order, please contact our support team as soon as possible.",
             returns2: "To be eligible for return review, items should be unused, in original condition, and in original packaging.",
@@ -140,7 +194,31 @@ export function ShippingReturnsClient({ locale }: Props) {
             rewardTitle: "Free Shipping Reward",
             reward1: "We offer a Free Shipping reward through our Gems program.",
             reward2: "Customers can redeem this reward at 400 Gems.",
-            reward3: "After redemption, the Free Shipping reward can be applied to your next eligible checkout according to your active reward balance and code usage."
+            reward3: "After redemption, the Free Shipping reward can be applied to your next eligible checkout according to your active reward balance and code usage.",
+            policyLine1:
+                "All shipping and delivery timelines are estimates and not guaranteed. Noor Seoul is not responsible for delays caused by factors beyond its control, such as customs processes, courier issues, weather conditions, or force majeure events.",
+            policyLine2:
+                "Shipping fees are non-refundable unless explicitly agreed upon by Noor Seoul.",
+            policyLine3:
+                "Orders will only be shipped to the address provided by the customer at checkout. Customers are responsible for ensuring the accuracy of their delivery address.",
+            customsTitle: "Customs, Duties, and Taxes",
+            customs1:
+                "Customers are solely responsible for any customs fees, import duties, taxes, or other charges required by their country.",
+            customs2:
+                "Delays caused by customs clearance are beyond Noor Seoul's control and do not qualify for refunds or cancellations.",
+            lostTitle: "Lost or Damaged Shipments",
+            lost1:
+                "Noor Seoul is not liable for packages lost or damaged during transit. However, we will assist in filing a claim with the courier for lost or damaged shipments.",
+            lost2:
+                "Customers must report damaged or missing items within 48 hours of receiving their order. Supporting documentation, such as photos of the damage, may be required.",
+            changesTitle: "Changes and Cancellations",
+            changes1:
+                "Orders cannot be changed, canceled, or refunded once they have been shipped.",
+            changes2:
+                "If you wish to cancel or modify your order, contact us immediately after placing it. While we will do our best to accommodate requests, we cannot guarantee changes.",
+            nonReturnableTitle: "Non-Returnable Items",
+            nonReturnable1:
+                "All cosmetic products sold by Noor Seoul are non-returnable and non-refundable due to hygiene and safety regulations."
             }
 
     return (
@@ -195,22 +273,55 @@ export function ShippingReturnsClient({ locale }: Props) {
                         <h2 className="text-2xl font-semibold mb-4">{copy.processingTitle}</h2>
                         <p className="text-muted-foreground mb-3">{copy.processing1}</p>
                         <p className="text-muted-foreground mb-3">{copy.processing2}</p>
-                        <p className="text-muted-foreground">{copy.processing3}</p>
+                        <p className="text-muted-foreground mb-3">{copy.processing3}</p>
+                        <p className="text-muted-foreground">{copy.processing4}</p>
                     </section>
                 </div>
-
-                <section className="rounded-2xl border bg-white p-6 shadow-sm mt-6">
-                    <h2 className="text-2xl font-semibold mb-4">{copy.returnsTitle}</h2>
-                    <p className="text-muted-foreground mb-3">{copy.returns1}</p>
-                    <p className="text-muted-foreground mb-3">{copy.returns2}</p>
-                    <p className="text-muted-foreground">{copy.returns3}</p>
-                </section>
 
                 <section className="rounded-2xl border bg-neutral-50 p-6 shadow-sm mt-6">
                     <h2 className="text-2xl font-semibold mb-4">{copy.rewardTitle}</h2>
                     <p className="text-muted-foreground mb-3">{copy.reward1}</p>
                     <p className="text-muted-foreground mb-3">{copy.reward2}</p>
                     <p className="text-muted-foreground">{copy.reward3}</p>
+                </section>
+
+                <section className="rounded-2xl border bg-white p-6 shadow-sm mt-6">
+                    <ul className="list-disc pl-5 space-y-3 text-muted-foreground">
+                        <li>{copy.policyLine1}</li>
+                        <li>{copy.policyLine2}</li>
+                        <li>{copy.policyLine3}</li>
+                    </ul>
+                </section>
+
+                <section className="rounded-2xl border bg-white p-6 shadow-sm mt-6">
+                    <h2 className="text-2xl font-semibold mb-4">{copy.customsTitle}</h2>
+                    <ul className="list-disc pl-5 space-y-3 text-muted-foreground">
+                        <li>{copy.customs1}</li>
+                        <li>{copy.customs2}</li>
+                    </ul>
+                </section>
+
+                <section className="rounded-2xl border bg-white p-6 shadow-sm mt-6">
+                    <h2 className="text-2xl font-semibold mb-4">{copy.lostTitle}</h2>
+                    <ul className="list-disc pl-5 space-y-3 text-muted-foreground">
+                        <li>{copy.lost1}</li>
+                        <li>{copy.lost2}</li>
+                    </ul>
+                </section>
+
+                <section className="rounded-2xl border bg-white p-6 shadow-sm mt-6">
+                    <h2 className="text-2xl font-semibold mb-4">{copy.changesTitle}</h2>
+                    <ul className="list-disc pl-5 space-y-3 text-muted-foreground">
+                        <li>{copy.changes1}</li>
+                        <li>{copy.changes2}</li>
+                    </ul>
+                </section>
+
+                <section className="rounded-2xl border bg-white p-6 shadow-sm mt-6">
+                    <h2 className="text-2xl font-semibold mb-4">{copy.nonReturnableTitle}</h2>
+                    <ul className="list-disc pl-5 space-y-3 text-muted-foreground">
+                        <li>{copy.nonReturnable1}</li>
+                    </ul>
                 </section>
             </div>
         </div>

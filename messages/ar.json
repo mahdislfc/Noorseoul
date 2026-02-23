@@ -128,6 +128,7 @@
             "voucherDiscount": "خصم القسيمة",
             "delivery": "توصيل وايت-غلوف",
             "shippingPolicy": "سياسة الشحن: أقل من $100 = $10، من $100 إلى $200 = $18، من $200.01 إلى $250 = $20، أكثر من $250 = $25.",
+            "gemsEstimate": "ستحصلين على {count} جوهرة بعد هذا الشراء.",
             "shippingReward": "مكافأة الشحن",
             "subtotalAfterDiscounts": "المجموع بعد الخصومات",
             "vat": "ضريبة القيمة المضافة (5%)",
@@ -160,12 +161,14 @@
         "subtitle": "هل تبحثين عن منتج تجميل كوري محدد؟ أخبرينا وسنحاول توفيره لك.",
         "fields": {
             "productName": "اسم المنتج",
+            "productUrlOptional": "رابط المنتج (اختياري)",
             "commentOptional": "ملاحظة (اختياري)",
             "productPicture": "صورة المنتج",
             "noFileChosen": "لم يتم اختيار ملف"
         },
         "placeholders": {
             "productName": "مثال: COSRX Advanced Snail 96 Mucin Essence",
+            "productUrl": "https://example.com/product-page",
             "comment": "أضيفي أي تفاصيل: نوع البشرة، الحجم، الإصدار المحدد..."
         },
         "actions": {
@@ -180,6 +183,7 @@
             "nameRequired": "اسم المنتج مطلوب",
             "imageRequired": "الصورة مطلوبة",
             "invalidImage": "ملف الصورة غير صالح",
+            "invalidProductUrl": "رابط المنتج غير صالح",
             "failed": "فشل إرسال الطلب"
         }
     },

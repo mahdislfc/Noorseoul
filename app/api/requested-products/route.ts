@@ -23,6 +23,7 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const name = String(formData.get("name") || "").trim();
   const note = String(formData.get("note") || "").trim();
+  const productUrl = String(formData.get("productUrl") || "").trim();
   const imageFile = formData.get("image");
 
   if (!name) {
@@ -37,12 +38,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid image file" }, { status: 400 });
   }
 
+  let normalizedProductUrl: string | null = null;
+  if (productUrl) {
+    try {
+      const parsedUrl = new URL(productUrl);
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        throw new Error("Invalid URL protocol");
+      }
+      normalizedProductUrl = parsedUrl.toString();
+    } catch {
+      return NextResponse.json({ error: "Invalid product URL" }, { status: 400 });
+    }
+  }
+
   const image = await saveImage(imageFile);
 
   const requestedProduct = await prisma.requestedProduct.create({
     data: {
       name,
       note: note || null,
+      productUrl: normalizedProductUrl,
       image,
     },
   });

@@ -128,6 +128,7 @@
             "voucherDiscount": "تخفیف ووچر",
             "delivery": "ارسال ویژه",
             "shippingPolicy": "سیاست ارسال: کمتر از $100 = $10، از $100 تا $200 = $18، از $200.01 تا $250 = $20، بالاتر از $250 = $25.",
+            "gemsEstimate": "بعد از این خرید {count} جم دریافت می کنید.",
             "shippingReward": "جایزه ارسال",
             "subtotalAfterDiscounts": "جمع بعد از تخفیف",
             "vat": "مالیات بر ارزش افزوده (5%)",
@@ -160,12 +161,14 @@
         "subtitle": "دنبال یک محصول زیبایی کره ای خاص هستید؟ به ما اطلاع دهید تا برای شما پیدا کنیم.",
         "fields": {
             "productName": "نام محصول",
+            "productUrlOptional": "لینک محصول (اختیاری)",
             "commentOptional": "توضیح (اختیاری)",
             "productPicture": "تصویر محصول",
             "noFileChosen": "فایلی انتخاب نشده"
         },
         "placeholders": {
             "productName": "مثلا: COSRX Advanced Snail 96 Mucin Essence",
+            "productUrl": "https://example.com/product-page",
             "comment": "هر جزئیاتی را بنویسید: نوع پوست، سایز، مدل دقیق..."
         },
         "actions": {
@@ -180,6 +183,7 @@
             "nameRequired": "نام محصول الزامی است",
             "imageRequired": "تصویر الزامی است",
             "invalidImage": "فایل تصویر نامعتبر است",
+            "invalidProductUrl": "لینک محصول نامعتبر است",
             "failed": "ارسال درخواست ناموفق بود"
         }
     },

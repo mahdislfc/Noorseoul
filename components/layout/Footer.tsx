@@ -21,8 +21,6 @@ export function Footer() {
                     <div>
                         <h4 className="font-bold uppercase tracking-widest text-xs mb-6 text-primary">{t("discover")}</h4>
                         <ul className="space-y-4 text-sm font-medium">
-                            <li><Link href="/skincare-tips" className="hover:text-primary transition-colors">{t("skincareMiracles")}</Link></li>
-                            <li><Link href="/makeup-tips" className="hover:text-primary transition-colors">{t("makeupTrends")}</Link></li>
                             <li><Link href="/gift-sets" className="hover:text-primary transition-colors">{t("giftSets")}</Link></li>
                         </ul>
                     </div>
@@ -36,7 +34,6 @@ export function Footer() {
                         <h4 className="font-bold uppercase tracking-widest text-xs mb-6 text-primary">{t("support")}</h4>
                         <ul className="space-y-4 text-sm font-medium">
                             <li><Link href="/shipping-returns" className="hover:text-primary transition-colors">{t("shippingReturns")}</Link></li>
-                            <li><Link href="/order-tracking" className="hover:text-primary transition-colors">{t("orderTracking")}</Link></li>
                             <li><Link href="/request-product" className="hover:text-primary transition-colors">{t("requestProduct")}</Link></li>
                             <li><Link href="/faq" className="hover:text-primary transition-colors">{t("faq")}</Link></li>
                             <li><Link href="/contact" className="hover:text-primary transition-colors">{t("contactUs")}</Link></li>

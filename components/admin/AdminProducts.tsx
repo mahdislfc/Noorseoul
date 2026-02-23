@@ -1109,6 +1109,16 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                     <p className="text-xs text-muted-foreground mt-1">
                       {new Date(requestedProduct.createdAt).toLocaleString()}
                     </p>
+                    {requestedProduct.productUrl && (
+                      <a
+                        href={requestedProduct.productUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 inline-block text-sm text-primary underline underline-offset-2 break-all"
+                      >
+                        {requestedProduct.productUrl}
+                      </a>
+                    )}
                     {requestedProduct.note && (
                       <p className="text-sm text-muted-foreground mt-3">
                         {requestedProduct.note}

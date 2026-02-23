@@ -68,6 +68,7 @@ export interface RequestedProduct {
   name: string;
   image: string;
   note?: string | null;
+  productUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }
