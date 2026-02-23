@@ -20,6 +20,7 @@ export interface Product {
   waterResistance?: string | null;
   bundleLabel?: string | null;
   bundleProductId?: string | null;
+  similarProductIds?: string[];
   economicalOption?: {
     name: string;
     price: number;

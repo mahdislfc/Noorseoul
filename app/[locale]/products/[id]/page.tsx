@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { Footer } from "@/components/layout/Footer";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInfo } from "@/components/product/ProductInfo";
-import { getProductById } from "@/lib/data";
+import { SimilarProductsSection } from "@/components/product/SimilarProductsSection";
+import { getProductById, getProducts } from "@/lib/data";
+import type { Product } from "@/lib/types";
 
 export default async function ProductPage({
   params,
@@ -17,6 +19,20 @@ export default async function ProductPage({
   }
 
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
+  const bundleProductId = product.bundleProductId?.trim();
+  const bundleProduct =
+    bundleProductId && bundleProductId !== product.id
+      ? await getProductById(bundleProductId)
+      : null;
+  const similarProductIds = product.similarProductIds || [];
+  let similarProducts: Product[] = [];
+  if (similarProductIds.length > 0) {
+    const allProducts = await getProducts();
+    const productsById = new Map(allProducts.map((item) => [item.id, item]));
+    similarProducts = similarProductIds
+      .map((similarId) => productsById.get(similarId))
+      .filter((item): item is Product => Boolean(item));
+  }
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background">
@@ -50,10 +66,27 @@ export default async function ProductPage({
                 waterResistance: product.waterResistance || "",
                 bundleLabel: product.bundleLabel || "",
                 bundleProductId: product.bundleProductId || "",
+                bundleProduct: bundleProduct
+                  ? {
+                      id: bundleProduct.id,
+                      name: bundleProduct.name,
+                      price: bundleProduct.price,
+                      currency: bundleProduct.currency,
+                      size: bundleProduct.size || "",
+                      image:
+                        bundleProduct.images && bundleProduct.images.length > 0
+                          ? bundleProduct.images[0]
+                          : bundleProduct.image,
+                    }
+                  : undefined,
                 images,
               }}
             />
           </div>
+        </div>
+
+        <div className="container mx-auto px-6 lg:px-20 mt-12">
+          <SimilarProductsSection products={similarProducts} />
         </div>
       </main>
       <Footer />

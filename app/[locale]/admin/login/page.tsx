@@ -1,5 +1,10 @@
+import { redirect } from "next/navigation";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
-import { isAdminEnvConfigured } from "@/lib/admin-auth";
+import {
+  getAdminSessionCookie,
+  isAdminEnvConfigured,
+  isAdminSessionValid,
+} from "@/lib/admin-auth";
 
 export default async function AdminLoginPage({
   params,
@@ -7,6 +12,10 @@ export default async function AdminLoginPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const session = await getAdminSessionCookie();
+  if (isAdminSessionValid(session)) {
+    redirect(`/${locale}/admin`);
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-6">

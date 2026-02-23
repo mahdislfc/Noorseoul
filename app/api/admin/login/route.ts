@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   ADMIN_EMAIL_ENV,
   ADMIN_PASSWORD_ENV,
-  getAdminSessionToken,
+  createAdminSessionToken,
   isAdminEnvConfigured,
 } from "@/lib/admin-auth";
 
@@ -27,14 +27,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  const token = getAdminSessionToken();
+  const token = createAdminSessionToken();
   const response = NextResponse.json({ ok: true });
   response.cookies.set("admin_session", token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
   });
 
   return response;

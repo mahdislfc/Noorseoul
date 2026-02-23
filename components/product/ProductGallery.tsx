@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { ZoomIn } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 interface ProductGalleryProps {
@@ -73,14 +72,6 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                         {t("newArrival")}
                     </span>
                 </div>
-                <button
-                    type="button"
-                    onClick={() => undefined}
-                    className="absolute bottom-6 right-6 h-12 w-12 flex items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-xl text-foreground transition-transform hover:scale-110"
-                    aria-label="Move cursor over image to zoom"
-                >
-                    <ZoomIn className="w-5 h-5" />
-                </button>
             </div>
 
             {/* Thumbnails */}

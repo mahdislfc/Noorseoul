@@ -15,6 +15,7 @@ export function ProductCard({ product }: { product: Product }) {
     const { addToCart, setIsOpen } = useCart()
     const [quantity, setQuantity] = useState(1)
     const [showQuickView, setShowQuickView] = useState(false)
+    const [hasSeenQuickView, setHasSeenQuickView] = useState(false)
     const formatAmount = (amount: number) => (
         Number.isInteger(amount) ? amount.toString() : amount.toFixed(2)
     )
@@ -49,11 +50,24 @@ export function ProductCard({ product }: { product: Product }) {
             : "https://placehold.co/400x500/e3d5c5/1a1a1a?text=" +
               product.name.split(" ").join("+")
 
+    const handleFirstInteractionOpenQuickView = (
+        event: React.MouseEvent<HTMLAnchorElement>
+    ) => {
+        if (hasSeenQuickView) return
+        event.preventDefault()
+        setShowQuickView(true)
+        setHasSeenQuickView(true)
+    }
+
     return (
         <div className="group relative bg-white p-4 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 h-full flex flex-col">
             <div className="relative overflow-hidden rounded-lg aspect-[4/5] bg-secondary/20 mb-4">
                 {/* Fallback image logic if image missing */}
-                <Link href={`/products/${product.id}`} aria-label={`View details for ${product.name}`}>
+                <Link
+                    href={`/products/${product.id}`}
+                    aria-label={`View details for ${product.name}`}
+                    onClick={handleFirstInteractionOpenQuickView}
+                >
                     <div
                         className="w-full h-full bg-cover bg-center group-hover:scale-110 transition-transform duration-700 cursor-pointer"
                         style={{ backgroundImage: `url('${imageUrl}')` }}
@@ -76,7 +90,11 @@ export function ProductCard({ product }: { product: Product }) {
             <div className="text-center px-2 flex-col flex gap-2 flex-grow">
                 <div>
                     <p className="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">{product.category}</p>
-                    <Link href={`/products/${product.id}`} className="hover:text-primary transition-colors">
+                    <Link
+                        href={`/products/${product.id}`}
+                        className="hover:text-primary transition-colors"
+                        onClick={handleFirstInteractionOpenQuickView}
+                    >
                         <h3 className="font-serif text-lg leading-tight line-clamp-2 min-h-[1.5em]">{product.name}</h3>
                     </Link>
                 </div>
@@ -92,13 +110,6 @@ export function ProductCard({ product }: { product: Product }) {
                 >
                     View Details
                 </Link>
-                <button
-                    type="button"
-                    onClick={() => setShowQuickView(true)}
-                    className="text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    Quick View
-                </button>
 
                 {/* Quantity Selector */}
                 <div className="flex items-center justify-center gap-3 mt-auto pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

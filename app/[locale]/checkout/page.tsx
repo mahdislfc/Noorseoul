@@ -9,6 +9,7 @@ import { ChevronRight, CreditCard, Lock, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { clearRewardPointsCacheOnce } from "@/lib/reward-points"
+import { getShippingCostForSubtotal } from "@/lib/shipping"
 
 import { useLocale } from 'next-intl';
 
@@ -52,17 +53,17 @@ export default function CheckoutPage() {
     const VOUCHER_30_CODE_KEY = "reward_voucher_30_code"
     const VOUCHER_30_CLAIMED_KEY = "reward_voucher_30_claimed"
     const CLAIMED_REWARDS_KEY = "reward_claimed_rewards"
-    const BASE_SHIPPING_COST = 20
     const userKey = user?.email?.toLowerCase() || "guest"
     const storageKey = (baseKey: string) => `${baseKey}:${userKey}`
     const cartCurrencies = Array.from(new Set(items.map((item) => (item.currency || "AED").toUpperCase())))
     const cartCurrency = cartCurrencies.length === 1 ? cartCurrencies[0] : "AED"
 
-    const shippingCost = shippingRewardApplied ? 0 : BASE_SHIPPING_COST
     const subtotal = totalPrice
+    const baseShippingCost = getShippingCostForSubtotal(subtotal)
+    const shippingCost = shippingRewardApplied ? 0 : baseShippingCost
     const appliedDiscount = Math.min(voucherDiscountAmount, subtotal)
     const discountedSubtotal = Math.max(0, subtotal - appliedDiscount)
-    const shippingDiscount = shippingRewardApplied ? BASE_SHIPPING_COST : 0
+    const shippingDiscount = shippingRewardApplied ? baseShippingCost : 0
     const totalSavings = appliedDiscount + shippingDiscount
     const vat = discountedSubtotal * 0.05
     const finalTotal = discountedSubtotal + shippingCost + vat
@@ -327,6 +328,7 @@ export default function CheckoutPage() {
                     city,
                     currency: cartCurrency,
                     firstPurchaseSampleApplied: isFirstPurchaseSampleApplied,
+                    shippingRewardApplied,
                     items,
                 }),
             })
@@ -624,9 +626,12 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">White-Glove Delivery</span>
                                     <span className="font-bold uppercase tracking-tighter">
-                                        {BASE_SHIPPING_COST.toFixed(2)} {cartCurrency}
+                                        {baseShippingCost.toFixed(2)} {cartCurrency}
                                     </span>
                                 </div>
+                                <p className="text-xs text-muted-foreground -mt-1">
+                                    Shipping policy: up to $100 = $8.5, $100.01-$200 = $13.5, $200.01-$250 = $15, above $250 = Free.
+                                </p>
                                 {shippingDiscount > 0 && (
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Shipping Reward</span>

@@ -21,6 +21,14 @@ interface ProductInfoProps {
         waterResistance?: string
         bundleLabel?: string
         bundleProductId?: string
+        bundleProduct?: {
+            id: string
+            name: string
+            price: number
+            currency?: string
+            size?: string
+            image: string
+        }
         images: string[]
     }
 }
@@ -29,6 +37,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
     const { addToCart, setIsOpen } = useCart()
     const router = useRouter()
     const [quantity, setQuantity] = useState(1)
+    const [bundleQuantity, setBundleQuantity] = useState(1)
     const [showAllIngredients, setShowAllIngredients] = useState(false)
     const formatAmount = (amount: number) => (
         Number.isInteger(amount) ? amount.toString() : amount.toFixed(2)
@@ -59,6 +68,25 @@ export function ProductInfo({ product }: ProductInfoProps) {
         })
         toast.success("Item added to cart", {
             description: `${product.name} (x${quantity})`,
+            action: {
+                label: "View Cart",
+                onClick: () => setIsOpen(true),
+            },
+        })
+    }
+
+    const handleAddBundleToCart = () => {
+        if (!product.bundleProduct) return
+        addToCart({
+            id: product.bundleProduct.id,
+            name: product.bundleProduct.name,
+            price: product.bundleProduct.price,
+            quantity: bundleQuantity,
+            image: product.bundleProduct.image,
+            currency: product.bundleProduct.currency || "USD"
+        })
+        toast.success("Bundle item added to cart", {
+            description: `${product.bundleProduct.name} (x${bundleQuantity})`,
             action: {
                 label: "View Cart",
                 onClick: () => setIsOpen(true),
@@ -152,20 +180,59 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 </div>
             )}
 
-            {product.bundleProductId?.trim() && (
+            {product.bundleProduct && (
                 <div className="mb-8 rounded-lg border border-primary/25 bg-primary/5 p-4">
                     <p className="text-xs font-bold uppercase tracking-widest text-primary/80">Economical Bundle</p>
-                    <p className="mt-2 text-sm text-foreground/80">
-                        {product.bundleLabel?.trim() || "Bundle available for this product."}
-                    </p>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="mt-3"
-                        onClick={() => router.push(`/products/${product.bundleProductId}`)}
-                    >
-                        View Bundle Product
-                    </Button>
+                    {product.bundleLabel?.trim() && (
+                        <p className="mt-2 text-sm text-foreground/80">{product.bundleLabel}</p>
+                    )}
+                    <div className="mt-3 rounded-md border border-border bg-background p-3">
+                        <div className="flex items-start gap-3">
+                            <img
+                                src={product.bundleProduct.image}
+                                alt={product.bundleProduct.name}
+                                className="h-16 w-16 rounded-md border object-cover"
+                            />
+                            <div className="flex-1">
+                                <p className="text-sm font-semibold leading-snug">{product.bundleProduct.name}</p>
+                                {product.bundleProduct.size?.trim() && (
+                                    <p className="mt-1 text-xs text-muted-foreground">Size: {product.bundleProduct.size}</p>
+                                )}
+                                <p className="mt-1 text-sm font-semibold text-primary">
+                                    {formatAmount(product.bundleProduct.price)} {product.bundleProduct.currency || "AED"}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <div className="flex items-center border border-border rounded-md px-2">
+                                <button
+                                    type="button"
+                                    className="p-1 hover:text-primary transition-colors"
+                                    onClick={() => setBundleQuantity((current) => Math.max(1, current - 1))}
+                                >
+                                    <Minus className="w-3 h-3" />
+                                </button>
+                                <span className="w-8 text-center text-sm font-semibold">{bundleQuantity}</span>
+                                <button
+                                    type="button"
+                                    className="p-1 hover:text-primary transition-colors"
+                                    onClick={() => setBundleQuantity((current) => current + 1)}
+                                >
+                                    <Plus className="w-3 h-3" />
+                                </button>
+                            </div>
+                            <Button type="button" size="sm" onClick={handleAddBundleToCart}>
+                                Add to Cart
+                            </Button>
+                            <button
+                                type="button"
+                                onClick={() => router.push(`/products/${product.bundleProduct?.id}`)}
+                                className="text-sm font-semibold text-primary hover:underline"
+                            >
+                                View Details
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

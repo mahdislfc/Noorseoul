@@ -10,12 +10,24 @@ export interface ProductMetadata {
   waterResistance?: string;
   bundleLabel?: string;
   bundleProductId?: string;
+  similarProductIds?: string[];
 }
 
 type MetadataStore = Record<string, ProductMetadata>;
 
 function sanitize(value?: string) {
   return (value || "").trim();
+}
+
+function normalizeIdList(value?: string[]) {
+  if (!Array.isArray(value)) return [];
+  return Array.from(
+    new Set(
+      value
+        .map((id) => sanitize(id))
+        .filter(Boolean)
+    )
+  );
 }
 
 function normalizeMetadata(input: ProductMetadata): ProductMetadata {
@@ -25,6 +37,7 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
   const waterResistance = sanitize(input.waterResistance);
   const bundleLabel = sanitize(input.bundleLabel);
   const bundleProductId = sanitize(input.bundleProductId);
+  const similarProductIds = normalizeIdList(input.similarProductIds);
 
   return {
     ingredients: ingredients || undefined,
@@ -33,6 +46,7 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
     waterResistance: waterResistance || undefined,
     bundleLabel: bundleLabel || undefined,
     bundleProductId: bundleProductId || undefined,
+    similarProductIds: similarProductIds.length > 0 ? similarProductIds : undefined,
   };
 }
 
@@ -53,7 +67,12 @@ async function writeStore(store: MetadataStore) {
 }
 
 export async function getFallbackMetadataMap() {
-  return readStore();
+  const store = await readStore();
+  const normalizedEntries = Object.entries(store).map(([productId, metadata]) => [
+    productId,
+    normalizeMetadata(metadata || {}),
+  ]);
+  return Object.fromEntries(normalizedEntries) as MetadataStore;
 }
 
 export async function getFallbackMetadata(productId: string) {
@@ -70,7 +89,8 @@ export async function setFallbackMetadata(productId: string, metadata: ProductMe
       normalized.scent ||
       normalized.waterResistance ||
       normalized.bundleLabel ||
-      normalized.bundleProductId
+      normalized.bundleProductId ||
+      (normalized.similarProductIds && normalized.similarProductIds.length > 0)
   );
 
   if (hasAnyValue) {

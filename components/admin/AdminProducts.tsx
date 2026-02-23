@@ -32,6 +32,7 @@ const emptyForm = {
   waterResistance: "",
   bundleLabel: "",
   bundleProductId: "",
+  similarProductIds: [] as string[],
   price: "",
   originalPrice: "",
   currency: "USD",
@@ -71,6 +72,8 @@ export function AdminProducts({ locale }: AdminProductsProps) {
   const [imageDrafts, setImageDrafts] = useState<ImageDraft[]>([]);
   const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [similarBrandFilter, setSimilarBrandFilter] = useState("all");
+  const [similarNameFilter, setSimilarNameFilter] = useState("");
 
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -153,6 +156,8 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     setImageDrafts([]);
     setDragSourceIndex(null);
     setDragOverIndex(null);
+    setSimilarBrandFilter("all");
+    setSimilarNameFilter("");
     setEditingId(null);
   };
 
@@ -243,9 +248,11 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       }
 
       const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
+      const { similarProductIds, ...restForm } = form;
+      Object.entries(restForm).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
+      formData.append("similarProductIds", JSON.stringify(similarProductIds));
       const imageOrder = imageDrafts.map((image) =>
         image.kind === "existing" ? image.previewUrl : "__new__"
       );
@@ -287,6 +294,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       waterResistance: product.waterResistance || "",
       bundleLabel: product.bundleLabel || "",
       bundleProductId: product.bundleProductId || "",
+      similarProductIds: product.similarProductIds || [],
       price: String(product.price),
       originalPrice: product.originalPrice ? String(product.originalPrice) : "",
       currency: product.currency,
@@ -307,6 +315,8 @@ export function AdminProducts({ locale }: AdminProductsProps) {
         previewUrl: url,
       }))
     );
+    setSimilarBrandFilter("all");
+    setSimilarNameFilter("");
   };
 
   const handleDelete = async (productId: string) => {
@@ -357,6 +367,33 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     await fetch("/api/admin/logout", { method: "POST" });
     window.location.href = `/${locale}/admin/login`;
   };
+
+  const linkableProducts = products.filter(
+    (product) => !editingId || product.id !== editingId
+  );
+  const normalizedCurrentBrand = form.brand.trim().toLowerCase();
+  const similarBrandOptions = Array.from(
+    new Set(
+      linkableProducts
+        .map((product) => product.brand?.trim())
+        .filter((brand): brand is string => Boolean(brand))
+    )
+  ).sort((a, b) => a.localeCompare(b));
+  const effectiveBrandFilter =
+    similarBrandFilter === "all" && normalizedCurrentBrand
+      ? normalizedCurrentBrand
+      : similarBrandFilter.toLowerCase();
+  const filteredSimilarProducts = linkableProducts.filter((product) => {
+    if (
+      effectiveBrandFilter !== "all" &&
+      product.brand.trim().toLowerCase() !== effectiveBrandFilter
+    ) {
+      return false;
+    }
+    const query = similarNameFilter.trim().toLowerCase();
+    if (!query) return true;
+    return product.name.toLowerCase().includes(query);
+  });
 
   return (
     <div className="space-y-10">
@@ -611,8 +648,70 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                       <option key={product.id} value={product.id}>
                         {product.name}
                       </option>
-                    ))}
+                  ))}
                 </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Similar Products</label>
+                <div className="mb-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <select
+                    value={similarBrandFilter}
+                    onChange={(event) => setSimilarBrandFilter(event.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="all">
+                      {normalizedCurrentBrand ? "Same as this product brand" : "All brands"}
+                    </option>
+                    {similarBrandOptions.map((brand) => (
+                      <option key={brand} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    value={similarNameFilter}
+                    onChange={(event) => setSimilarNameFilter(event.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    placeholder="Search product name"
+                  />
+                </div>
+                <div className="max-h-44 overflow-y-auto rounded-md border border-input bg-background px-3 py-2">
+                  {linkableProducts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No other products available.</p>
+                  ) : filteredSimilarProducts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No products match your filters.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredSimilarProducts.map((product) => {
+                          const checked = form.similarProductIds.includes(product.id);
+                          return (
+                            <label key={product.id} className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(event) => {
+                                  if (event.target.checked) {
+                                    setForm({
+                                      ...form,
+                                      similarProductIds: [...form.similarProductIds, product.id],
+                                    });
+                                    return;
+                                  }
+                                  setForm({
+                                    ...form,
+                                    similarProductIds: form.similarProductIds.filter(
+                                      (id) => id !== product.id
+                                    ),
+                                  });
+                                }}
+                              />
+                              <span>{product.name}</span>
+                            </label>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -48,6 +48,24 @@ function toBool(value: FormDataEntryValue | null) {
   return value === "true" || value === "on";
 }
 
+function parseSimilarProductIds(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || !value.trim()) return [];
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return Array.from(
+      new Set(
+        parsed
+          .filter((entry): entry is string => typeof entry === "string")
+          .map((id) => id.trim())
+          .filter(Boolean)
+      )
+    );
+  } catch {
+    return [];
+  }
+}
+
 async function saveImage(file: File) {
   const uploadDir = path.join(process.cwd(), "public", "uploads");
   await fs.mkdir(uploadDir, { recursive: true });
@@ -109,6 +127,9 @@ export async function PUT(
   const waterResistance = String(formData.get("waterResistance") || "").trim();
   const bundleLabel = String(formData.get("bundleLabel") || "").trim();
   const bundleProductId = String(formData.get("bundleProductId") || "").trim();
+  const similarProductIds = parseSimilarProductIds(
+    formData.get("similarProductIds")
+  ).filter((productId) => productId !== id);
   const imageFiles = formData
     .getAll("images")
     .filter((entry): entry is File => entry instanceof File && entry.size > 0);
@@ -270,6 +291,7 @@ export async function PUT(
     waterResistance,
     bundleLabel,
     bundleProductId,
+    similarProductIds,
   });
 
   return NextResponse.json({ product });

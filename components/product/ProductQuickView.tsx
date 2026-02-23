@@ -8,7 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useCart } from "@/context/CartContext"
 import { useTranslations } from 'next-intl'
 import { toast } from "sonner"
-import { ShoppingBag } from "lucide-react"
+import { Minus, Plus, ShoppingBag } from "lucide-react"
+import { Link } from "@/i18n/routing"
 
 interface ProductQuickViewProps {
     product: Product
@@ -23,6 +24,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     const { setIsOpen } = useCart()
     const [selectedImage, setSelectedImage] = useState(product.image)
     const [isEconomicalSet, setIsEconomicalSet] = useState(false)
+    const [quantity, setQuantity] = useState(1)
     const [isHovering, setIsHovering] = useState(false)
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
 
@@ -47,7 +49,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                 id: `${product.id}-eco`, // Unique ID for the set variant
                 name: product.economicalOption.name,
                 price: product.economicalOption.price,
-                quantity: 1,
+                quantity,
                 image: product.image,
                 currency: product.currency || "USD",
             }
@@ -55,7 +57,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                 id: product.id,
                 name: product.name,
                 price: product.price,
-                quantity: 1,
+                quantity,
                 image: product.image,
                 currency: product.currency || "USD",
             }
@@ -63,12 +65,13 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
         addToCart(itemToAdd)
 
         toast.success(t('addedToCart'), {
-            description: itemToAdd.name,
+            description: `${itemToAdd.name} (x${quantity})`,
             action: {
                 label: 'View Cart',
                 onClick: () => setIsOpen(true)
             }
         })
+        setQuantity(1)
         onOpenChange(false)
     }
 
@@ -86,6 +89,12 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                             onMouseEnter={() => setIsHovering(true)}
                             onMouseLeave={() => setIsHovering(false)}
                         >
+                            {typeof product.originalPrice === "number" &&
+                                product.originalPrice > product.price && (
+                                    <div className="absolute top-3 left-3 z-10 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-wide">
+                                        Sale
+                                    </div>
+                                )}
                             <div
                                 className="w-full h-full bg-contain bg-center bg-no-repeat transition-transform duration-200"
                                 style={{
@@ -125,7 +134,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                             <span>{currentPrice.toFixed(2)} {product.currency}</span>
                             {product.originalPrice && !isEconomicalSet && (
                                 <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
-                                    {product.originalPrice.toFixed(2)}
+                                    {product.originalPrice.toFixed(2)} {product.currency}
                                 </span>
                             )}
                         </div>
@@ -167,14 +176,44 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                         )}
 
                         <div className="mt-auto pt-6 border-t">
-                            <Button
-                                size="lg"
-                                className="w-full text-lg h-12 gap-2 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
-                                onClick={handleAddToCart}
-                            >
-                                <ShoppingBag className="w-5 h-5" />
-                                {t('addToCart')}
-                            </Button>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex h-12 items-center rounded-md border border-input bg-background px-2">
+                                        <button
+                                            type="button"
+                                            className="h-8 w-8 inline-flex items-center justify-center rounded-sm hover:text-primary transition-colors"
+                                            onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+                                            aria-label="Decrease quantity"
+                                        >
+                                            <Minus className="w-4 h-4" />
+                                        </button>
+                                        <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
+                                        <button
+                                            type="button"
+                                            className="h-8 w-8 inline-flex items-center justify-center rounded-sm hover:text-primary transition-colors"
+                                            onClick={() => setQuantity((current) => current + 1)}
+                                            aria-label="Increase quantity"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <Button
+                                        size="lg"
+                                        className="flex-1 text-lg h-12 gap-2 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                                        onClick={handleAddToCart}
+                                    >
+                                        <ShoppingBag className="w-5 h-5" />
+                                        {t('addToCart')}
+                                    </Button>
+                                </div>
+                                <Link
+                                    href={`/products/${product.id}`}
+                                    className="block text-center text-sm font-semibold uppercase tracking-widest text-primary hover:underline"
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    View details
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>

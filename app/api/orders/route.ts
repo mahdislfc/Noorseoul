@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
+import { getShippingCostForSubtotal } from "@/lib/shipping";
 
 export const runtime = "nodejs";
 
@@ -133,6 +134,7 @@ export async function POST(request: Request) {
   const city = String(body?.city || "").trim();
   const currency = String(body?.currency || "AED").trim().toUpperCase() || "AED";
   const firstPurchaseSampleApplied = body?.firstPurchaseSampleApplied === true;
+  const shippingRewardApplied = body?.shippingRewardApplied === true;
   const items = Array.isArray(body?.items) ? (body.items as IncomingOrderItem[]) : [];
 
   if (!email || !firstName || !lastName || !city) {
@@ -203,8 +205,9 @@ export async function POST(request: Request) {
   const subtotal = roundCurrency(
     normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   );
+  const baseShippingCost = getShippingCostForSubtotal(subtotal);
   const vat = roundCurrency(subtotal * 0.05);
-  const shipping = 0;
+  const shipping = shippingRewardApplied ? 0 : baseShippingCost;
   const total = roundCurrency(subtotal + vat + shipping);
 
   const order = await prisma.order.create({

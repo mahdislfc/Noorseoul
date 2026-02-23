@@ -63,6 +63,12 @@ function toProductModel(product: Record<string, unknown>): Product {
       typeof product.bundleLabel === "string" ? product.bundleLabel : null,
     bundleProductId:
       typeof product.bundleProductId === "string" ? product.bundleProductId : null,
+    similarProductIds: Array.isArray(product.similarProductIds)
+      ? product.similarProductIds
+          .filter((id): id is string => typeof id === "string")
+          .map((id) => id.trim())
+          .filter(Boolean)
+      : [],
   };
 }
 
