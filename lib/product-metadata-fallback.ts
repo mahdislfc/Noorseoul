@@ -4,6 +4,12 @@ import path from "path";
 const STORE_PATH = path.join(process.cwd(), "temp", "product-metadata.json");
 
 export interface ProductMetadata {
+  descriptionAr?: string;
+  descriptionFa?: string;
+  priceAed?: number;
+  priceT?: number;
+  originalPriceAed?: number;
+  originalPriceT?: number;
   ingredients?: string;
   skinType?: string;
   scent?: string;
@@ -39,6 +45,24 @@ function normalizeIdList(value?: string[]) {
 }
 
 function normalizeMetadata(input: ProductMetadata): ProductMetadata {
+  const descriptionAr = sanitize(input.descriptionAr);
+  const descriptionFa = sanitize(input.descriptionFa);
+  const priceAedRaw = sanitizeNumber(input.priceAed);
+  const priceAed =
+    typeof priceAedRaw === "number" && priceAedRaw > 0 ? priceAedRaw : undefined;
+  const priceTRaw = sanitizeNumber(input.priceT);
+  const priceT =
+    typeof priceTRaw === "number" && priceTRaw > 0 ? priceTRaw : undefined;
+  const originalPriceAedRaw = sanitizeNumber(input.originalPriceAed);
+  const originalPriceAed =
+    typeof originalPriceAedRaw === "number" && originalPriceAedRaw > 0
+      ? originalPriceAedRaw
+      : undefined;
+  const originalPriceTRaw = sanitizeNumber(input.originalPriceT);
+  const originalPriceT =
+    typeof originalPriceTRaw === "number" && originalPriceTRaw > 0
+      ? originalPriceTRaw
+      : undefined;
   const ingredients = sanitize(input.ingredients);
   const skinType = sanitize(input.skinType);
   const scent = sanitize(input.scent);
@@ -57,6 +81,12 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
       : undefined;
 
   return {
+    descriptionAr: descriptionAr || undefined,
+    descriptionFa: descriptionFa || undefined,
+    priceAed,
+    priceT,
+    originalPriceAed,
+    originalPriceT,
     ingredients: ingredients || undefined,
     skinType: skinType || undefined,
     scent: scent || undefined,
@@ -107,7 +137,15 @@ export async function setFallbackMetadata(productId: string, metadata: ProductMe
   const store = await readStore();
   const normalized = normalizeMetadata(metadata);
   const hasAnyValue = Boolean(
-    normalized.ingredients ||
+    normalized.descriptionAr ||
+      normalized.descriptionFa ||
+      (typeof normalized.priceAed === "number" && normalized.priceAed > 0) ||
+      (typeof normalized.priceT === "number" && normalized.priceT > 0) ||
+      (typeof normalized.originalPriceAed === "number" &&
+        normalized.originalPriceAed > 0) ||
+      (typeof normalized.originalPriceT === "number" &&
+        normalized.originalPriceT > 0) ||
+      normalized.ingredients ||
       normalized.skinType ||
       normalized.scent ||
       normalized.waterResistance ||

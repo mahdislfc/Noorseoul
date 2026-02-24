@@ -13,6 +13,7 @@ import { Link } from "@/i18n/routing"
 import { useLocale } from "next-intl"
 import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
 import { formatDisplayAmount } from "@/lib/display-currency"
+import { resolveDisplayOriginalPrice, resolveDisplayPrice } from "@/lib/product-pricing"
 
 interface ProductQuickViewProps {
     product: Product
@@ -32,13 +33,18 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     const [quantity, setQuantity] = useState(1)
     const [isHovering, setIsHovering] = useState(false)
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+    const displayBasePrice = resolveDisplayPrice(product, displayCurrency)
+    const originalPriceInfo = resolveDisplayOriginalPrice(product, displayCurrency)
 
     const productImages = product.images || [product.image]
 
     // Calculate current effective price based on selection
     const currentPrice = isEconomicalSet && product.economicalOption
         ? product.economicalOption.price
-        : product.price
+        : displayBasePrice.amount
+    const currentPriceCurrency = isEconomicalSet && product.economicalOption
+        ? (product.currency || "USD")
+        : displayBasePrice.fromCurrency
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
@@ -61,10 +67,10 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
             : {
                 id: product.id,
                 name: product.name,
-                price: product.price,
+                price: displayBasePrice.amount,
                 quantity,
                 image: product.image,
-                currency: product.currency || "USD",
+                currency: displayBasePrice.fromCurrency,
             }
 
         addToCart(itemToAdd)
@@ -136,10 +142,15 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                         </div>
 
                         <div className="text-2xl font-bold text-primary mb-6 flex items-baseline gap-2">
-                            <span>{formatDisplayAmount(currentPrice, product.currency || "USD", displayCurrency, locale)}</span>
+                            <span>{formatDisplayAmount(currentPrice, currentPriceCurrency, displayCurrency, locale)}</span>
                             {product.originalPrice && !isEconomicalSet && (
                                 <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
-                                    {formatDisplayAmount(product.originalPrice, product.currency || "USD", displayCurrency, locale)}
+                                    {formatDisplayAmount(
+                                        product.originalPrice,
+                                        originalPriceInfo?.fromCurrency || product.currency || "USD",
+                                        displayCurrency,
+                                        locale
+                                    )}
                                 </span>
                             )}
                         </div>

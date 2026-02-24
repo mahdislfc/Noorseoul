@@ -2,8 +2,14 @@ export interface Product {
   id: string;
   name: string;
   description?: string | null;
+  descriptionAr?: string | null;
+  descriptionFa?: string | null;
+  priceAed?: number | null;
+  priceT?: number | null;
   price: number;
   originalPrice?: number | null;
+  originalPriceAed?: number | null;
+  originalPriceT?: number | null;
   currency: string;
   brand: string;
   category: string;

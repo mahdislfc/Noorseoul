@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useDisplayCurrency } from "@/context/DisplayCurrencyContext";
 import { formatDisplayAmount } from "@/lib/display-currency";
+import { resolveDisplayOriginalPrice, resolveDisplayPrice } from "@/lib/product-pricing";
 
 interface SimilarProductsSectionProps {
   products: Product[];
@@ -21,13 +22,14 @@ export function SimilarProductsSection({ products }: SimilarProductsSectionProps
   const { addToCart, setIsOpen } = useCart();
 
   const handleAddToCart = (product: Product) => {
+    const displayPrice = resolveDisplayPrice(product, displayCurrency);
     addToCart({
       id: product.id,
       name: product.name,
-      price: product.price,
+      price: displayPrice.amount,
       quantity: 1,
       image: product.image,
-      currency: product.currency || "USD",
+      currency: displayPrice.fromCurrency,
     });
     toast.success(t("addedToCart"), {
       description: `${product.name} (x1)`,
@@ -47,7 +49,13 @@ export function SimilarProductsSection({ products }: SimilarProductsSectionProps
         </p>
       ) : (
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {products.map((product) => (
+          {products.map((product) => {
+            const displayPrice = resolveDisplayPrice(product, displayCurrency);
+            const originalPriceInfo = resolveDisplayOriginalPrice(
+              product,
+              displayCurrency
+            );
+            return (
             <div
               key={product.id}
               className="rounded-lg border border-border p-3 transition-colors hover:border-primary/50"
@@ -60,11 +68,16 @@ export function SimilarProductsSection({ products }: SimilarProductsSectionProps
               <p className="mt-3 line-clamp-2 text-sm font-semibold">{product.name}</p>
               <div className="mt-1 flex items-center gap-2">
                 <p className="text-sm font-semibold text-primary">
-                  {formatDisplayAmount(product.price, product.currency || "USD", displayCurrency, locale)}
+                  {formatDisplayAmount(displayPrice.amount, displayPrice.fromCurrency, displayCurrency, locale)}
                 </p>
                 {typeof product.originalPrice === "number" && product.originalPrice > product.price && (
                   <p className="text-xs text-muted-foreground line-through">
-                    {formatDisplayAmount(product.originalPrice, product.currency || "USD", displayCurrency, locale)}
+                    {formatDisplayAmount(
+                      product.originalPrice,
+                      originalPriceInfo?.fromCurrency || product.currency || "USD",
+                      displayCurrency,
+                      locale
+                    )}
                   </p>
                 )}
               </div>
@@ -85,7 +98,8 @@ export function SimilarProductsSection({ products }: SimilarProductsSectionProps
                 </Link>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>

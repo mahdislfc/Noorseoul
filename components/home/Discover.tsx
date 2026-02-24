@@ -27,7 +27,7 @@ const discoverItems = [
     {
         titleKey: "nextArrivals",
         descriptionKey: "nextArrivalsDesc",
-        link: "/next-arrivals",
+        link: "/coming-soon",
         color: "bg-orange-50"
     }
 ]

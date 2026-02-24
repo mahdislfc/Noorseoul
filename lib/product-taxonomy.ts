@@ -23,6 +23,7 @@ const CATEGORY_CANONICAL_MAP: Record<string, string> = {
 const DEPARTMENT_CANONICAL_MAP: Record<string, string> = {
   skincare: "Skincare",
   makeup: "Makeup",
+  both: "Both",
   cleansing: "Cleansing",
   maskpack: "Mask pack",
   suncare: "Sun care",
@@ -57,6 +58,7 @@ export const CATEGORY_OPTIONS = [
 export const DEPARTMENT_OPTIONS = [
   "Skincare",
   "Makeup",
+  "Both",
   "Cleansing",
   "Mask pack",
   "Sun care",
@@ -91,8 +93,13 @@ export function departmentsMatch(
   filterDepartment: string,
   productDepartment: string
 ) {
-  return (
-    normalizeDepartmentInput(filterDepartment).toLowerCase() ===
-    normalizeDepartmentInput(productDepartment).toLowerCase()
-  );
+  const normalizedFilter = normalizeDepartmentInput(filterDepartment).toLowerCase();
+  const normalizedProduct = normalizeDepartmentInput(productDepartment).toLowerCase();
+  if (normalizedProduct === "both") {
+    return normalizedFilter === "skincare" || normalizedFilter === "makeup";
+  }
+  if (normalizedFilter === "both") {
+    return normalizedProduct === "both";
+  }
+  return normalizedFilter === normalizedProduct;
 }

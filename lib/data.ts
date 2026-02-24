@@ -76,9 +76,35 @@ function toProductModel(product: Record<string, unknown>): Product {
       typeof product.description === "string" || product.description === null
         ? product.description
         : null,
+    descriptionAr:
+      typeof product.descriptionAr === "string" || product.descriptionAr === null
+        ? product.descriptionAr
+        : null,
+    descriptionFa:
+      typeof product.descriptionFa === "string" || product.descriptionFa === null
+        ? product.descriptionFa
+        : null,
+    priceAed:
+      typeof product.priceAed === "number" && Number.isFinite(product.priceAed)
+        ? product.priceAed
+        : null,
+    priceT:
+      typeof product.priceT === "number" && Number.isFinite(product.priceT)
+        ? product.priceT
+        : null,
     price: Number(product.price || 0),
     originalPrice:
       typeof product.originalPrice === "number" ? product.originalPrice : null,
+    originalPriceAed:
+      typeof product.originalPriceAed === "number" &&
+      Number.isFinite(product.originalPriceAed)
+        ? product.originalPriceAed
+        : null,
+    originalPriceT:
+      typeof product.originalPriceT === "number" &&
+      Number.isFinite(product.originalPriceT)
+        ? product.originalPriceT
+        : null,
     currency: String(product.currency || "USD"),
     brand: String(product.brand || ""),
     category: String(product.category || ""),

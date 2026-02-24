@@ -30,7 +30,7 @@ export default async function ProductPage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { locale, id } = await params;
   const t = await getTranslations("Product");
   let product: Product | null = null;
   try {
@@ -70,6 +70,12 @@ export default async function ProductPage({
   const similarProducts: Product[] = similarProductIds
     .map((similarId) => relatedProductsById.get(similarId))
     .filter((item): item is Product => Boolean(item));
+  const localizedDescription =
+    locale === "ar"
+      ? (product.descriptionAr?.trim() || product.description?.trim() || "")
+      : locale === "fa"
+        ? (product.descriptionFa?.trim() || product.description?.trim() || "")
+        : (product.description?.trim() || "");
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background">
@@ -94,9 +100,13 @@ export default async function ProductPage({
                 id: product.id,
                 name: product.name,
                 price: product.price,
+                priceAed: product.priceAed ?? null,
+                priceT: product.priceT ?? null,
                 oldPrice: product.originalPrice ?? undefined,
+                oldPriceAed: product.originalPriceAed ?? null,
+                oldPriceT: product.originalPriceT ?? null,
                 currency: product.currency,
-                description: product.description?.trim() || "",
+                description: localizedDescription,
                 ingredients: product.ingredients || "",
                 skinType: product.skinType || "",
                 scent: product.scent || "",

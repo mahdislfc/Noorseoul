@@ -9,7 +9,6 @@ import type {
 } from "@/lib/types";
 import {
   CATEGORY_OPTIONS,
-  DEPARTMENT_OPTIONS,
 } from "@/lib/product-taxonomy";
 
 interface AdminProductsProps {
@@ -26,6 +25,12 @@ interface ImageDraft {
 const emptyForm = {
   name: "",
   description: "",
+  descriptionAr: "",
+  descriptionFa: "",
+  priceAed: "",
+  priceT: "",
+  originalPriceAed: "",
+  originalPriceT: "",
   ingredients: "",
   skinType: "",
   scent: "",
@@ -63,7 +68,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 export function AdminProducts({ locale }: AdminProductsProps) {
   const [activeTab, setActiveTab] = useState<
-    "products" | "orders" | "requested-products" | "rewards"
+    "products" | "orders" | "requested-products"
   >("products");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -291,6 +296,20 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     setForm({
       name: product.name,
       description: product.description || "",
+      descriptionAr: product.descriptionAr || "",
+      descriptionFa: product.descriptionFa || "",
+      priceAed:
+        typeof product.priceAed === "number" ? String(product.priceAed) : "",
+      priceT:
+        typeof product.priceT === "number" ? String(product.priceT) : "",
+      originalPriceAed:
+        typeof product.originalPriceAed === "number"
+          ? String(product.originalPriceAed)
+          : "",
+      originalPriceT:
+        typeof product.originalPriceT === "number"
+          ? String(product.originalPriceT)
+          : "",
       ingredients: product.ingredients || "",
       skinType: product.skinType || "",
       scent: product.scent || "",
@@ -391,6 +410,15 @@ export function AdminProducts({ locale }: AdminProductsProps) {
         .filter((brand): brand is string => Boolean(brand))
     )
   ).sort((a, b) => a.localeCompare(b));
+  const categoryOptions = Array.from(
+    new Set(
+      [
+        ...CATEGORY_OPTIONS,
+        ...products.map((product) => product.category?.trim() || ""),
+        form.category.trim(),
+      ].filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
   const effectiveBrandFilter =
     similarBrandFilter === "all" && normalizedCurrentBrand
       ? normalizedCurrentBrand
@@ -406,6 +434,30 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     if (!query) return true;
     return product.name.toLowerCase().includes(query);
   });
+  const similarProductNameOptions = Array.from(
+    new Set(
+      filteredSimilarProducts
+        .map((product) => product.name.trim())
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
+
+  const handleSimilarNameInputChange = (value: string) => {
+    setSimilarNameFilter(value);
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return;
+    const exactMatch = filteredSimilarProducts.find(
+      (product) => product.name.trim().toLowerCase() === normalized
+    );
+    if (!exactMatch) return;
+    setForm((current) => {
+      if (current.similarProductIds.includes(exactMatch.id)) return current;
+      return {
+        ...current,
+        similarProductIds: [...current.similarProductIds, exactMatch.id],
+      };
+    });
+  };
 
   return (
     <div className="space-y-10">
@@ -446,16 +498,6 @@ export function AdminProducts({ locale }: AdminProductsProps) {
           See Orders
         </button>
         <button
-          onClick={() => setActiveTab("rewards")}
-          className={`rounded-md px-4 py-2 text-sm ${
-            activeTab === "rewards"
-              ? "bg-primary text-primary-foreground"
-              : "border border-input"
-          }`}
-        >
-          Rewards
-        </button>
-        <button
           onClick={() => setActiveTab("requested-products")}
           className={`rounded-md px-4 py-2 text-sm ${
             activeTab === "requested-products"
@@ -494,22 +536,20 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Department</label>
-                <input
-                  list="admin-department-options"
+                <label className="block text-sm font-medium mb-1">Header Section</label>
+                <select
                   value={form.department}
                   onChange={(event) =>
                     setForm({ ...form, department: event.target.value })
                   }
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  placeholder="e.g. Skincare"
                   required
-                />
-                <datalist id="admin-department-options">
-                  {DEPARTMENT_OPTIONS.map((option) => (
-                    <option key={option} value={option} />
-                  ))}
-                </datalist>
+                >
+                  <option value="">Select section</option>
+                  <option value="Skincare">Skincare</option>
+                  <option value="Makeup">Makeup</option>
+                  <option value="Both">Both</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Category</label>
@@ -524,35 +564,89 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                   required
                 />
                 <datalist id="admin-category-options">
-                  {CATEGORY_OPTIONS.map((option) => (
+                  {categoryOptions.map((option) => (
                     <option key={option} value={option} />
                   ))}
                 </datalist>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Price</label>
-                <input
-                  value={form.price}
-                  onChange={(event) => setForm({ ...form, price: event.target.value })}
-                  type="number"
-                  step="0.01"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Original Price
-                </label>
-                <input
-                  value={form.originalPrice}
-                  onChange={(event) =>
-                    setForm({ ...form, originalPrice: event.target.value })
-                  }
-                  type="number"
-                  step="0.01"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">Pricing</label>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                  <div className="rounded-md border border-input p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">USD</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        value={form.price}
+                        onChange={(event) => setForm({ ...form, price: event.target.value })}
+                        type="number"
+                        step="0.01"
+                        className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                        placeholder="Price"
+                        required
+                      />
+                      <input
+                        value={form.originalPrice}
+                        onChange={(event) =>
+                          setForm({ ...form, originalPrice: event.target.value })
+                        }
+                        type="number"
+                        step="0.01"
+                        className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                        placeholder="Original"
+                      />
+                    </div>
+                  </div>
+                  <div className="rounded-md border border-input p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">AED</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        value={form.priceAed}
+                        onChange={(event) => setForm({ ...form, priceAed: event.target.value })}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                        placeholder="Price"
+                      />
+                      <input
+                        value={form.originalPriceAed}
+                        onChange={(event) =>
+                          setForm({ ...form, originalPriceAed: event.target.value })
+                        }
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                        placeholder="Original"
+                      />
+                    </div>
+                  </div>
+                  <div className="rounded-md border border-input p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">T</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        value={form.priceT}
+                        onChange={(event) => setForm({ ...form, priceT: event.target.value })}
+                        type="number"
+                        step="1"
+                        min="0"
+                        className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                        placeholder="Price"
+                      />
+                      <input
+                        value={form.originalPriceT}
+                        onChange={(event) =>
+                          setForm({ ...form, originalPriceT: event.target.value })
+                        }
+                        type="number"
+                        step="1"
+                        min="0"
+                        className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                        placeholder="Original"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Currency</label>
@@ -572,16 +666,42 @@ export function AdminProducts({ locale }: AdminProductsProps) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                value={form.description}
-                onChange={(event) =>
-                  setForm({ ...form, description: event.target.value })
-                }
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                rows={4}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Description (English)</label>
+                <textarea
+                  value={form.description}
+                  onChange={(event) =>
+                    setForm({ ...form, description: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  rows={4}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description (Arabic)</label>
+                <textarea
+                  value={form.descriptionAr}
+                  onChange={(event) =>
+                    setForm({ ...form, descriptionAr: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  rows={4}
+                  dir="rtl"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description (Farsi)</label>
+                <textarea
+                  value={form.descriptionFa}
+                  onChange={(event) =>
+                    setForm({ ...form, descriptionFa: event.target.value })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  rows={4}
+                  dir="rtl"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -640,6 +760,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 >
                   <option value="">Not specified</option>
+                  <option value="No">No</option>
                   <option value="Water-resistant">Water-resistant</option>
                   <option value="Waterproof">Waterproof</option>
                 </select>
@@ -720,10 +841,18 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                   </select>
                   <input
                     value={similarNameFilter}
-                    onChange={(event) => setSimilarNameFilter(event.target.value)}
+                    list="admin-similar-product-options"
+                    onChange={(event) =>
+                      handleSimilarNameInputChange(event.target.value)
+                    }
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    placeholder="Search product name"
+                    placeholder="Search or choose product name"
                   />
+                  <datalist id="admin-similar-product-options">
+                    {similarProductNameOptions.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="max-h-44 overflow-y-auto rounded-md border border-input bg-background px-3 py-2">
                   {linkableProducts.length === 0 ? (
@@ -1130,26 +1259,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
             </div>
           )}
         </section>
-      ) : (
-        <section className="space-y-6">
-          <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
-            <h2 className="text-xl font-semibold">Choose Product Reward</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Set image assets for selectable reward products.
-            </p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {["Lipstick", "Blush", "Highlighter", "Eye Shadow", "Lip Gloss", "Lip Tint"].map((label) => (
-                <div key={label} className="rounded-lg border border-border bg-secondary/10 p-4">
-                  <div className="h-28 rounded-md border-2 border-dashed border-border/80 flex items-center justify-center text-xs uppercase tracking-widest text-muted-foreground">
-                    Upload Product Image
-                  </div>
-                  <p className="mt-3 text-sm font-medium">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -135,6 +135,15 @@ export function Header() {
                     >
                         {t('newArrivals')}
                     </Link>
+                    <Link
+                        href="/coming-soon"
+                        className={cn(
+                            "hover:text-primary transition-colors hover:underline underline-offset-4 decoration-2",
+                            pathname === '/coming-soon' ? "text-primary underline" : ""
+                        )}
+                    >
+                        {t('comingSoon')}
+                    </Link>
                 </nav>
 
                 {/* Actions */}
@@ -316,6 +325,7 @@ export function Header() {
                     <Link href="/makeup" onClick={() => setIsMobileMenuOpen(false)}>{t('makeup')}</Link>
                     <Link href="/skincare" onClick={() => setIsMobileMenuOpen(false)}>{t('skincare')}</Link>
                     <Link href="/new-arrivals" onClick={() => setIsMobileMenuOpen(false)}>{t('newArrivals')}</Link>
+                    <Link href="/coming-soon" onClick={() => setIsMobileMenuOpen(false)}>{t('comingSoon')}</Link>
                     <Link href="/best-sellers" onClick={() => setIsMobileMenuOpen(false)}>{t('bestSellers')}</Link>
                     <div className="flex items-center gap-4 text-base font-semibold pt-2">
                         <div className="flex items-center gap-2 h-10 rounded-full border border-border/80 bg-secondary/20 px-3">

@@ -153,6 +153,18 @@ export async function POST(request: Request) {
 
   const name = String(formData.get("name") || "").trim();
   const description = String(formData.get("description") || "").trim();
+  const descriptionAr = String(formData.get("descriptionAr") || "").trim();
+  const descriptionFa = String(formData.get("descriptionFa") || "").trim();
+  const priceAedRaw = String(formData.get("priceAed") || "").trim();
+  const priceTRaw = String(formData.get("priceT") || "").trim();
+  const priceAed = priceAedRaw ? Number(priceAedRaw) : undefined;
+  const priceT = priceTRaw ? Number(priceTRaw) : undefined;
+  const originalPriceAedRaw = String(formData.get("originalPriceAed") || "").trim();
+  const originalPriceTRaw = String(formData.get("originalPriceT") || "").trim();
+  const originalPriceAed = originalPriceAedRaw
+    ? Number(originalPriceAedRaw)
+    : undefined;
+  const originalPriceT = originalPriceTRaw ? Number(originalPriceTRaw) : undefined;
   const price = Number(formData.get("price") || 0);
   const originalPriceRaw = formData.get("originalPrice");
   const currency = String(formData.get("currency") || "USD").trim() || "USD";
@@ -249,6 +261,12 @@ export async function POST(request: Request) {
     await setFallbackGallery(product.id, uploadedImages);
   }
   await setFallbackMetadata(product.id, {
+    descriptionAr,
+    descriptionFa,
+    priceAed,
+    priceT,
+    originalPriceAed,
+    originalPriceT,
     ingredients,
     skinType,
     scent,

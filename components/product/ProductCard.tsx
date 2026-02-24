@@ -12,6 +12,7 @@ import { Link } from "@/i18n/routing"
 import { useLocale } from "next-intl"
 import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
 import { formatDisplayAmount } from "@/lib/display-currency"
+import { resolveDisplayOriginalPrice, resolveDisplayPrice } from "@/lib/product-pricing"
 
 export function ProductCard({ product }: { product: Product }) {
     const t = useTranslations('Product');
@@ -21,17 +22,19 @@ export function ProductCard({ product }: { product: Product }) {
     const [quantity, setQuantity] = useState(1)
     const [showQuickView, setShowQuickView] = useState(false)
     const [hasSeenQuickView, setHasSeenQuickView] = useState(false)
-    const totalPrice = product.price * quantity
-    const totalOriginalPrice = product.originalPrice ? product.originalPrice * quantity : null
+    const displayBasePrice = resolveDisplayPrice(product, displayCurrency)
+    const originalPriceInfo = resolveDisplayOriginalPrice(product, displayCurrency)
+    const totalPrice = displayBasePrice.amount * quantity
+    const totalOriginalPrice = originalPriceInfo ? originalPriceInfo.amount * quantity : null
 
     const handleAddToCart = () => {
         addToCart({
             id: product.id,
             name: product.name,
-            price: product.price,
+            price: displayBasePrice.amount,
             quantity: quantity,
             image: product.image,
-            currency: product.currency || "USD",
+            currency: displayBasePrice.fromCurrency,
         })
         toast.success(t('addedToCart'), {
             description: `${product.name} (x${quantity})`,
@@ -103,11 +106,16 @@ export function ProductCard({ product }: { product: Product }) {
                 <div className="flex items-center justify-center gap-2">
                     {totalOriginalPrice && (
                         <span className="text-gray-400 line-through text-sm">
-                            {formatDisplayAmount(totalOriginalPrice, product.currency || "USD", displayCurrency, locale)}
+                            {formatDisplayAmount(
+                                totalOriginalPrice,
+                                originalPriceInfo?.fromCurrency || product.currency || "USD",
+                                displayCurrency,
+                                locale
+                            )}
                         </span>
                     )}
                     <p className="text-primary font-bold text-lg">
-                        {formatDisplayAmount(totalPrice, product.currency || "USD", displayCurrency, locale)}
+                        {formatDisplayAmount(totalPrice, displayBasePrice.fromCurrency, displayCurrency, locale)}
                     </p>
                 </div>
                 <Link

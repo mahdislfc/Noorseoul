@@ -36,6 +36,14 @@ function isGalleryRelationUnavailable(error: unknown) {
   );
 }
 
+function isForeignKeyConstraintError(error: unknown) {
+  const code =
+    typeof error === "object" && error && "code" in error
+      ? String((error as { code?: string }).code || "")
+      : "";
+  return code === "P2003";
+}
+
 async function ensureAuthorized() {
   const session = await getAdminSessionCookie();
   if (!isAdminSessionValid(session)) {
@@ -109,6 +117,18 @@ export async function PUT(
 
   const name = String(formData.get("name") || "").trim();
   const description = String(formData.get("description") || "").trim();
+  const descriptionAr = String(formData.get("descriptionAr") || "").trim();
+  const descriptionFa = String(formData.get("descriptionFa") || "").trim();
+  const priceAedRaw = String(formData.get("priceAed") || "").trim();
+  const priceTRaw = String(formData.get("priceT") || "").trim();
+  const priceAed = priceAedRaw ? Number(priceAedRaw) : undefined;
+  const priceT = priceTRaw ? Number(priceTRaw) : undefined;
+  const originalPriceAedRaw = String(formData.get("originalPriceAed") || "").trim();
+  const originalPriceTRaw = String(formData.get("originalPriceT") || "").trim();
+  const originalPriceAed = originalPriceAedRaw
+    ? Number(originalPriceAedRaw)
+    : undefined;
+  const originalPriceT = originalPriceTRaw ? Number(originalPriceTRaw) : undefined;
   const price = Number(formData.get("price") || 0);
   const originalPriceRaw = formData.get("originalPrice");
   const currency = String(formData.get("currency") || "USD").trim() || "USD";
@@ -300,6 +320,12 @@ export async function PUT(
   }
 
   await setFallbackMetadata(id, {
+    descriptionAr,
+    descriptionFa,
+    priceAed,
+    priceT,
+    originalPriceAed,
+    originalPriceT,
     ingredients,
     skinType,
     scent,
@@ -331,11 +357,21 @@ export async function DELETE(
   const supportsProductImageModel = Boolean(
     (prisma as { productImage?: unknown }).productImage
   );
-  const gallery = supportsProductImageModel
-    ? await (prisma as { productImage: { findMany: (args: unknown) => Promise<Array<{ url: string }>> } }).productImage.findMany({
-      where: { productId: id },
-    })
-    : [];
+  let gallery: Array<{ url: string }> = [];
+  if (supportsProductImageModel) {
+    try {
+      gallery = await (prisma as {
+        productImage: {
+          findMany: (args: unknown) => Promise<Array<{ url: string }>>;
+        };
+      }).productImage.findMany({
+        where: { productId: id },
+      });
+    } catch (error) {
+      if (!isGalleryRelationUnavailable(error)) throw error;
+      gallery = [];
+    }
+  }
   if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
@@ -345,13 +381,22 @@ export async function DELETE(
       await (prisma as { productImage: { deleteMany: (args: unknown) => Promise<unknown> } }).productImage.deleteMany({
         where: { productId: id },
       });
-    } catch {
-      // ignore legacy schema mismatch
+    } catch (error) {
+      if (!isGalleryRelationUnavailable(error)) throw error;
     }
   }
   await deleteFallbackGallery(id);
   await deleteFallbackMetadata(id);
-  await prisma.product.delete({ where: { id } });
+  try {
+    await prisma.product.delete({ where: { id } });
+  } catch (error) {
+    if (!isForeignKeyConstraintError(error)) throw error;
+    await prisma.orderItem.updateMany({
+      where: { productId: id },
+      data: { productId: null },
+    });
+    await prisma.product.delete({ where: { id } });
+  }
 
   if (existing.image && existing.image.startsWith("/uploads/")) {
     const filePath = path.join(process.cwd(), "public", existing.image);

@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl"
 import { useLocale } from "next-intl"
 import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
 import { formatDisplayAmount } from "@/lib/display-currency"
+import { resolveDisplayOriginalPrice, resolveDisplayPrice } from "@/lib/product-pricing"
 
 interface ProductInfoProps {
     product: {
@@ -18,6 +19,10 @@ interface ProductInfoProps {
         price: number
         oldPrice?: number
         currency?: string
+        priceAed?: number | null
+        priceT?: number | null
+        oldPriceAed?: number | null
+        oldPriceT?: number | null
         description?: string
         ingredients?: string
         skinType?: string
@@ -50,17 +55,38 @@ export function ProductInfo({ product }: ProductInfoProps) {
     const router = useRouter()
     const [quantity, setQuantity] = useState(1)
     const [bundleQuantity, setBundleQuantity] = useState(1)
+    const [showAllDescription, setShowAllDescription] = useState(false)
     const [showAllIngredients, setShowAllIngredients] = useState(false)
-    const totalPrice = product.price * quantity
-    const totalOldPrice = product.oldPrice ? product.oldPrice * quantity : null
+    const displayBasePrice = resolveDisplayPrice(
+        {
+            price: product.price,
+            currency: product.currency,
+            priceAed: product.priceAed ?? null,
+            priceT: product.priceT ?? null,
+        },
+        displayCurrency
+    )
+    const originalPriceInfo = resolveDisplayOriginalPrice(
+        {
+            originalPrice: product.oldPrice ?? null,
+            originalPriceAed: product.oldPriceAed ?? null,
+            originalPriceT: product.oldPriceT ?? null,
+            currency: product.currency
+        },
+        displayCurrency
+    )
+    const totalPrice = displayBasePrice.amount * quantity
+    const totalOldPrice = originalPriceInfo ? originalPriceInfo.amount * quantity : null
+    const descriptionText = (product.description || "").trim()
+    const hasMoreDescription = descriptionText.split(/\r?\n/).length > 9 || descriptionText.length > 420
     const ingredientLines = (product.ingredients || "")
-        .split(/\r?\n/)
+        .split(/[\r\n,]+/)
         .map((line) => line.trim())
         .filter(Boolean)
     const visibleIngredientLines = showAllIngredients
         ? ingredientLines
-        : ingredientLines.slice(0, 5)
-    const hasMoreIngredients = ingredientLines.length > 5
+        : ingredientLines.slice(0, 2)
+    const hasMoreIngredients = ingredientLines.length > 2
     const economicalOptionQuantity =
         typeof product.economicalOption?.quantity === "number" &&
             product.economicalOption.quantity > 1
@@ -71,14 +97,14 @@ export function ProductInfo({ product }: ProductInfoProps) {
         const addedItem = {
             id: product.id,
             name: product.name,
-            price: product.price,
+            price: displayBasePrice.amount,
             quantity: quantity,
             image: product.images[0]
         }
         addToCart({
             ...addedItem
             ,
-            currency: product.currency || "USD"
+            currency: displayBasePrice.fromCurrency
         })
         toast.success(t("addedToCart"), {
             description: `${product.name} (x${quantity})`,
@@ -134,11 +160,16 @@ export function ProductInfo({ product }: ProductInfoProps) {
             <div className="flex flex-wrap items-end gap-4 mb-8">
                 <div className="flex items-baseline gap-4">
                     <span className="text-3xl font-light text-primary">
-                        {formatDisplayAmount(totalPrice, product.currency || "USD", displayCurrency, locale)}
+                        {formatDisplayAmount(totalPrice, displayBasePrice.fromCurrency, displayCurrency, locale)}
                     </span>
                     {totalOldPrice && (
                         <span className="text-lg opacity-40 line-through">
-                            {formatDisplayAmount(totalOldPrice, product.currency || "USD", displayCurrency, locale)}
+                            {formatDisplayAmount(
+                                totalOldPrice,
+                                originalPriceInfo?.fromCurrency || product.currency || "USD",
+                                displayCurrency,
+                                locale
+                            )}
                         </span>
                     )}
                 </div>
@@ -168,9 +199,28 @@ export function ProductInfo({ product }: ProductInfoProps) {
             </div>
 
             {product.description?.trim() && (
-                <p className="text-foreground/70 leading-relaxed mb-8 text-lg">
-                    {product.description}
-                </p>
+                <div className="mb-8">
+                    <p
+                        className="text-foreground/70 leading-relaxed text-lg whitespace-pre-line"
+                        style={showAllDescription ? undefined : {
+                            display: "-webkit-box",
+                            WebkitLineClamp: 9,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                        }}
+                    >
+                        {descriptionText}
+                    </p>
+                    {hasMoreDescription && (
+                        <button
+                            type="button"
+                            onClick={() => setShowAllDescription((current) => !current)}
+                            className="mt-3 inline-flex items-center rounded-md border border-border bg-muted/40 px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
+                        >
+                            {showAllDescription ? t("readLess") : t("readMore")}
+                        </button>
+                    )}
+                </div>
             )}
 
             {(product.skinType?.trim() || product.scent?.trim() || product.waterResistance?.trim() || product.ingredients?.trim()) && (
@@ -205,7 +255,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                 <button
                                     type="button"
                                     onClick={() => setShowAllIngredients((current) => !current)}
-                                    className="mt-3 text-sm font-semibold text-primary hover:underline"
+                                    className="mt-3 inline-flex items-center rounded-md border border-border bg-muted/40 px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
                                 >
                                     {showAllIngredients ? t("readLess") : t("readMore")}
                                 </button>
