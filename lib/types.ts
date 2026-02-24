@@ -24,6 +24,11 @@ export interface Product {
   skinType?: string | null;
   scent?: string | null;
   waterResistance?: string | null;
+  sourceUrl?: string | null;
+  sourcePriceCurrency?: string | null;
+  saleEndsAt?: string | null;
+  sourceLastSyncedAt?: string | null;
+  sourceSyncError?: string | null;
   bundleLabel?: string | null;
   bundleProductId?: string | null;
   similarProductIds?: string[];
@@ -32,6 +37,13 @@ export interface Product {
     price: number;
     quantity?: number;
   };
+  colorShades?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    priceAed?: number | null;
+    priceT?: number | null;
+  }>;
 }
 
 export type AdminOrderStatus =

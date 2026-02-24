@@ -143,7 +143,8 @@ export default function DashboardPage() {
         if (order) {
             order.items.forEach(item => {
                 addToCart({
-                    id: item.id,
+                    id: item.productId || item.id,
+                    productId: item.productId || item.id,
                     name: item.name,
                     price: item.price,
                     image: item.image,
@@ -286,7 +287,7 @@ export default function DashboardPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                         <div>
-                            <h1 className="font-serif text-4xl font-bold mb-2">{t("header.hello", { name: user?.firstName || user?.name.split(' ')[0] })}</h1>
+                            <h1 className="font-serif text-4xl font-bold mb-2">{t("header.hello", { name: user?.firstName || user?.name.split(' ')[0] || "Member" })}</h1>
                             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                 <span className="w-2 h-2 rounded-full bg-primary" />
                                 {membershipTierLabel}

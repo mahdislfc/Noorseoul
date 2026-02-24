@@ -7,10 +7,12 @@ export const runtime = "nodejs";
 
 interface IncomingOrderItem {
   id: string;
+  productId?: string;
   name: string;
   price: number;
   quantity: number;
   image: string;
+  shade?: string;
 }
 
 function isMissingOrderNoteColumnError(error: unknown) {
@@ -54,13 +56,14 @@ export async function GET() {
     status: string;
     total: number;
     orderNote?: string | null;
-    items: Array<{
-      id: string;
-      name: string;
-      price: number;
-      quantity: number;
-      image: string;
-    }>;
+      items: Array<{
+        id: string;
+        productId: string | null;
+        name: string;
+        price: number;
+        quantity: number;
+        image: string;
+      }>;
   }> = [];
 
   try {
@@ -76,6 +79,7 @@ export async function GET() {
         items: {
           select: {
             id: true,
+            productId: true,
             name: true,
             price: true,
             quantity: true,
@@ -98,6 +102,7 @@ export async function GET() {
         items: {
           select: {
             id: true,
+            productId: true,
             name: true,
             price: true,
             quantity: true,
@@ -116,6 +121,7 @@ export async function GET() {
       total: order.total,
       items: order.items.map((item) => ({
         id: item.id,
+        productId: item.productId,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
@@ -151,10 +157,12 @@ export async function POST(request: Request) {
   const normalizedItems = items
     .map((item) => ({
       id: String(item.id || "").trim(),
+      productId: String(item.productId || "").trim(),
       name: String(item.name || "").trim(),
       price: Number(item.price || 0),
       quantity: Number(item.quantity || 0),
       image: String(item.image || "").trim(),
+      shade: String(item.shade || "").trim(),
     }))
     .filter(
       (item) =>
@@ -225,8 +233,11 @@ export async function POST(request: Request) {
       total,
       items: {
         create: normalizedItems.map((item) => ({
-          productId: item.id,
-          name: item.name,
+          name:
+            item.shade && !item.name.toLowerCase().includes("(shade:")
+              ? `${item.name} (Shade: ${item.shade})`
+              : item.name,
+          productId: item.productId || item.id,
           price: item.price,
           quantity: item.quantity,
           image: item.image,
@@ -251,8 +262,11 @@ export async function POST(request: Request) {
         total,
         items: {
           create: normalizedItems.map((item) => ({
-            productId: item.id,
-            name: item.name,
+            productId: item.productId || item.id,
+            name:
+              item.shade && !item.name.toLowerCase().includes("(shade:")
+                ? `${item.name} (Shade: ${item.shade})`
+                : item.name,
             price: item.price,
             quantity: item.quantity,
             image: item.image,

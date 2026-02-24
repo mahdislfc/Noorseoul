@@ -105,6 +105,7 @@ export default async function ProductPage({
                 oldPrice: product.originalPrice ?? undefined,
                 oldPriceAed: product.originalPriceAed ?? null,
                 oldPriceT: product.originalPriceT ?? null,
+                saleEndsAt: product.saleEndsAt ?? null,
                 currency: product.currency,
                 description: localizedDescription,
                 ingredients: product.ingredients || "",
@@ -114,6 +115,7 @@ export default async function ProductPage({
                 bundleLabel: product.bundleLabel || "",
                 bundleProductId: product.bundleProductId || "",
                 economicalOption: product.economicalOption,
+                colorShades: product.colorShades || [],
                 bundleProduct: bundleProduct
                   ? {
                       id: bundleProduct.id,

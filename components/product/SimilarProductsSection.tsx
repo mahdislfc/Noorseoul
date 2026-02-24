@@ -25,6 +25,7 @@ export function SimilarProductsSection({ products }: SimilarProductsSectionProps
     const displayPrice = resolveDisplayPrice(product, displayCurrency);
     addToCart({
       id: product.id,
+      productId: product.id,
       name: product.name,
       price: displayPrice.amount,
       quantity: 1,

@@ -23,6 +23,7 @@ interface ProductInfoProps {
         priceT?: number | null
         oldPriceAed?: number | null
         oldPriceT?: number | null
+        saleEndsAt?: string | null
         description?: string
         ingredients?: string
         skinType?: string
@@ -35,6 +36,13 @@ interface ProductInfoProps {
             price: number
             quantity?: number
         }
+        colorShades?: Array<{
+            id: string
+            name: string
+            price: number
+            priceAed?: number | null
+            priceT?: number | null
+        }>
         bundleProduct?: {
             id: string
             name: string
@@ -57,10 +65,13 @@ export function ProductInfo({ product }: ProductInfoProps) {
     const [bundleQuantity, setBundleQuantity] = useState(1)
     const [showAllDescription, setShowAllDescription] = useState(false)
     const [showAllIngredients, setShowAllIngredients] = useState(false)
+    const [selectedShadeId, setSelectedShadeId] = useState(
+        product.colorShades && product.colorShades.length > 0 ? product.colorShades[0].id : ""
+    )
     const displayBasePrice = resolveDisplayPrice(
         {
             price: product.price,
-            currency: product.currency,
+            currency: product.currency || "USD",
             priceAed: product.priceAed ?? null,
             priceT: product.priceT ?? null,
         },
@@ -71,12 +82,28 @@ export function ProductInfo({ product }: ProductInfoProps) {
             originalPrice: product.oldPrice ?? null,
             originalPriceAed: product.oldPriceAed ?? null,
             originalPriceT: product.oldPriceT ?? null,
-            currency: product.currency
+            currency: product.currency || "USD"
         },
         displayCurrency
     )
-    const totalPrice = displayBasePrice.amount * quantity
-    const totalOldPrice = originalPriceInfo ? originalPriceInfo.amount * quantity : null
+    const selectedShade =
+        product.colorShades?.find((shade) => shade.id === selectedShadeId) ||
+        product.colorShades?.[0] ||
+        null
+    const selectedShadePriceInfo = selectedShade
+        ? resolveDisplayPrice(
+            {
+                price: selectedShade.price,
+                currency: product.currency || "USD",
+                priceAed: selectedShade.priceAed ?? null,
+                priceT: selectedShade.priceT ?? null,
+            },
+            displayCurrency
+        )
+        : null
+    const activeUnitPriceInfo = selectedShadePriceInfo || displayBasePrice
+    const totalPrice = activeUnitPriceInfo.amount * quantity
+    const totalOldPrice = selectedShade ? null : (originalPriceInfo ? originalPriceInfo.amount * quantity : null)
     const descriptionText = (product.description || "").trim()
     const hasMoreDescription = descriptionText.split(/\r?\n/).length > 9 || descriptionText.length > 420
     const ingredientLines = (product.ingredients || "")
@@ -94,20 +121,24 @@ export function ProductInfo({ product }: ProductInfoProps) {
             : 1
 
     const handleAddToCart = () => {
+        const cartItemId = selectedShade
+            ? `${product.id}::shade::${selectedShade.id}`
+            : product.id
         const addedItem = {
-            id: product.id,
+            id: cartItemId,
+            productId: product.id,
             name: product.name,
-            price: displayBasePrice.amount,
+            price: activeUnitPriceInfo.amount,
             quantity: quantity,
-            image: product.images[0]
+            image: product.images[0],
+            shade: selectedShade?.name || undefined,
         }
         addToCart({
-            ...addedItem
-            ,
-            currency: displayBasePrice.fromCurrency
+            ...addedItem,
+            currency: activeUnitPriceInfo.fromCurrency
         })
         toast.success(t("addedToCart"), {
-            description: `${product.name} (x${quantity})`,
+            description: `${product.name}${selectedShade ? ` - ${selectedShade.name}` : ""} (x${quantity})`,
             action: {
                 label: t("viewCart"),
                 onClick: () => setIsOpen(true),
@@ -119,6 +150,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         if (!product.bundleProduct) return
         addToCart({
             id: product.bundleProduct.id,
+            productId: product.bundleProduct.id,
             name: product.bundleProduct.name,
             price: product.bundleProduct.price,
             quantity: bundleQuantity,
@@ -138,6 +170,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         if (!product.economicalOption) return
         addToCart({
             id: `${product.id}-eco`,
+            productId: product.id,
             name: product.economicalOption.name,
             price: product.economicalOption.price,
             quantity: 1,
@@ -160,7 +193,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
             <div className="flex flex-wrap items-end gap-4 mb-8">
                 <div className="flex items-baseline gap-4">
                     <span className="text-3xl font-light text-primary">
-                        {formatDisplayAmount(totalPrice, displayBasePrice.fromCurrency, displayCurrency, locale)}
+                        {formatDisplayAmount(totalPrice, activeUnitPriceInfo.fromCurrency, displayCurrency, locale)}
                     </span>
                     {totalOldPrice && (
                         <span className="text-lg opacity-40 line-through">
@@ -173,6 +206,16 @@ export function ProductInfo({ product }: ProductInfoProps) {
                         </span>
                     )}
                 </div>
+                {selectedShade && (
+                    <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary">
+                        Shade price: {formatDisplayAmount(activeUnitPriceInfo.amount, activeUnitPriceInfo.fromCurrency, displayCurrency, locale)}
+                    </div>
+                )}
+                {product.saleEndsAt && (
+                    <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                        Sale ends: {new Date(product.saleEndsAt).toLocaleDateString()}
+                    </div>
+                )}
                 <div className="flex items-center gap-3">
                     <div className="flex items-center border border-border rounded-lg px-2">
                         <button
@@ -197,6 +240,50 @@ export function ProductInfo({ product }: ProductInfoProps) {
                     </Button>
                 </div>
             </div>
+
+            {product.colorShades && product.colorShades.length > 0 && (
+                <div className="mb-8 rounded-lg border border-border p-4">
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Color / Shade</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        This product has multiple shades. Choose your preferred one.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {product.colorShades.map((shade) => {
+                            const shadePriceInfo = resolveDisplayPrice(
+                                {
+                                    price: shade.price,
+                                    currency: product.currency || "USD",
+                                    priceAed: shade.priceAed ?? null,
+                                    priceT: shade.priceT ?? null,
+                                },
+                                displayCurrency
+                            )
+                            const isSelected = (selectedShade?.id || "") === shade.id
+                            return (
+                                <button
+                                    key={shade.id}
+                                    type="button"
+                                    onClick={() => setSelectedShadeId(shade.id)}
+                                    className={`rounded-md border px-3 py-2 text-left ${isSelected
+                                            ? "border-primary bg-primary/10 text-primary"
+                                            : "border-border hover:border-primary/40"
+                                        }`}
+                                >
+                                    <p className="text-sm font-semibold">{shade.name}</p>
+                                    <p className="text-xs">
+                                        {formatDisplayAmount(
+                                            shadePriceInfo.amount,
+                                            shadePriceInfo.fromCurrency,
+                                            displayCurrency,
+                                            locale
+                                        )}
+                                    </p>
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
 
             {product.description?.trim() && (
                 <div className="mb-8">

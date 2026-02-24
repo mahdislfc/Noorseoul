@@ -14,12 +14,24 @@ export interface ProductMetadata {
   skinType?: string;
   scent?: string;
   waterResistance?: string;
+  sourceUrl?: string;
+  sourcePriceCurrency?: string;
+  saleEndsAt?: string;
+  sourceLastSyncedAt?: string;
+  sourceSyncError?: string;
   bundleLabel?: string;
   bundleProductId?: string;
   similarProductIds?: string[];
   economicalOptionName?: string;
   economicalOptionPrice?: number;
   economicalOptionQuantity?: number;
+  colorShades?: Array<{
+    id?: string;
+    name?: string;
+    price?: number;
+    priceAed?: number;
+    priceT?: number;
+  }>;
 }
 
 type MetadataStore = Record<string, ProductMetadata>;
@@ -42,6 +54,32 @@ function normalizeIdList(value?: string[]) {
         .filter(Boolean)
     )
   );
+}
+
+function normalizeColorShades(value?: ProductMetadata["colorShades"]) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry, index) => {
+      const name = sanitize(entry?.name);
+      const id = sanitize(entry?.id) || `shade-${index + 1}`;
+      const priceRaw = sanitizeNumber(entry?.price);
+      const priceAedRaw = sanitizeNumber(entry?.priceAed);
+      const priceTRaw = sanitizeNumber(entry?.priceT);
+      const price = typeof priceRaw === "number" && priceRaw > 0 ? priceRaw : undefined;
+      const priceAed =
+        typeof priceAedRaw === "number" && priceAedRaw > 0 ? priceAedRaw : undefined;
+      const priceT =
+        typeof priceTRaw === "number" && priceTRaw > 0 ? priceTRaw : undefined;
+      if (!name || typeof price !== "number") return null;
+      return {
+        id,
+        name,
+        price,
+        ...(typeof priceAed === "number" ? { priceAed } : {}),
+        ...(typeof priceT === "number" ? { priceT } : {}),
+      };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
 }
 
 function normalizeMetadata(input: ProductMetadata): ProductMetadata {
@@ -67,6 +105,11 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
   const skinType = sanitize(input.skinType);
   const scent = sanitize(input.scent);
   const waterResistance = sanitize(input.waterResistance);
+  const sourceUrl = sanitize(input.sourceUrl);
+  const sourcePriceCurrency = sanitize(input.sourcePriceCurrency).toUpperCase();
+  const saleEndsAt = sanitize(input.saleEndsAt);
+  const sourceLastSyncedAt = sanitize(input.sourceLastSyncedAt);
+  const sourceSyncError = sanitize(input.sourceSyncError);
   const bundleLabel = sanitize(input.bundleLabel);
   const bundleProductId = sanitize(input.bundleProductId);
   const similarProductIds = normalizeIdList(input.similarProductIds);
@@ -79,6 +122,7 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
     economicalOptionQuantityRaw > 1
       ? economicalOptionQuantityRaw
       : undefined;
+  const colorShades = normalizeColorShades(input.colorShades);
 
   return {
     descriptionAr: descriptionAr || undefined,
@@ -91,6 +135,11 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
     skinType: skinType || undefined,
     scent: scent || undefined,
     waterResistance: waterResistance || undefined,
+    sourceUrl: sourceUrl || undefined,
+    sourcePriceCurrency: sourcePriceCurrency || undefined,
+    saleEndsAt: saleEndsAt || undefined,
+    sourceLastSyncedAt: sourceLastSyncedAt || undefined,
+    sourceSyncError: sourceSyncError || undefined,
     bundleLabel: bundleLabel || undefined,
     bundleProductId: bundleProductId || undefined,
     similarProductIds: similarProductIds.length > 0 ? similarProductIds : undefined,
@@ -100,6 +149,7 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
         ? economicalOptionPrice
         : undefined,
     economicalOptionQuantity,
+    colorShades: colorShades.length > 0 ? colorShades : undefined,
   };
 }
 
@@ -149,12 +199,18 @@ export async function setFallbackMetadata(productId: string, metadata: ProductMe
       normalized.skinType ||
       normalized.scent ||
       normalized.waterResistance ||
+      normalized.sourceUrl ||
+      normalized.sourcePriceCurrency ||
+      normalized.saleEndsAt ||
+      normalized.sourceLastSyncedAt ||
+      normalized.sourceSyncError ||
       normalized.bundleLabel ||
       normalized.bundleProductId ||
       (normalized.similarProductIds && normalized.similarProductIds.length > 0) ||
       normalized.economicalOptionName ||
       (typeof normalized.economicalOptionPrice === "number" &&
-        normalized.economicalOptionPrice > 0)
+        normalized.economicalOptionPrice > 0) ||
+      (normalized.colorShades && normalized.colorShades.length > 0)
   );
 
   if (hasAnyValue) {

@@ -632,6 +632,9 @@ export default function CheckoutPage() {
                                             </div>
                                             <div className="flex flex-col justify-center gap-1 flex-1">
                                                 <h4 className="font-bold text-sm tracking-wide">{item.name}</h4>
+                                                {item.shade && (
+                                                    <p className="text-xs text-muted-foreground">Shade: {item.shade}</p>
+                                                )}
                                                 <div className="flex items-center justify-between gap-3 pt-1">
                                                     <div className="inline-flex items-center rounded-full border border-border">
                                                         <button

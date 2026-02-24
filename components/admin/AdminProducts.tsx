@@ -22,6 +22,14 @@ interface ImageDraft {
   file?: File;
 }
 
+interface ColorShadeDraft {
+  id: string;
+  name: string;
+  price: string;
+  priceAed: string;
+  priceT: string;
+}
+
 const emptyForm = {
   name: "",
   description: "",
@@ -35,12 +43,14 @@ const emptyForm = {
   skinType: "",
   scent: "",
   waterResistance: "",
+  sourceUrl: "",
   bundleLabel: "",
   bundleProductId: "",
   economicalOptionName: "",
   economicalOptionPrice: "",
   economicalOptionQuantity: "",
   similarProductIds: [] as string[],
+  colorShades: [] as ColorShadeDraft[],
   price: "",
   originalPrice: "",
   currency: "USD",
@@ -92,6 +102,9 @@ export function AdminProducts({ locale }: AdminProductsProps) {
   );
   const [requestedProductsLoading, setRequestedProductsLoading] = useState(true);
   const [requestedProductsError, setRequestedProductsError] = useState("");
+  const [syncingPrices, setSyncingPrices] = useState(false);
+  const [syncingProductId, setSyncingProductId] = useState<string | null>(null);
+  const [siteOrigin, setSiteOrigin] = useState("");
 
   const isEditing = useMemo(() => Boolean(editingId), [editingId]);
 
@@ -152,6 +165,14 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       setRequestedProductsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const configured =
+        (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
+      setSiteOrigin(configured || window.location.origin);
+    }
+  }, []);
 
   useEffect(() => {
     loadProducts();
@@ -256,11 +277,12 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       }
 
       const formData = new FormData();
-      const { similarProductIds, ...restForm } = form;
+      const { similarProductIds, colorShades, ...restForm } = form;
       Object.entries(restForm).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
       formData.append("similarProductIds", JSON.stringify(similarProductIds));
+      formData.append("colorShades", JSON.stringify(colorShades));
       const imageOrder = imageDrafts.map((image) =>
         image.kind === "existing" ? image.previewUrl : "__new__"
       );
@@ -314,6 +336,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       skinType: product.skinType || "",
       scent: product.scent || "",
       waterResistance: product.waterResistance || "",
+      sourceUrl: product.sourceUrl || "",
       bundleLabel: product.bundleLabel || "",
       bundleProductId: product.bundleProductId || "",
       economicalOptionName: product.economicalOption?.name || "",
@@ -326,6 +349,14 @@ export function AdminProducts({ locale }: AdminProductsProps) {
           ? String(product.economicalOption.quantity)
           : "",
       similarProductIds: product.similarProductIds || [],
+      colorShades: (product.colorShades || []).map((shade, index) => ({
+        id: shade.id?.trim() || `shade-${index + 1}`,
+        name: shade.name || "",
+        price: typeof shade.price === "number" ? String(shade.price) : "",
+        priceAed:
+          typeof shade.priceAed === "number" ? String(shade.priceAed) : "",
+        priceT: typeof shade.priceT === "number" ? String(shade.priceT) : "",
+      })),
       price: String(product.price),
       originalPrice: product.originalPrice ? String(product.originalPrice) : "",
       currency: product.currency,
@@ -399,6 +430,63 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     window.location.href = `/${locale}/admin/login`;
   };
 
+  const handleSyncSourcePrices = async () => {
+    setSyncingPrices(true);
+    setProductsError("");
+    try {
+      const res = await fetch("/api/admin/products/sync-prices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to sync prices");
+      }
+      await loadProducts();
+    } catch (error) {
+      setProductsError(getErrorMessage(error, "Failed to sync prices"));
+    } finally {
+      setSyncingPrices(false);
+    }
+  };
+
+  const handleSyncOneProduct = async (productId: string) => {
+    setSyncingProductId(productId);
+    setProductsError("");
+    try {
+      const res = await fetch("/api/admin/products/sync-prices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to sync product price");
+      }
+      await loadProducts();
+    } catch (error) {
+      setProductsError(getErrorMessage(error, "Failed to sync product price"));
+    } finally {
+      setSyncingProductId(null);
+    }
+  };
+
+  const getProductUrl = (productId: string) => {
+    const path = `/${locale}/products/${productId}`;
+    if (!siteOrigin) return path;
+    return `${siteOrigin}${path}`;
+  };
+
+  const copyText = async (value: string) => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // noop
+    }
+  };
+
   const linkableProducts = products.filter(
     (product) => !editingId || product.id !== editingId
   );
@@ -457,6 +545,42 @@ export function AdminProducts({ locale }: AdminProductsProps) {
         similarProductIds: [...current.similarProductIds, exactMatch.id],
       };
     });
+  };
+
+  const addColorShadeRow = () => {
+    setForm((current) => ({
+      ...current,
+      colorShades: [
+        ...current.colorShades,
+        {
+          id: `shade-${Date.now()}-${current.colorShades.length + 1}`,
+          name: "",
+          price: "",
+          priceAed: "",
+          priceT: "",
+        },
+      ],
+    }));
+  };
+
+  const updateColorShadeRow = (
+    shadeId: string,
+    field: keyof ColorShadeDraft,
+    value: string
+  ) => {
+    setForm((current) => ({
+      ...current,
+      colorShades: current.colorShades.map((shade) =>
+        shade.id === shadeId ? { ...shade, [field]: value } : shade
+      ),
+    }));
+  };
+
+  const removeColorShadeRow = (shadeId: string) => {
+    setForm((current) => ({
+      ...current,
+      colorShades: current.colorShades.filter((shade) => shade.id !== shadeId),
+    }));
   };
 
   return (
@@ -656,6 +780,81 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
               </div>
+              <div className="md:col-span-2">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <label className="block text-sm font-medium">Color / Shade Pricing Box</label>
+                  <button
+                    type="button"
+                    onClick={addColorShadeRow}
+                    className="rounded-md border border-input px-3 py-1 text-xs"
+                  >
+                    Add shade
+                  </button>
+                </div>
+                {form.colorShades.length === 0 ? (
+                  <p className="rounded-md border border-dashed border-input px-3 py-3 text-sm text-muted-foreground">
+                    No shades yet. Add rows only for products with selectable colors/shades.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {form.colorShades.map((shade, index) => (
+                      <div
+                        key={shade.id}
+                        className="grid grid-cols-1 gap-2 rounded-md border border-input p-3 md:grid-cols-12"
+                      >
+                        <input
+                          value={shade.name}
+                          onChange={(event) =>
+                            updateColorShadeRow(shade.id, "name", event.target.value)
+                          }
+                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-4"
+                          placeholder={`Shade name ${index + 1}`}
+                        />
+                        <input
+                          value={shade.price}
+                          onChange={(event) =>
+                            updateColorShadeRow(shade.id, "price", event.target.value)
+                          }
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-2"
+                          placeholder="USD"
+                        />
+                        <input
+                          value={shade.priceAed}
+                          onChange={(event) =>
+                            updateColorShadeRow(shade.id, "priceAed", event.target.value)
+                          }
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-2"
+                          placeholder="AED"
+                        />
+                        <input
+                          value={shade.priceT}
+                          onChange={(event) =>
+                            updateColorShadeRow(shade.id, "priceT", event.target.value)
+                          }
+                          type="number"
+                          step="1"
+                          min="0"
+                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-2"
+                          placeholder="T"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeColorShadeRow(shade.id)}
+                          className="rounded-md border border-red-200 px-3 py-2 text-xs text-red-600 md:col-span-2"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Size</label>
                 <input
@@ -764,6 +963,18 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                   <option value="Water-resistant">Water-resistant</option>
                   <option value="Waterproof">Waterproof</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Supplier/Main Brand Product URL</label>
+                <input
+                  value={form.sourceUrl}
+                  onChange={(event) =>
+                    setForm({ ...form, sourceUrl: event.target.value })
+                  }
+                  type="url"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="https://brand.com/product/..."
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Bundle Product</label>
@@ -927,6 +1138,34 @@ export function AdminProducts({ locale }: AdminProductsProps) {
               </label>
             </div>
 
+            {isEditing && editingId && (
+              <div className="rounded-md border border-input bg-secondary/10 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Generated Product Page URL
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <code className="rounded bg-background px-2 py-1 text-xs">
+                    {getProductUrl(editingId)}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => copyText(getProductUrl(editingId))}
+                    className="rounded-md border border-input px-2 py-1 text-xs"
+                  >
+                    Copy link
+                  </button>
+                  <a
+                    href={getProductUrl(editingId)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-md border border-input px-2 py-1 text-xs"
+                  >
+                    Open
+                  </a>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium mb-1">Product Images</label>
               <div className="flex items-center gap-3">
@@ -1043,14 +1282,28 @@ export function AdminProducts({ locale }: AdminProductsProps) {
 
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Existing Products</h2>
-              <button
-                onClick={loadProducts}
-                className="rounded-md border border-input px-3 py-1 text-xs"
-                disabled={productsLoading}
-              >
-                Refresh
-              </button>
+              <div>
+                <h2 className="text-xl font-semibold">Existing Products</h2>
+                <p className="text-xs text-muted-foreground">
+                  Source URL sync assumes source prices are in KRW and converts to USD/AED.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSyncSourcePrices}
+                  className="rounded-md border border-input px-3 py-1 text-xs"
+                  disabled={syncingPrices}
+                >
+                  {syncingPrices ? "Syncing source prices..." : "Sync prices from source URLs"}
+                </button>
+                <button
+                  onClick={loadProducts}
+                  className="rounded-md border border-input px-3 py-1 text-xs"
+                  disabled={productsLoading}
+                >
+                  Refresh
+                </button>
+              </div>
             </div>
 
             {productsLoading ? (
@@ -1076,12 +1329,67 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                           <p className="text-xs text-muted-foreground">
                             {product.brand} · {product.department} · {product.category}
                           </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <a
+                              href={getProductUrl(product.id)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs text-primary underline underline-offset-2"
+                            >
+                              Product page link
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => copyText(getProductUrl(product.id))}
+                              className="rounded border border-input px-2 py-0.5 text-[10px]"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                          {product.sourceUrl?.trim() && (
+                            <a
+                              href={product.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-1 inline-block text-xs text-muted-foreground underline underline-offset-2 break-all"
+                            >
+                              Source: {product.sourceUrl}
+                            </a>
+                          )}
+                          {product.sourceLastSyncedAt && (
+                            <p className="mt-1 text-[11px] text-muted-foreground">
+                              Last sync: {new Date(product.sourceLastSyncedAt).toLocaleString()}
+                            </p>
+                          )}
+                          {product.saleEndsAt && (
+                            <p className="mt-1 text-[11px] text-primary">
+                              Sale active until: {new Date(product.saleEndsAt).toLocaleDateString()}
+                            </p>
+                          )}
+                          {product.sourceSyncError?.trim() && (
+                            <p className="mt-1 text-[11px] text-red-600">
+                              Sync error: {product.sourceSyncError}
+                            </p>
+                          )}
+                          {product.colorShades && product.colorShades.length > 0 && (
+                            <p className="text-xs text-primary mt-1">
+                              {product.colorShades.length} shade
+                              {product.colorShades.length > 1 ? "s" : ""} configured
+                            </p>
+                          )}
                         </div>
                         <div className="text-sm font-semibold">
                           {product.price.toFixed(2)} {product.currency}
                         </div>
                       </div>
                       <div className="mt-3 flex gap-2">
+                        <button
+                          onClick={() => handleSyncOneProduct(product.id)}
+                          className="rounded-md border border-input px-3 py-1 text-xs"
+                          disabled={syncingProductId === product.id}
+                        >
+                          {syncingProductId === product.id ? "Syncing..." : "Sync price"}
+                        </button>
                         <button
                           onClick={() => handleEdit(product)}
                           className="rounded-md border border-input px-3 py-1 text-xs"
@@ -1182,7 +1490,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                         <div className="flex-1">
                           <p className="text-sm font-medium">{item.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            Qty: {item.quantity}
+                            Qty: {item.quantity} · Unit: {item.price.toFixed(2)} {order.currency}
                           </p>
                         </div>
                         <div className="text-sm font-semibold">

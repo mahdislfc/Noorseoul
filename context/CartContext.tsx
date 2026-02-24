@@ -5,11 +5,13 @@ import { useUser } from "@/context/UserContext"
 
 export interface CartItem {
     id: string
+    productId?: string
     name: string
     price: number
     quantity: number
     image: string
     currency: string
+    shade?: string
 }
 
 interface CartContextType {

@@ -63,6 +63,47 @@ function parseSimilarProductIds(value: FormDataEntryValue | null) {
   }
 }
 
+function parseColorShades(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || !value.trim()) return [];
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((entry, index) => {
+        if (!entry || typeof entry !== "object") return null;
+        const record = entry as Record<string, unknown>;
+        const id =
+          typeof record.id === "string" && record.id.trim()
+            ? record.id.trim()
+            : `shade-${index + 1}`;
+        const name = typeof record.name === "string" ? record.name.trim() : "";
+        const price =
+          typeof record.price === "number"
+            ? record.price
+            : Number(record.price || 0);
+        const priceAed =
+          typeof record.priceAed === "number"
+            ? record.priceAed
+            : Number(record.priceAed || 0);
+        const priceT =
+          typeof record.priceT === "number"
+            ? record.priceT
+            : Number(record.priceT || 0);
+        if (!name || !Number.isFinite(price) || price <= 0) return null;
+        return {
+          id,
+          name,
+          price,
+          ...(Number.isFinite(priceAed) && priceAed > 0 ? { priceAed } : {}),
+          ...(Number.isFinite(priceT) && priceT > 0 ? { priceT } : {}),
+        };
+      })
+      .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+  } catch {
+    return [];
+  }
+}
+
 function buildEconomicalOption(
   metadata: Record<string, unknown> | undefined
 ) {
@@ -181,6 +222,7 @@ export async function POST(request: Request) {
   const skinType = String(formData.get("skinType") || "").trim();
   const scent = String(formData.get("scent") || "").trim();
   const waterResistance = String(formData.get("waterResistance") || "").trim();
+  const sourceUrl = String(formData.get("sourceUrl") || "").trim();
   const bundleLabel = String(formData.get("bundleLabel") || "").trim();
   const bundleProductId = String(formData.get("bundleProductId") || "").trim();
   const economicalOptionName = String(
@@ -201,6 +243,7 @@ export async function POST(request: Request) {
   const similarProductIds = parseSimilarProductIds(
     formData.get("similarProductIds")
   );
+  const colorShades = parseColorShades(formData.get("colorShades"));
   const imageFiles = formData
     .getAll("images")
     .filter((entry): entry is File => entry instanceof File && entry.size > 0);
@@ -271,12 +314,14 @@ export async function POST(request: Request) {
     skinType,
     scent,
     waterResistance,
+    sourceUrl,
     bundleLabel,
     bundleProductId,
     similarProductIds,
     economicalOptionName,
     economicalOptionPrice,
     economicalOptionQuantity,
+    colorShades,
   });
 
   return NextResponse.json({ product }, { status: 201 });

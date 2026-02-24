@@ -53,6 +53,9 @@ export function CartSidebar() {
                                         <div className="flex-1 flex flex-col justify-between">
                                             <div>
                                                 <h4 className="font-serif font-medium line-clamp-2">{item.name}</h4>
+                                                {item.shade && (
+                                                    <p className="text-xs text-muted-foreground">Shade: {item.shade}</p>
+                                                )}
                                                 <p className="text-sm text-muted-foreground">
                                                     {formatDisplayAmount(item.price, item.currency || cartCurrency, displayCurrency, locale)}
                                                 </p>

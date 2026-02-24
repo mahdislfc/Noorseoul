@@ -26,6 +26,7 @@ export interface Order {
     total: number
     items: {
         id: string
+        productId?: string | null
         name: string
         price: number
         quantity: number
@@ -61,6 +62,7 @@ interface IncomingOrder {
     total?: number
     items?: {
         id: string
+        productId?: string | null
         name: string
         price: number
         quantity: number

@@ -30,6 +30,9 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     const { setIsOpen } = useCart()
     const [selectedImage, setSelectedImage] = useState(product.image)
     const [isEconomicalSet, setIsEconomicalSet] = useState(false)
+    const [selectedShadeId, setSelectedShadeId] = useState(
+        product.colorShades && product.colorShades.length > 0 ? product.colorShades[0].id : ""
+    )
     const [quantity, setQuantity] = useState(1)
     const [isHovering, setIsHovering] = useState(false)
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -37,14 +40,29 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     const originalPriceInfo = resolveDisplayOriginalPrice(product, displayCurrency)
 
     const productImages = product.images || [product.image]
+    const selectedShade =
+        product.colorShades?.find((shade) => shade.id === selectedShadeId) ||
+        product.colorShades?.[0] ||
+        null
+    const selectedShadePriceInfo = selectedShade
+        ? resolveDisplayPrice(
+            {
+                price: selectedShade.price,
+                currency: product.currency,
+                priceAed: selectedShade.priceAed ?? null,
+                priceT: selectedShade.priceT ?? null,
+            },
+            displayCurrency
+        )
+        : null
 
     // Calculate current effective price based on selection
     const currentPrice = isEconomicalSet && product.economicalOption
         ? product.economicalOption.price
-        : displayBasePrice.amount
+        : (selectedShadePriceInfo?.amount ?? displayBasePrice.amount)
     const currentPriceCurrency = isEconomicalSet && product.economicalOption
         ? (product.currency || "USD")
-        : displayBasePrice.fromCurrency
+        : (selectedShadePriceInfo?.fromCurrency ?? displayBasePrice.fromCurrency)
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
@@ -58,6 +76,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
         const itemToAdd = isEconomicalSet && product.economicalOption
             ? {
                 id: `${product.id}-eco`, // Unique ID for the set variant
+                productId: product.id,
                 name: product.economicalOption.name,
                 price: product.economicalOption.price,
                 quantity,
@@ -65,12 +84,14 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                 currency: product.currency || "USD",
             }
             : {
-                id: product.id,
+                id: selectedShade ? `${product.id}::shade::${selectedShade.id}` : product.id,
+                productId: product.id,
                 name: product.name,
-                price: displayBasePrice.amount,
+                price: currentPrice,
                 quantity,
                 image: product.image,
-                currency: displayBasePrice.fromCurrency,
+                currency: currentPriceCurrency,
+                shade: selectedShade?.name || undefined,
             }
 
         addToCart(itemToAdd)
@@ -160,6 +181,48 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                 <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground block mb-2">{t("size")}</span>
                                 <div className="inline-block px-3 py-1 bg-secondary/30 rounded-md text-sm font-medium">
                                     {product.size}
+                                </div>
+                            </div>
+                        )}
+
+                        {product.colorShades && product.colorShades.length > 0 && (
+                            <div className="mb-6 rounded-lg border border-border p-3">
+                                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                                    Color / Shade
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.colorShades.map((shade) => {
+                                        const shadePriceInfo = resolveDisplayPrice(
+                                            {
+                                                price: shade.price,
+                                                currency: product.currency,
+                                                priceAed: shade.priceAed ?? null,
+                                                priceT: shade.priceT ?? null,
+                                            },
+                                            displayCurrency
+                                        )
+                                        return (
+                                            <button
+                                                key={shade.id}
+                                                type="button"
+                                                onClick={() => setSelectedShadeId(shade.id)}
+                                                className={`rounded-md border px-2 py-1 text-left text-xs ${selectedShade?.id === shade.id
+                                                        ? "border-primary bg-primary/10 text-primary"
+                                                        : "border-border"
+                                                    }`}
+                                            >
+                                                <p className="font-semibold">{shade.name}</p>
+                                                <p>
+                                                    {formatDisplayAmount(
+                                                        shadePriceInfo.amount,
+                                                        shadePriceInfo.fromCurrency,
+                                                        displayCurrency,
+                                                        locale
+                                                    )}
+                                                </p>
+                                            </button>
+                                        )
+                                    })}
                                 </div>
                             </div>
                         )}

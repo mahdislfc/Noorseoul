@@ -28,8 +28,14 @@ export function ProductCard({ product }: { product: Product }) {
     const totalOriginalPrice = originalPriceInfo ? originalPriceInfo.amount * quantity : null
 
     const handleAddToCart = () => {
+        if (product.colorShades && product.colorShades.length > 0) {
+            setShowQuickView(true)
+            setHasSeenQuickView(true)
+            return
+        }
         addToCart({
             id: product.id,
+            productId: product.id,
             name: product.name,
             price: displayBasePrice.amount,
             quantity: quantity,
@@ -118,6 +124,11 @@ export function ProductCard({ product }: { product: Product }) {
                         {formatDisplayAmount(totalPrice, displayBasePrice.fromCurrency, displayCurrency, locale)}
                     </p>
                 </div>
+                {product.colorShades && product.colorShades.length > 0 && (
+                    <p className="text-xs text-primary font-semibold">
+                        {product.colorShades.length} shades available
+                    </p>
+                )}
                 <Link
                     href={`/products/${product.id}`}
                     className="text-xs font-semibold uppercase tracking-widest text-primary hover:underline"

@@ -68,6 +68,55 @@ function toProductModel(product: Record<string, unknown>): Product {
     product.economicalOptionQuantity > 1
       ? product.economicalOptionQuantity
       : undefined;
+  const colorShades = Array.isArray(product.colorShades)
+    ? product.colorShades
+        .map((shade, index) => {
+          if (!shade || typeof shade !== "object") return null;
+          const shadeName =
+            "name" in shade && typeof shade.name === "string"
+              ? shade.name.trim()
+              : "";
+          const shadeId =
+            "id" in shade && typeof shade.id === "string" && shade.id.trim()
+              ? shade.id.trim()
+              : `shade-${index + 1}`;
+          const shadePrice =
+            "price" in shade && typeof shade.price === "number" && Number.isFinite(shade.price)
+              ? shade.price
+              : null;
+          const shadePriceAed =
+            "priceAed" in shade &&
+            typeof shade.priceAed === "number" &&
+            Number.isFinite(shade.priceAed)
+              ? shade.priceAed
+              : null;
+          const shadePriceT =
+            "priceT" in shade &&
+            typeof shade.priceT === "number" &&
+            Number.isFinite(shade.priceT)
+              ? shade.priceT
+              : null;
+          if (!shadeName || typeof shadePrice !== "number" || shadePrice <= 0) return null;
+          return {
+            id: shadeId,
+            name: shadeName,
+            price: shadePrice,
+            priceAed: shadePriceAed,
+            priceT: shadePriceT,
+          };
+        })
+        .filter(
+          (
+            shade
+          ): shade is {
+            id: string;
+            name: string;
+            price: number;
+            priceAed: number | null;
+            priceT: number | null;
+          } => Boolean(shade)
+        )
+    : [];
 
   return {
     id: String(product.id || ""),
@@ -123,6 +172,20 @@ function toProductModel(product: Record<string, unknown>): Product {
       typeof product.waterResistance === "string"
         ? product.waterResistance
         : null,
+    sourceUrl:
+      typeof product.sourceUrl === "string" ? product.sourceUrl : null,
+    sourcePriceCurrency:
+      typeof product.sourcePriceCurrency === "string"
+        ? product.sourcePriceCurrency
+        : null,
+    saleEndsAt:
+      typeof product.saleEndsAt === "string" ? product.saleEndsAt : null,
+    sourceLastSyncedAt:
+      typeof product.sourceLastSyncedAt === "string"
+        ? product.sourceLastSyncedAt
+        : null,
+    sourceSyncError:
+      typeof product.sourceSyncError === "string" ? product.sourceSyncError : null,
     bundleLabel:
       typeof product.bundleLabel === "string" ? product.bundleLabel : null,
     bundleProductId:
@@ -141,6 +204,7 @@ function toProductModel(product: Record<string, unknown>): Product {
             quantity: economicalOptionQuantity,
           }
         : undefined,
+    colorShades,
   };
 }
 
