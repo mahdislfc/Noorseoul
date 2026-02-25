@@ -19,6 +19,7 @@ import {
   getFallbackMetadata,
   setFallbackMetadata,
 } from "@/lib/product-metadata-fallback";
+import { syncProductPricesFromSourceUrls } from "@/lib/source-price-sync";
 
 export const runtime = "nodejs";
 
@@ -101,11 +102,13 @@ function parseColorShades(value: FormDataEntryValue | null) {
           typeof record.priceT === "number"
             ? record.priceT
             : Number(record.priceT || 0);
-        if (!name || !Number.isFinite(price) || price <= 0) return null;
+        if (!name) return null;
+        const normalizedPrice =
+          Number.isFinite(price) && price > 0 ? price : undefined;
         return {
           id,
           name,
-          price,
+          ...(typeof normalizedPrice === "number" ? { price: normalizedPrice } : {}),
           ...(Number.isFinite(priceAed) && priceAed > 0 ? { priceAed } : {}),
           ...(Number.isFinite(priceT) && priceT > 0 ? { priceT } : {}),
         };
@@ -158,6 +161,7 @@ export async function PUT(
   const formData = await request.formData();
 
   const name = String(formData.get("name") || "").trim();
+  const koreanName = String(formData.get("koreanName") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const descriptionAr = String(formData.get("descriptionAr") || "").trim();
   const descriptionFa = String(formData.get("descriptionFa") || "").trim();
@@ -171,7 +175,9 @@ export async function PUT(
     ? Number(originalPriceAedRaw)
     : undefined;
   const originalPriceT = originalPriceTRaw ? Number(originalPriceTRaw) : undefined;
-  const price = Number(formData.get("price") || 0);
+  const priceRaw = String(formData.get("price") || "").trim();
+  const hasManualPrice = priceRaw.length > 0;
+  const parsedPrice = hasManualPrice ? Number(priceRaw) : 0;
   const originalPriceRaw = formData.get("originalPrice");
   const currency = String(formData.get("currency") || "USD").trim() || "USD";
   const brand = normalizeBrandInput(String(formData.get("brand") || ""));
@@ -214,8 +220,11 @@ export async function PUT(
     .filter((entry): entry is File => entry instanceof File && entry.size > 0);
   const imageOrder = parseImageOrder(formData.get("imageOrder"));
 
-  if (!name || !price || !brand || !category || !department) {
+  if (!name || !brand || !category || !department) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+  if (hasManualPrice && (!Number.isFinite(parsedPrice) || parsedPrice <= 0)) {
+    return NextResponse.json({ error: "Price must be greater than 0" }, { status: 400 });
   }
 
   const originalPrice =
@@ -226,7 +235,7 @@ export async function PUT(
   const data: Record<string, unknown> = {
     name,
     description: description || null,
-    price,
+    price: hasManualPrice ? parsedPrice : 0,
     originalPrice,
     currency,
     brand,
@@ -271,6 +280,9 @@ export async function PUT(
 
   if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  if (!hasManualPrice) {
+    data.price = existing.price;
   }
 
   const fallbackGallery = await getFallbackGallery(id);
@@ -365,6 +377,7 @@ export async function PUT(
 
   const existingMetadata = await getFallbackMetadata(id);
   await setFallbackMetadata(id, {
+    koreanName,
     descriptionAr,
     descriptionFa,
     priceAed,
@@ -388,6 +401,10 @@ export async function PUT(
     sourceLastSyncedAt: existingMetadata.sourceLastSyncedAt,
     sourceSyncError: existingMetadata.sourceSyncError,
   });
+
+  if (!hasManualPrice && sourceUrl) {
+    await syncProductPricesFromSourceUrls({ productId: id });
+  }
 
   return NextResponse.json({ product });
 }

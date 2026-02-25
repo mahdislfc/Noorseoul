@@ -32,6 +32,7 @@ interface ColorShadeDraft {
 
 const emptyForm = {
   name: "",
+  koreanName: "",
   description: "",
   descriptionAr: "",
   descriptionFa: "",
@@ -317,6 +318,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     setEditingId(product.id);
     setForm({
       name: product.name,
+      koreanName: product.koreanName || "",
       description: product.description || "",
       descriptionAr: product.descriptionAr || "",
       descriptionFa: product.descriptionFa || "",
@@ -648,6 +650,14 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   required
                 />
+                <input
+                  value={form.koreanName}
+                  onChange={(event) =>
+                    setForm({ ...form, koreanName: event.target.value })
+                  }
+                  className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-xs"
+                  placeholder="Korean name (optional)"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Brand</label>
@@ -705,8 +715,8 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                         type="number"
                         step="0.01"
                         className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
-                        placeholder="Price"
-                        required
+                        placeholder={form.sourceUrl.trim() ? "Optional (auto-sync from source URL)" : "Price"}
+                        required={!form.sourceUrl.trim()}
                       />
                       <input
                         value={form.originalPrice}
@@ -975,6 +985,9 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   placeholder="https://brand.com/product/..."
                 />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  If USD price is empty and source URL is set, price will auto-sync after save.
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Bundle Product</label>
@@ -1285,7 +1298,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
               <div>
                 <h2 className="text-xl font-semibold">Existing Products</h2>
                 <p className="text-xs text-muted-foreground">
-                  Source URL sync assumes source prices are in KRW and converts to USD/AED.
+                  Source URL sync reads Olive Young Global USD prices and syncs shade prices when available.
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -1326,6 +1339,11 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h3 className="font-semibold">{product.name}</h3>
+                          {product.koreanName?.trim() && (
+                            <p className="text-xs text-muted-foreground">
+                              {product.koreanName}
+                            </p>
+                          )}
                           <p className="text-xs text-muted-foreground">
                             {product.brand} · {product.department} · {product.category}
                           </p>
@@ -1361,6 +1379,19 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                               Last sync: {new Date(product.sourceLastSyncedAt).toLocaleString()}
                             </p>
                           )}
+                          {product.syncStatus && (
+                            <p
+                              className={`mt-1 inline-block rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                                product.syncStatus === "ok"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : product.syncStatus === "warning"
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              Sync status: {product.syncStatus}
+                            </p>
+                          )}
                           {product.saleEndsAt && (
                             <p className="mt-1 text-[11px] text-primary">
                               Sale active until: {new Date(product.saleEndsAt).toLocaleDateString()}
@@ -1370,6 +1401,33 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                             <p className="mt-1 text-[11px] text-red-600">
                               Sync error: {product.sourceSyncError}
                             </p>
+                          )}
+                          {(product.extractedRegularPriceText?.trim() ||
+                            product.extractedSaleText?.trim() ||
+                            product.extractedBestDealText?.trim()) && (
+                            <div className="mt-2 rounded-md border border-border bg-muted/30 p-2">
+                              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                Sync evidence
+                              </p>
+                              {product.extractedRegularPriceText?.trim() && (
+                                <p className="mt-1 text-[11px]">
+                                  <span className="font-semibold">Price:</span>{" "}
+                                  {product.extractedRegularPriceText}
+                                </p>
+                              )}
+                              {product.extractedSaleText?.trim() && (
+                                <p className="mt-1 text-[11px]">
+                                  <span className="font-semibold">Sale:</span>{" "}
+                                  {product.extractedSaleText}
+                                </p>
+                              )}
+                              {product.extractedBestDealText?.trim() && (
+                                <p className="mt-1 text-[11px]">
+                                  <span className="font-semibold">Best Deal:</span>{" "}
+                                  {product.extractedBestDealText}
+                                </p>
+                              )}
+                            </div>
                           )}
                           {product.colorShades && product.colorShades.length > 0 && (
                             <p className="text-xs text-primary mt-1">

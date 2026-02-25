@@ -30,9 +30,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     const { setIsOpen } = useCart()
     const [selectedImage, setSelectedImage] = useState(product.image)
     const [isEconomicalSet, setIsEconomicalSet] = useState(false)
-    const [selectedShadeId, setSelectedShadeId] = useState(
-        product.colorShades && product.colorShades.length > 0 ? product.colorShades[0].id : ""
-    )
+    const [selectedShadeId, setSelectedShadeId] = useState("")
     const [quantity, setQuantity] = useState(1)
     const [isHovering, setIsHovering] = useState(false)
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -41,9 +39,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
 
     const productImages = product.images || [product.image]
     const selectedShade =
-        product.colorShades?.find((shade) => shade.id === selectedShadeId) ||
-        product.colorShades?.[0] ||
-        null
+        product.colorShades?.find((shade) => shade.id === selectedShadeId) || null
     const selectedShadePriceInfo = selectedShade
         ? resolveDisplayPrice(
             {
@@ -63,6 +59,17 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     const currentPriceCurrency = isEconomicalSet && product.economicalOption
         ? (product.currency || "USD")
         : (selectedShadePriceInfo?.fromCurrency ?? displayBasePrice.fromCurrency)
+    const currentTotalPrice = currentPrice * quantity
+    const originalTotalPrice =
+        !isEconomicalSet &&
+        typeof product.originalPrice === "number" &&
+        product.originalPrice > currentPrice
+            ? product.originalPrice * quantity
+            : null
+    const discountPercent =
+        typeof originalTotalPrice === "number" && originalTotalPrice > currentTotalPrice
+            ? Math.round(((originalTotalPrice - currentTotalPrice) / originalTotalPrice) * 100)
+            : null
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
@@ -72,6 +79,11 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     }
 
     const handleAddToCart = () => {
+        if (!isEconomicalSet && product.colorShades && product.colorShades.length > 0 && !selectedShade) {
+            toast.error(`There are ${product.colorShades.length} shades available. Which shade would you like to order?`)
+            return
+        }
+
         // Prepare the item to add
         const itemToAdd = isEconomicalSet && product.economicalOption
             ? {
@@ -163,16 +175,19 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                         </div>
 
                         <div className="text-2xl font-bold text-primary mb-6 flex items-baseline gap-2">
-                            <span>{formatDisplayAmount(currentPrice, currentPriceCurrency, displayCurrency, locale)}</span>
-                            {product.originalPrice && !isEconomicalSet && (
+                            <span>{formatDisplayAmount(currentTotalPrice, currentPriceCurrency, displayCurrency, locale)}</span>
+                            {originalTotalPrice && (
                                 <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
                                     {formatDisplayAmount(
-                                        product.originalPrice,
+                                        originalTotalPrice,
                                         originalPriceInfo?.fromCurrency || product.currency || "USD",
                                         displayCurrency,
                                         locale
                                     )}
                                 </span>
+                            )}
+                            {discountPercent !== null && (
+                                <span className="text-xs font-bold text-red-600">-{discountPercent}%</span>
                             )}
                         </div>
 
@@ -189,6 +204,9 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                             <div className="mb-6 rounded-lg border border-border p-3">
                                 <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
                                     Color / Shade
+                                </p>
+                                <p className={`mb-2 text-xs ${selectedShade ? "text-muted-foreground" : "text-amber-700"}`}>
+                                    There are {product.colorShades.length} shades available. Which shade would you like to order?
                                 </p>
                                 <div className="flex flex-wrap gap-2">
                                     {product.colorShades.map((shade) => {
@@ -256,6 +274,11 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
 
                         <div className="mt-auto pt-6 border-t">
                             <div className="space-y-2">
+                                {product.colorShades && product.colorShades.length > 0 && !selectedShade && !isEconomicalSet && (
+                                    <p className="text-xs font-medium text-amber-700">
+                                        Please choose a shade before adding to cart.
+                                    </p>
+                                )}
                                 <div className="flex items-center gap-2">
                                     <div className="flex h-12 items-center rounded-md border border-input bg-background px-2">
                                         <button
@@ -280,6 +303,12 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                         size="lg"
                                         className="flex-1 text-lg h-12 gap-2 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
                                         onClick={handleAddToCart}
+                                        disabled={Boolean(
+                                            !isEconomicalSet &&
+                                            product.colorShades &&
+                                            product.colorShades.length > 0 &&
+                                            !selectedShade
+                                        )}
                                     >
                                         <ShoppingBag className="w-5 h-5" />
                                         {t('addToCart')}

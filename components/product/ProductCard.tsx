@@ -26,6 +26,22 @@ export function ProductCard({ product }: { product: Product }) {
     const originalPriceInfo = resolveDisplayOriginalPrice(product, displayCurrency)
     const totalPrice = displayBasePrice.amount * quantity
     const totalOriginalPrice = originalPriceInfo ? originalPriceInfo.amount * quantity : null
+    const discountPercent =
+        typeof totalOriginalPrice === "number" && totalOriginalPrice > totalPrice
+            ? Math.round(((totalOriginalPrice - totalPrice) / totalOriginalPrice) * 100)
+            : null
+    const saleEndDay =
+        product.sourceSaleEnd?.trim()
+            ? new Date(`${product.sourceSaleEnd}T00:00:00`).toLocaleDateString(locale, {
+                month: "short",
+                day: "numeric",
+            })
+            : product.saleEndsAt
+                ? new Date(product.saleEndsAt).toLocaleDateString(locale, {
+                    month: "short",
+                    day: "numeric",
+                })
+                : null
 
     const handleAddToCart = () => {
         if (product.colorShades && product.colorShades.length > 0) {
@@ -123,6 +139,12 @@ export function ProductCard({ product }: { product: Product }) {
                     <p className="text-primary font-bold text-lg">
                         {formatDisplayAmount(totalPrice, displayBasePrice.fromCurrency, displayCurrency, locale)}
                     </p>
+                    {discountPercent !== null && (
+                        <span className="text-xs font-bold text-red-600">-{discountPercent}%</span>
+                    )}
+                    {saleEndDay && (
+                        <span className="text-xs font-bold text-red-600">Ends {saleEndDay}</span>
+                    )}
                 </div>
                 {product.colorShades && product.colorShades.length > 0 && (
                     <p className="text-xs text-primary font-semibold">

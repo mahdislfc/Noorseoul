@@ -12,6 +12,7 @@ import { clearRewardPointsCacheOnce, pointsFromOrderTotal } from "@/lib/reward-p
 import { getShippingCostForSubtotal } from "@/lib/shipping"
 import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
 import { formatDisplayAmount } from "@/lib/display-currency"
+import { Link } from "@/i18n/routing"
 
 import { useLocale, useTranslations } from 'next-intl';
 
@@ -21,7 +22,7 @@ export default function CheckoutPage() {
     const isRtl = locale === 'ar' || locale === "fa";
     const { currency: displayCurrency } = useDisplayCurrency()
     const { items, totalPrice, clearCart, addToCart, removeFromCart } = useCart()
-    const { user, orders } = useUser()
+    const { user, orders, isLoading } = useUser()
     const [activeStep, setActiveStep] = useState(1)
     const [email, setEmail] = useState("")
     const [firstName, setFirstName] = useState("")
@@ -465,6 +466,38 @@ export default function CheckoutPage() {
         } finally {
             setPlacingOrder(false)
         }
+    }
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <p className="text-sm text-muted-foreground">Loading checkout...</p>
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen flex flex-col bg-background">
+                <main className="flex-1 flex items-center justify-center px-6">
+                    <div className="w-full max-w-lg rounded-xl border border-border bg-white p-8 text-center">
+                        <h1 className="text-2xl font-serif font-bold">Register Required</h1>
+                        <p className="mt-3 text-sm text-muted-foreground">
+                            Please register first to see your cart and continue to checkout.
+                        </p>
+                        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                            <Link href="/register">
+                                <Button>Register</Button>
+                            </Link>
+                            <Link href="/login">
+                                <Button variant="outline">Sign in</Button>
+                            </Link>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        )
     }
 
     return (

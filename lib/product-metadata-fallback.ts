@@ -4,6 +4,7 @@ import path from "path";
 const STORE_PATH = path.join(process.cwd(), "temp", "product-metadata.json");
 
 export interface ProductMetadata {
+  koreanName?: string;
   descriptionAr?: string;
   descriptionFa?: string;
   priceAed?: number;
@@ -17,6 +18,46 @@ export interface ProductMetadata {
   sourceUrl?: string;
   sourcePriceCurrency?: string;
   saleEndsAt?: string;
+  saleLabel?: string;
+  promoBadgeText?: string;
+  promoTooltipText?: string;
+  promoPriority?: string;
+  promoLastChecked?: string;
+  miniCalendar?: {
+    type?: string;
+    timezone?: string;
+    start_date?: string;
+    days?: Array<{
+      date?: string;
+      price?: number;
+      state?: string;
+      label?: string;
+    }>;
+    calendar_end_unknown?: boolean;
+    calendar_header?: string;
+    calendar_subheader?: string;
+    days_left?: number | null;
+  };
+  extractedRegularPriceText?: string;
+  extractedSaleText?: string;
+  extractedBestDealText?: string;
+  sourceRegularPrice?: number;
+  sourceCurrentPrice?: number;
+  sourceCurrency?: string;
+  sourceSaleStart?: string;
+  sourceSaleEnd?: string;
+  sourceSaleTimezone?: string;
+  sourceDiscountAmount?: number;
+  sourceDiscountPercent?: number;
+  syncStatus?: string;
+  syncNotes?: string;
+  markupMode?: string;
+  markupPercent?: number;
+  markupFixed?: number;
+  roundingRule?: string;
+  allowedVariancePercent?: number;
+  variantSelectorType?: string;
+  variantSelectorMatchText?: string;
   sourceLastSyncedAt?: string;
   sourceSyncError?: string;
   bundleLabel?: string;
@@ -70,11 +111,11 @@ function normalizeColorShades(value?: ProductMetadata["colorShades"]) {
         typeof priceAedRaw === "number" && priceAedRaw > 0 ? priceAedRaw : undefined;
       const priceT =
         typeof priceTRaw === "number" && priceTRaw > 0 ? priceTRaw : undefined;
-      if (!name || typeof price !== "number") return null;
+      if (!name) return null;
       return {
         id,
         name,
-        price,
+        ...(typeof price === "number" ? { price } : {}),
         ...(typeof priceAed === "number" ? { priceAed } : {}),
         ...(typeof priceT === "number" ? { priceT } : {}),
       };
@@ -82,7 +123,49 @@ function normalizeColorShades(value?: ProductMetadata["colorShades"]) {
     .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
 }
 
+function normalizeMiniCalendar(value?: ProductMetadata["miniCalendar"]) {
+  if (!value || typeof value !== "object") return undefined;
+  const days = Array.isArray(value.days)
+    ? value.days
+        .map((entry) => {
+          if (!entry || typeof entry !== "object") return null;
+          const date = sanitize(entry.date);
+          const state = sanitize(entry.state);
+          const label = sanitize(entry.label);
+          const priceRaw = sanitizeNumber(entry.price);
+          if (!date || typeof priceRaw !== "number" || priceRaw <= 0) return null;
+          return {
+            date,
+            price: priceRaw,
+            state: state || "regular",
+            label: label || "",
+          };
+        })
+        .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
+    : [];
+  const type = sanitize(value.type);
+  const timezone = sanitize(value.timezone);
+  const startDate = sanitize(value.start_date);
+  const calendarHeader = sanitize(value.calendar_header);
+  const calendarSubheader = sanitize(value.calendar_subheader);
+  const daysLeftRaw = sanitizeNumber(
+    typeof value.days_left === "number" ? value.days_left : undefined
+  );
+  const daysLeft = typeof daysLeftRaw === "number" ? Math.max(0, Math.floor(daysLeftRaw)) : undefined;
+  return {
+    type: type || "mini_price_calendar",
+    timezone: timezone || undefined,
+    start_date: startDate || undefined,
+    days: days.length > 0 ? days : undefined,
+    calendar_end_unknown: Boolean(value.calendar_end_unknown),
+    calendar_header: calendarHeader || undefined,
+    calendar_subheader: calendarSubheader || undefined,
+    days_left: typeof daysLeft === "number" ? daysLeft : null,
+  };
+}
+
 function normalizeMetadata(input: ProductMetadata): ProductMetadata {
+  const koreanName = sanitize(input.koreanName);
   const descriptionAr = sanitize(input.descriptionAr);
   const descriptionFa = sanitize(input.descriptionFa);
   const priceAedRaw = sanitizeNumber(input.priceAed);
@@ -108,6 +191,32 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
   const sourceUrl = sanitize(input.sourceUrl);
   const sourcePriceCurrency = sanitize(input.sourcePriceCurrency).toUpperCase();
   const saleEndsAt = sanitize(input.saleEndsAt);
+  const saleLabel = sanitize(input.saleLabel);
+  const promoBadgeText = sanitize(input.promoBadgeText);
+  const promoTooltipText = sanitize(input.promoTooltipText);
+  const promoPriority = sanitize(input.promoPriority).toLowerCase();
+  const promoLastChecked = sanitize(input.promoLastChecked);
+  const miniCalendar = normalizeMiniCalendar(input.miniCalendar);
+  const extractedRegularPriceText = sanitize(input.extractedRegularPriceText);
+  const extractedSaleText = sanitize(input.extractedSaleText);
+  const extractedBestDealText = sanitize(input.extractedBestDealText);
+  const sourceRegularPriceRaw = sanitizeNumber(input.sourceRegularPrice);
+  const sourceCurrentPriceRaw = sanitizeNumber(input.sourceCurrentPrice);
+  const sourceCurrency = sanitize(input.sourceCurrency).toUpperCase();
+  const sourceSaleStart = sanitize(input.sourceSaleStart);
+  const sourceSaleEnd = sanitize(input.sourceSaleEnd);
+  const sourceSaleTimezone = sanitize(input.sourceSaleTimezone).toUpperCase();
+  const sourceDiscountAmountRaw = sanitizeNumber(input.sourceDiscountAmount);
+  const sourceDiscountPercentRaw = sanitizeNumber(input.sourceDiscountPercent);
+  const syncStatus = sanitize(input.syncStatus).toLowerCase();
+  const syncNotes = sanitize(input.syncNotes);
+  const markupMode = sanitize(input.markupMode).toLowerCase();
+  const markupPercentRaw = sanitizeNumber(input.markupPercent);
+  const markupFixedRaw = sanitizeNumber(input.markupFixed);
+  const roundingRule = sanitize(input.roundingRule).toLowerCase();
+  const allowedVariancePercentRaw = sanitizeNumber(input.allowedVariancePercent);
+  const variantSelectorType = sanitize(input.variantSelectorType).toLowerCase();
+  const variantSelectorMatchText = sanitize(input.variantSelectorMatchText);
   const sourceLastSyncedAt = sanitize(input.sourceLastSyncedAt);
   const sourceSyncError = sanitize(input.sourceSyncError);
   const bundleLabel = sanitize(input.bundleLabel);
@@ -125,6 +234,7 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
   const colorShades = normalizeColorShades(input.colorShades);
 
   return {
+    koreanName: koreanName || undefined,
     descriptionAr: descriptionAr || undefined,
     descriptionFa: descriptionFa || undefined,
     priceAed,
@@ -138,6 +248,53 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
     sourceUrl: sourceUrl || undefined,
     sourcePriceCurrency: sourcePriceCurrency || undefined,
     saleEndsAt: saleEndsAt || undefined,
+    saleLabel: saleLabel || undefined,
+    promoBadgeText: promoBadgeText || undefined,
+    promoTooltipText: promoTooltipText || undefined,
+    promoPriority: promoPriority || undefined,
+    promoLastChecked: promoLastChecked || undefined,
+    miniCalendar,
+    extractedRegularPriceText: extractedRegularPriceText || undefined,
+    extractedSaleText: extractedSaleText || undefined,
+    extractedBestDealText: extractedBestDealText || undefined,
+    sourceRegularPrice:
+      typeof sourceRegularPriceRaw === "number" && sourceRegularPriceRaw > 0
+        ? sourceRegularPriceRaw
+        : undefined,
+    sourceCurrentPrice:
+      typeof sourceCurrentPriceRaw === "number" && sourceCurrentPriceRaw > 0
+        ? sourceCurrentPriceRaw
+        : undefined,
+    sourceCurrency: sourceCurrency || undefined,
+    sourceSaleStart: sourceSaleStart || undefined,
+    sourceSaleEnd: sourceSaleEnd || undefined,
+    sourceSaleTimezone: sourceSaleTimezone || undefined,
+    sourceDiscountAmount:
+      typeof sourceDiscountAmountRaw === "number" && sourceDiscountAmountRaw > 0
+        ? sourceDiscountAmountRaw
+        : undefined,
+    sourceDiscountPercent:
+      typeof sourceDiscountPercentRaw === "number" && sourceDiscountPercentRaw > 0
+        ? sourceDiscountPercentRaw
+        : undefined,
+    syncStatus: syncStatus || undefined,
+    syncNotes: syncNotes || undefined,
+    markupMode: markupMode || undefined,
+    markupPercent:
+      typeof markupPercentRaw === "number" && markupPercentRaw >= 0
+        ? markupPercentRaw
+        : undefined,
+    markupFixed:
+      typeof markupFixedRaw === "number" && markupFixedRaw >= 0
+        ? markupFixedRaw
+        : undefined,
+    roundingRule: roundingRule || undefined,
+    allowedVariancePercent:
+      typeof allowedVariancePercentRaw === "number" && allowedVariancePercentRaw >= 0
+        ? allowedVariancePercentRaw
+        : undefined,
+    variantSelectorType: variantSelectorType || undefined,
+    variantSelectorMatchText: variantSelectorMatchText || undefined,
     sourceLastSyncedAt: sourceLastSyncedAt || undefined,
     sourceSyncError: sourceSyncError || undefined,
     bundleLabel: bundleLabel || undefined,
@@ -187,7 +344,8 @@ export async function setFallbackMetadata(productId: string, metadata: ProductMe
   const store = await readStore();
   const normalized = normalizeMetadata(metadata);
   const hasAnyValue = Boolean(
-    normalized.descriptionAr ||
+    normalized.koreanName ||
+      normalized.descriptionAr ||
       normalized.descriptionFa ||
       (typeof normalized.priceAed === "number" && normalized.priceAed > 0) ||
       (typeof normalized.priceT === "number" && normalized.priceT > 0) ||
@@ -202,6 +360,39 @@ export async function setFallbackMetadata(productId: string, metadata: ProductMe
       normalized.sourceUrl ||
       normalized.sourcePriceCurrency ||
       normalized.saleEndsAt ||
+      normalized.saleLabel ||
+      normalized.promoBadgeText ||
+      normalized.promoTooltipText ||
+      normalized.promoPriority ||
+      normalized.promoLastChecked ||
+      normalized.miniCalendar ||
+      normalized.extractedRegularPriceText ||
+      normalized.extractedSaleText ||
+      normalized.extractedBestDealText ||
+      (typeof normalized.sourceRegularPrice === "number" &&
+        normalized.sourceRegularPrice > 0) ||
+      (typeof normalized.sourceCurrentPrice === "number" &&
+        normalized.sourceCurrentPrice > 0) ||
+      normalized.sourceCurrency ||
+      normalized.sourceSaleStart ||
+      normalized.sourceSaleEnd ||
+      normalized.sourceSaleTimezone ||
+      (typeof normalized.sourceDiscountAmount === "number" &&
+        normalized.sourceDiscountAmount > 0) ||
+      (typeof normalized.sourceDiscountPercent === "number" &&
+        normalized.sourceDiscountPercent > 0) ||
+      normalized.syncStatus ||
+      normalized.syncNotes ||
+      normalized.markupMode ||
+      (typeof normalized.markupPercent === "number" &&
+        normalized.markupPercent >= 0) ||
+      (typeof normalized.markupFixed === "number" &&
+        normalized.markupFixed >= 0) ||
+      normalized.roundingRule ||
+      (typeof normalized.allowedVariancePercent === "number" &&
+        normalized.allowedVariancePercent >= 0) ||
+      normalized.variantSelectorType ||
+      normalized.variantSelectorMatchText ||
       normalized.sourceLastSyncedAt ||
       normalized.sourceSyncError ||
       normalized.bundleLabel ||

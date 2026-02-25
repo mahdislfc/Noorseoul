@@ -56,6 +56,8 @@ function toProductModel(product: Record<string, unknown>): Product {
     typeof product.economicalOptionName === "string"
       ? product.economicalOptionName.trim()
       : "";
+  const bundleLabel =
+    typeof product.bundleLabel === "string" ? product.bundleLabel.trim() : "";
   const economicalOptionPrice =
     typeof product.economicalOptionPrice === "number" &&
     Number.isFinite(product.economicalOptionPrice) &&
@@ -68,6 +70,12 @@ function toProductModel(product: Record<string, unknown>): Product {
     product.economicalOptionQuantity > 1
       ? product.economicalOptionQuantity
       : undefined;
+  const fallbackEconomicalName =
+    economicalOptionName ||
+    bundleLabel ||
+    (typeof economicalOptionPrice === "number"
+      ? `Buy ${economicalOptionQuantity || 2} for $${economicalOptionPrice.toFixed(2)}`
+      : "");
   const colorShades = Array.isArray(product.colorShades)
     ? product.colorShades
         .map((shade, index) => {
@@ -96,13 +104,36 @@ function toProductModel(product: Record<string, unknown>): Product {
             Number.isFinite(shade.priceT)
               ? shade.priceT
               : null;
-          if (!shadeName || typeof shadePrice !== "number" || shadePrice <= 0) return null;
+          if (!shadeName) return null;
+          const fallbackBasePrice =
+            typeof product.price === "number" && Number.isFinite(product.price) && product.price > 0
+              ? product.price
+              : null;
+          const fallbackBasePriceAed =
+            typeof product.priceAed === "number" && Number.isFinite(product.priceAed) && product.priceAed > 0
+              ? product.priceAed
+              : null;
+          const fallbackBasePriceT =
+            typeof product.priceT === "number" && Number.isFinite(product.priceT) && product.priceT > 0
+              ? product.priceT
+              : null;
+          const finalShadePrice =
+            typeof shadePrice === "number" && shadePrice > 0
+              ? shadePrice
+              : fallbackBasePrice;
+          if (typeof finalShadePrice !== "number" || finalShadePrice <= 0) return null;
           return {
             id: shadeId,
             name: shadeName,
-            price: shadePrice,
-            priceAed: shadePriceAed,
-            priceT: shadePriceT,
+            price: finalShadePrice,
+            priceAed:
+              typeof shadePriceAed === "number" && shadePriceAed > 0
+                ? shadePriceAed
+                : fallbackBasePriceAed,
+            priceT:
+              typeof shadePriceT === "number" && shadePriceT > 0
+                ? shadePriceT
+                : fallbackBasePriceT,
           };
         })
         .filter(
@@ -180,14 +211,73 @@ function toProductModel(product: Record<string, unknown>): Product {
         : null,
     saleEndsAt:
       typeof product.saleEndsAt === "string" ? product.saleEndsAt : null,
+    saleLabel:
+      typeof product.saleLabel === "string" ? product.saleLabel : null,
+    promoBadgeText:
+      typeof product.promoBadgeText === "string" ? product.promoBadgeText : null,
+    promoTooltipText:
+      typeof product.promoTooltipText === "string" ? product.promoTooltipText : null,
+    promoPriority:
+      product.promoPriority === "high" || product.promoPriority === "none"
+        ? product.promoPriority
+        : null,
+    promoLastChecked:
+      typeof product.promoLastChecked === "string" ? product.promoLastChecked : null,
+    miniCalendar:
+      product.miniCalendar && typeof product.miniCalendar === "object"
+        ? (product.miniCalendar as Product["miniCalendar"])
+        : null,
+    extractedRegularPriceText:
+      typeof product.extractedRegularPriceText === "string"
+        ? product.extractedRegularPriceText
+        : null,
+    extractedSaleText:
+      typeof product.extractedSaleText === "string" ? product.extractedSaleText : null,
+    extractedBestDealText:
+      typeof product.extractedBestDealText === "string"
+        ? product.extractedBestDealText
+        : null,
+    sourceRegularPrice:
+      typeof product.sourceRegularPrice === "number" &&
+      Number.isFinite(product.sourceRegularPrice)
+        ? product.sourceRegularPrice
+        : null,
+    sourceCurrentPrice:
+      typeof product.sourceCurrentPrice === "number" &&
+      Number.isFinite(product.sourceCurrentPrice)
+        ? product.sourceCurrentPrice
+        : null,
+    sourceCurrency:
+      typeof product.sourceCurrency === "string" ? product.sourceCurrency : null,
+    sourceSaleStart:
+      typeof product.sourceSaleStart === "string" ? product.sourceSaleStart : null,
+    sourceSaleEnd:
+      typeof product.sourceSaleEnd === "string" ? product.sourceSaleEnd : null,
+    sourceSaleTimezone:
+      typeof product.sourceSaleTimezone === "string" ? product.sourceSaleTimezone : null,
+    sourceDiscountAmount:
+      typeof product.sourceDiscountAmount === "number" &&
+      Number.isFinite(product.sourceDiscountAmount)
+        ? product.sourceDiscountAmount
+        : null,
+    sourceDiscountPercent:
+      typeof product.sourceDiscountPercent === "number" &&
+      Number.isFinite(product.sourceDiscountPercent)
+        ? product.sourceDiscountPercent
+        : null,
+    syncStatus:
+      product.syncStatus === "ok" ||
+      product.syncStatus === "warning" ||
+      product.syncStatus === "failed"
+        ? product.syncStatus
+        : null,
     sourceLastSyncedAt:
       typeof product.sourceLastSyncedAt === "string"
         ? product.sourceLastSyncedAt
         : null,
     sourceSyncError:
       typeof product.sourceSyncError === "string" ? product.sourceSyncError : null,
-    bundleLabel:
-      typeof product.bundleLabel === "string" ? product.bundleLabel : null,
+    bundleLabel: bundleLabel || null,
     bundleProductId:
       typeof product.bundleProductId === "string" ? product.bundleProductId : null,
     similarProductIds: Array.isArray(product.similarProductIds)
@@ -197,9 +287,9 @@ function toProductModel(product: Record<string, unknown>): Product {
           .filter(Boolean)
       : [],
     economicalOption:
-      economicalOptionName && typeof economicalOptionPrice === "number"
+      fallbackEconomicalName && typeof economicalOptionPrice === "number"
         ? {
-            name: economicalOptionName,
+            name: fallbackEconomicalName,
             price: economicalOptionPrice,
             quantity: economicalOptionQuantity,
           }

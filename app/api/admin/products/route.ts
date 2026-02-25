@@ -17,6 +17,7 @@ import {
   getFallbackMetadataMap,
   setFallbackMetadata,
 } from "@/lib/product-metadata-fallback";
+import { syncProductPricesFromSourceUrls } from "@/lib/source-price-sync";
 
 export const runtime = "nodejs";
 
@@ -89,11 +90,13 @@ function parseColorShades(value: FormDataEntryValue | null) {
           typeof record.priceT === "number"
             ? record.priceT
             : Number(record.priceT || 0);
-        if (!name || !Number.isFinite(price) || price <= 0) return null;
+        if (!name) return null;
+        const normalizedPrice =
+          Number.isFinite(price) && price > 0 ? price : undefined;
         return {
           id,
           name,
-          price,
+          ...(typeof normalizedPrice === "number" ? { price: normalizedPrice } : {}),
           ...(Number.isFinite(priceAed) && priceAed > 0 ? { priceAed } : {}),
           ...(Number.isFinite(priceT) && priceT > 0 ? { priceT } : {}),
         };
@@ -111,6 +114,10 @@ function buildEconomicalOption(
     typeof metadata?.economicalOptionName === "string"
       ? metadata.economicalOptionName.trim()
       : "";
+  const bundleLabel =
+    typeof metadata?.bundleLabel === "string"
+      ? metadata.bundleLabel.trim()
+      : "";
   const price =
     typeof metadata?.economicalOptionPrice === "number" &&
     Number.isFinite(metadata.economicalOptionPrice) &&
@@ -123,9 +130,15 @@ function buildEconomicalOption(
     metadata.economicalOptionQuantity > 1
       ? metadata.economicalOptionQuantity
       : undefined;
+  const fallbackName =
+    name ||
+    bundleLabel ||
+    (typeof price === "number"
+      ? `Buy ${quantity || 2} for $${price.toFixed(2)}`
+      : "");
 
-  if (!name || typeof price !== "number") return undefined;
-  return { name, price, quantity };
+  if (!fallbackName || typeof price !== "number") return undefined;
+  return { name: fallbackName, price, quantity };
 }
 
 async function saveImage(file: File) {
@@ -193,6 +206,7 @@ export async function POST(request: Request) {
   const formData = await request.formData();
 
   const name = String(formData.get("name") || "").trim();
+  const koreanName = String(formData.get("koreanName") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const descriptionAr = String(formData.get("descriptionAr") || "").trim();
   const descriptionFa = String(formData.get("descriptionFa") || "").trim();
@@ -206,7 +220,9 @@ export async function POST(request: Request) {
     ? Number(originalPriceAedRaw)
     : undefined;
   const originalPriceT = originalPriceTRaw ? Number(originalPriceTRaw) : undefined;
-  const price = Number(formData.get("price") || 0);
+  const priceRaw = String(formData.get("price") || "").trim();
+  const hasManualPrice = priceRaw.length > 0;
+  const parsedPrice = hasManualPrice ? Number(priceRaw) : 0;
   const originalPriceRaw = formData.get("originalPrice");
   const currency = String(formData.get("currency") || "USD").trim() || "USD";
   const brand = normalizeBrandInput(String(formData.get("brand") || ""));
@@ -248,8 +264,17 @@ export async function POST(request: Request) {
     .getAll("images")
     .filter((entry): entry is File => entry instanceof File && entry.size > 0);
 
-  if (!name || !price || !brand || !category || !department) {
+  if (!name || !brand || !category || !department) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+  if (hasManualPrice && (!Number.isFinite(parsedPrice) || parsedPrice <= 0)) {
+    return NextResponse.json({ error: "Price must be greater than 0" }, { status: 400 });
+  }
+  if (!hasManualPrice && !sourceUrl) {
+    return NextResponse.json(
+      { error: "Provide a price or a source URL to auto-sync price." },
+      { status: 400 }
+    );
   }
 
   if (imageFiles.length === 0) {
@@ -274,7 +299,7 @@ export async function POST(request: Request) {
     data: {
       name,
       description: description || null,
-      price,
+      price: hasManualPrice ? parsedPrice : 1,
       originalPrice,
       currency,
       brand,
@@ -304,6 +329,7 @@ export async function POST(request: Request) {
     await setFallbackGallery(product.id, uploadedImages);
   }
   await setFallbackMetadata(product.id, {
+    koreanName,
     descriptionAr,
     descriptionFa,
     priceAed,
@@ -323,6 +349,10 @@ export async function POST(request: Request) {
     economicalOptionQuantity,
     colorShades,
   });
+
+  if (!hasManualPrice && sourceUrl) {
+    await syncProductPricesFromSourceUrls({ productId: product.id });
+  }
 
   return NextResponse.json({ product }, { status: 201 });
 }

@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useCart } from "@/context/CartContext"
-import { Minus, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight, CircleHelp, Minus, Plus } from "lucide-react"
 import { useRouter } from "@/i18n/routing"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
@@ -16,6 +17,7 @@ interface ProductInfoProps {
     product: {
         id: string
         name: string
+        brand: string
         price: number
         oldPrice?: number
         currency?: string
@@ -24,6 +26,26 @@ interface ProductInfoProps {
         oldPriceAed?: number | null
         oldPriceT?: number | null
         saleEndsAt?: string | null
+        saleLabel?: string | null
+        promoBadgeText?: string | null
+        promoTooltipText?: string | null
+        miniCalendar?: {
+            type: "mini_price_calendar"
+            timezone: string
+            start_date: string
+            days: Array<{
+                date: string
+                price: number
+                state: "sale" | "regular" | "sale_start" | "sale_end"
+                label: "Sale" | "Ends" | ""
+            }>
+            calendar_end_unknown: boolean
+            calendar_header: string
+            calendar_subheader: string
+            days_left: number | null
+        } | null
+        sourceSaleStart?: string | null
+        sourceSaleEnd?: string | null
         description?: string
         ingredients?: string
         skinType?: string
@@ -65,6 +87,8 @@ export function ProductInfo({ product }: ProductInfoProps) {
     const [bundleQuantity, setBundleQuantity] = useState(1)
     const [showAllDescription, setShowAllDescription] = useState(false)
     const [showAllIngredients, setShowAllIngredients] = useState(false)
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+    const [calendarMonthIndex, setCalendarMonthIndex] = useState(0)
     const [selectedShadeId, setSelectedShadeId] = useState(
         product.colorShades && product.colorShades.length > 0 ? product.colorShades[0].id : ""
     )
@@ -104,6 +128,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
     const activeUnitPriceInfo = selectedShadePriceInfo || displayBasePrice
     const totalPrice = activeUnitPriceInfo.amount * quantity
     const totalOldPrice = selectedShade ? null : (originalPriceInfo ? originalPriceInfo.amount * quantity : null)
+    const totalDiscountPercent =
+        typeof totalOldPrice === "number" && totalOldPrice > totalPrice
+            ? Math.round(((totalOldPrice - totalPrice) / totalOldPrice) * 100)
+            : null
     const descriptionText = (product.description || "").trim()
     const hasMoreDescription = descriptionText.split(/\r?\n/).length > 9 || descriptionText.length > 420
     const ingredientLines = (product.ingredients || "")
@@ -119,6 +147,82 @@ export function ProductInfo({ product }: ProductInfoProps) {
             product.economicalOption.quantity > 1
             ? product.economicalOption.quantity
             : 1
+    const saleStartDate = product.sourceSaleStart?.trim() || null
+    const saleEndDate = product.sourceSaleEnd?.trim() || null
+    const saleBadgeText =
+        product.saleLabel?.trim() ||
+        (product.saleEndsAt
+            ? `Sale ends: ${new Date(product.saleEndsAt).toLocaleDateString(locale)}`
+            : (product.promoBadgeText?.trim() || ""))
+    const hasMiniCalendar = Boolean(product.miniCalendar)
+    const now = new Date()
+    const todayYear = now.getFullYear()
+    const todayMonth = now.getMonth() + 1
+    const todayDay = now.getDate()
+    const monthWindow = Array.from({ length: 2 }, (_, index) => {
+        const date = new Date(todayYear, now.getMonth() + index, 1)
+        return { year: date.getFullYear(), month: date.getMonth() + 1 }
+    })
+    const viewedMonth = monthWindow[calendarMonthIndex] || monthWindow[0]
+    const viewedYear = viewedMonth.year
+    const viewedMonthNumber = viewedMonth.month
+    const daysInMonth = new Date(viewedYear, viewedMonthNumber, 0).getDate()
+    const firstWeekday = new Date(viewedYear, viewedMonthNumber - 1, 1).getDay()
+    const monthName = new Date(viewedYear, viewedMonthNumber - 1, 1).toLocaleDateString(locale, {
+        month: "long",
+    })
+    const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    const unitCurrentPrice = activeUnitPriceInfo.amount
+    const unitRegularPrice = originalPriceInfo?.amount ?? null
+    const saleDiscountPercent =
+        unitRegularPrice && unitRegularPrice > unitCurrentPrice
+            ? Math.round(((unitRegularPrice - unitCurrentPrice) / unitRegularPrice) * 100)
+            : null
+    const saleStartText = saleStartDate
+        ? new Date(`${saleStartDate}T00:00:00`).toLocaleDateString(locale, {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+        })
+        : "N/A"
+    const saleEndDayOnlyText = saleEndDate
+        ? new Date(`${saleEndDate}T00:00:00`).toLocaleDateString(locale, {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+        })
+        : "N/A"
+    const saleDaySet = new Set<string>()
+    let saleEndDayKey: string | null = saleEndDate || null
+    const formatDateKey = (year: number, month: number, day: number) =>
+        `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+    if (saleStartDate && saleEndDate) {
+        const start = new Date(`${saleStartDate}T00:00:00Z`)
+        const end = new Date(`${saleEndDate}T00:00:00Z`)
+        for (let cursor = new Date(start); cursor.getTime() <= end.getTime(); cursor.setUTCDate(cursor.getUTCDate() + 1)) {
+            const y = cursor.getUTCFullYear()
+            const m = cursor.getUTCMonth() + 1
+            const d = cursor.getUTCDate()
+            saleDaySet.add(formatDateKey(y, m, d))
+        }
+    } else if (Array.isArray(product.miniCalendar?.days)) {
+        product.miniCalendar.days.forEach((entry) => {
+            if (entry.state === "regular") return
+            const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(entry.date || "")
+            if (!match) return
+            const y = Number(match[1])
+            const m = Number(match[2])
+            const d = Number(match[3])
+            const key = formatDateKey(y, m, d)
+            saleDaySet.add(key)
+            if (entry.state === "sale_end") {
+                saleEndDayKey = key
+            }
+        })
+    }
+    const viewedMonthHasSale = Array.from({ length: daysInMonth }, (_, index) =>
+        saleDaySet.has(formatDateKey(viewedYear, viewedMonthNumber, index + 1))
+    ).some(Boolean)
 
     const handleAddToCart = () => {
         const cartItemId = selectedShade
@@ -188,7 +292,18 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
     return (
         <div className="flex flex-col">
-            <h1 className="text-4xl lg:text-5xl font-serif font-extrabold leading-tight mb-4 tracking-tight">{product.name}</h1>
+            <div className="mb-4 flex flex-wrap items-end gap-2">
+                <h1 className="text-4xl lg:text-5xl font-serif font-extrabold leading-tight tracking-tight">{product.name}</h1>
+                {product.brand?.trim() && (
+                    <button
+                        type="button"
+                        onClick={() => router.push(`/brands/${encodeURIComponent(product.brand)}`)}
+                        className="rounded-md border border-border px-2 py-1 text-sm font-semibold text-primary hover:bg-primary/5"
+                    >
+                        {product.brand}
+                    </button>
+                )}
+            </div>
 
             <div className="flex flex-wrap items-end gap-4 mb-8">
                 <div className="flex items-baseline gap-4">
@@ -205,39 +320,131 @@ export function ProductInfo({ product }: ProductInfoProps) {
                             )}
                         </span>
                     )}
+                    {totalDiscountPercent !== null && (
+                        <span className="text-sm font-bold text-red-600">-{totalDiscountPercent}%</span>
+                    )}
                 </div>
                 {selectedShade && (
                     <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary">
                         Shade price: {formatDisplayAmount(activeUnitPriceInfo.amount, activeUnitPriceInfo.fromCurrency, displayCurrency, locale)}
                     </div>
                 )}
-                {product.saleEndsAt && (
-                    <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-                        Sale ends: {new Date(product.saleEndsAt).toLocaleDateString()}
+                {saleBadgeText && (
+                    <div className="flex items-center gap-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                        <span title={product.promoTooltipText || undefined}>{saleBadgeText}</span>
+                        {hasMiniCalendar && (
+                            <Dialog
+                                open={isCalendarOpen}
+                                onOpenChange={(open) => {
+                                    setIsCalendarOpen(open)
+                                    if (open) setCalendarMonthIndex(0)
+                                }}
+                            >
+                                <DialogTrigger asChild>
+                                    <button
+                                        type="button"
+                                        aria-label="Open sale calendar"
+                                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-red-400 text-red-600 transition-colors hover:bg-red-100"
+                                    >
+                                        <CircleHelp className="h-3.5 w-3.5" />
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent className="w-[340px] p-4 sm:max-w-[340px]" showCloseButton={false}>
+                                    <DialogHeader>
+                                        <div className="flex items-center justify-between">
+                                            <button
+                                                type="button"
+                                                onClick={() => setCalendarMonthIndex((current) => Math.max(0, current - 1))}
+                                                disabled={calendarMonthIndex === 0}
+                                                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-black transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                                                aria-label="Previous month"
+                                            >
+                                                <ChevronLeft className="h-4 w-4" />
+                                            </button>
+                                            <DialogTitle className="text-center text-3xl font-black capitalize">
+                                                {monthName}
+                                                <span className="ml-2 text-sm font-semibold text-black/60">{viewedYear}</span>
+                                            </DialogTitle>
+                                            <button
+                                                type="button"
+                                                onClick={() => setCalendarMonthIndex((current) => Math.min(monthWindow.length - 1, current + 1))}
+                                                disabled={calendarMonthIndex >= monthWindow.length - 1}
+                                                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border text-black transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                                                aria-label="Next month"
+                                            >
+                                                <ChevronRight className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </DialogHeader>
+                                    <div className="mt-2 rounded-xl border border-border bg-white p-3">
+                                        <div className="grid grid-cols-7 gap-y-1.5 text-center">
+                                            {weekdayLabels.map((label) => (
+                                                <p key={label} className="text-[10px] font-semibold text-black/70">
+                                                    {label}
+                                                </p>
+                                            ))}
+                                            {Array.from({ length: firstWeekday }).map((_, index) => (
+                                                <span key={`empty-${index}`} />
+                                            ))}
+                                            {Array.from({ length: daysInMonth }, (_, index) => {
+                                                const day = index + 1
+                                                const dayKey = formatDateKey(viewedYear, viewedMonthNumber, day)
+                                                const isSaleDay = saleDaySet.has(dayKey)
+                                                const isSaleEndDay = saleEndDayKey === dayKey
+                                                const isToday = viewedYear === todayYear && viewedMonthNumber === todayMonth && todayDay === day
+                                                return (
+                                                    <span
+                                                        key={`day-${day}`}
+                                                        className={`mx-auto inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
+                                                            isSaleEndDay ? "text-red-600" : (isSaleDay ? "text-amber-500" : "text-black")
+                                                        } ${isToday ? "border-2 border-black" : ""}`}
+                                                    >
+                                                        {day}
+                                                    </span>
+                                                )
+                                            })}
+                                        </div>
+                                        {viewedMonthHasSale && (
+                                            <div className="mt-3 border-t border-border pt-2 text-[11px] font-medium text-black">
+                                                <p>
+                                                    Start: <span className="text-amber-500">{saleStartText}</span>
+                                                </p>
+                                                <p>
+                                                    End: <span className="text-red-600">{saleEndDayOnlyText}</span>
+                                                </p>
+                                                <p>Discount: {saleDiscountPercent !== null ? `${saleDiscountPercent}% off` : "N/A"}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        )}
                     </div>
                 )}
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center border border-border rounded-lg px-2">
-                        <button
-                            className="p-2 hover:text-primary transition-colors"
-                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                <div className="w-full">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center border border-border rounded-lg px-2">
+                            <button
+                                className="p-2 hover:text-primary transition-colors"
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            >
+                                <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="w-10 text-center font-bold">{quantity}</span>
+                            <button
+                                className="p-2 hover:text-primary transition-colors"
+                                onClick={() => setQuantity(quantity + 1)}
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <Button
+                            className="px-6 py-3 shadow-lg shadow-primary/20"
+                            onClick={handleAddToCart}
                         >
-                            <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="w-10 text-center font-bold">{quantity}</span>
-                        <button
-                            className="p-2 hover:text-primary transition-colors"
-                            onClick={() => setQuantity(quantity + 1)}
-                        >
-                            <Plus className="w-4 h-4" />
-                        </button>
+                            {t("addToCart")}
+                        </Button>
                     </div>
-                    <Button
-                        className="px-6 py-3 shadow-lg shadow-primary/20"
-                        onClick={handleAddToCart}
-                    >
-                        {t("addToCart")}
-                    </Button>
                 </div>
             </div>
 

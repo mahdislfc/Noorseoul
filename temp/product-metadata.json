@@ -1,7 +1,482 @@
 {
   "cmm0b3hdc0000nel69yawrmvd": {
-    "sourcePriceCurrency": "KRW",
-    "sourceLastSyncedAt": "2026-02-24T17:22:37.233Z",
-    "sourceSyncError": "Source page request failed (403)"
+    "koreanName": "조선미녀 데일리 틴티드 선세럼 50ml",
+    "priceAed": 73.4,
+    "sourceUrl": "https://global.oliveyoung.com/partner/gate?url=/product/detail?prdtNo=GA251033893",
+    "sourcePriceCurrency": "USD",
+    "promoPriority": "none",
+    "promoLastChecked": "2026-02-25T09:05:16.281Z",
+    "miniCalendar": {
+      "type": "mini_price_calendar",
+      "timezone": "UTC+9",
+      "start_date": "2026-02-25",
+      "days": [
+        {
+          "date": "2026-02-25",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-26",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-27",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-28",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-01",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-02",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-03",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-04",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-05",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-06",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-07",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-08",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-09",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-10",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        }
+      ],
+      "calendar_end_unknown": false,
+      "calendar_header": "Regular price",
+      "calendar_subheader": "Price: $20.00",
+      "days_left": null
+    },
+    "extractedRegularPriceText": "Price USD20.00",
+    "sourceRegularPrice": 20,
+    "sourceCurrentPrice": 20,
+    "sourceCurrency": "USD",
+    "sourceSaleTimezone": "UTC+9",
+    "syncStatus": "warning",
+    "syncNotes": "SALE_EXPIRED_ON_SOURCE",
+    "sourceLastSyncedAt": "2026-02-25T09:05:16.281Z",
+    "similarProductIds": [
+      "cmm1k6as90000skk12786pypw"
+    ]
+  },
+  "cmm1k6as90000skk12786pypw": {
+    "koreanName": "조선미녀 데일리 틴티드 선세럼 50ml ~ 베일커버",
+    "priceAed": 73.4,
+    "ingredients": "Zinc Oxide (CI 77947), Water, Butyloctyl Salicylate, Isopropyl Myristate, Coco-Caprylate/Caprate, Caprylic/Capric Triglyceride, Neopentyl Glycol Diheptanoate, Ethylhexyl Isononanoate, Alcohol Denat., Polyglyceryl-3 Polyricinoleate, Butylene Glycol, C12-15 Alkyl Benzoate, Propanediol, Silica, Methyl Methacrylate Crosspolymer, Stearic Acid, Polyglyceryl-6 Polyhydroxystearate, Hydrogenated Olive Oil Unsaponifiables, Artemisia Capillaris Extract, Polyglyceryl-4 Diisostearate/Polyhydroxystearate/Sebacate, Stearalkonium Hectorite, Undecane, 1,2-Hexanediol, Polyglyceryl-6 Polyricinoleate, Hydroxyacetophenone, Tridecane, Polyglycerin-6, Isopropyl Titanium Triisostearate, Tocopherol, Ascorbyl Palmitate, Iron Oxides (CI 77492), Iron Oxides (CI 77491), Iron Oxides (CI 77499)",
+    "scent": "Fragrance-free",
+    "waterResistance": "No",
+    "sourceUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251033893",
+    "sourcePriceCurrency": "USD",
+    "promoPriority": "none",
+    "promoLastChecked": "2026-02-25T09:05:14.808Z",
+    "miniCalendar": {
+      "type": "mini_price_calendar",
+      "timezone": "UTC+9",
+      "start_date": "2026-02-25",
+      "days": [
+        {
+          "date": "2026-02-25",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-26",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-27",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-28",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-01",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-02",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-03",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-04",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-05",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-06",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-07",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-08",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-09",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-10",
+          "price": 20,
+          "state": "regular",
+          "label": ""
+        }
+      ],
+      "calendar_end_unknown": false,
+      "calendar_header": "Regular price",
+      "calendar_subheader": "Price: $20.00",
+      "days_left": null
+    },
+    "extractedRegularPriceText": "Price USD20.00",
+    "sourceRegularPrice": 20,
+    "sourceCurrentPrice": 20,
+    "sourceCurrency": "USD",
+    "sourceSaleTimezone": "UTC+9",
+    "syncStatus": "warning",
+    "syncNotes": "SALE_EXPIRED_ON_SOURCE",
+    "sourceLastSyncedAt": "2026-02-25T09:05:14.808Z",
+    "bundleLabel": "+ Pad (Gift)",
+    "similarProductIds": [
+      "cmm0b3hdc0000nel69yawrmvd"
+    ]
+  },
+  "cmm1ocr4u000askk1lhnfher1": {
+    "koreanName": "맑은쌀선크림 : 고아미+프로바이오틱스 (SPF 50+ PA++++)",
+    "priceAed": 66.06,
+    "ingredients": "It contains saccharomyces/rice ferment filtrate, lactobacillus/rice ferment, and other probiotic fermented lysate ingredients to help nourish the skin's innate strength.\r\nIt is a product that has completed EWG green grade safety ingredients and UV protection test for human application.",
+    "scent": "Fragrance-free",
+    "waterResistance": "No",
+    "sourceUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA220816046",
+    "sourcePriceCurrency": "USD",
+    "promoPriority": "none",
+    "promoLastChecked": "2026-02-25T09:05:13.394Z",
+    "miniCalendar": {
+      "type": "mini_price_calendar",
+      "timezone": "UTC+9",
+      "start_date": "2026-02-25",
+      "days": [
+        {
+          "date": "2026-02-25",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-26",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-27",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-02-28",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-01",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-02",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-03",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-04",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-05",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-06",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-07",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-08",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-09",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        },
+        {
+          "date": "2026-03-10",
+          "price": 18,
+          "state": "regular",
+          "label": ""
+        }
+      ],
+      "calendar_end_unknown": false,
+      "calendar_header": "Regular price",
+      "calendar_subheader": "Price: $18.00",
+      "days_left": null
+    },
+    "extractedRegularPriceText": "Price US$18.00",
+    "sourceRegularPrice": 18,
+    "sourceCurrentPrice": 18,
+    "sourceCurrency": "USD",
+    "sourceSaleTimezone": "UTC+9",
+    "syncStatus": "ok",
+    "syncNotes": "Price aligned with source",
+    "sourceLastSyncedAt": "2026-02-25T09:05:13.394Z",
+    "bundleLabel": "Economical bundle",
+    "economicalOptionPrice": 30,
+    "economicalOptionQuantity": 2
+  },
+  "cmm1t1q0a000hskk1uhm03hsi": {
+    "koreanName": "맑은쌀선크림 아쿠아프레쉬: 쌀수+판테놀 (SPF50+ PA++++)",
+    "priceAed": 55.01,
+    "originalPriceAed": 66.06,
+    "ingredients": "Oryza Sativa (Rice) Seed Water 30% provides rich vitamins, minerals, and antioxidants for a more supple, healthy-looking skin.\r\nPanthenol strengthens and soothes the skin’s moisture barrier against UV rays and external stressors.",
+    "skinType": "Oily to combination skin",
+    "waterResistance": "No",
+    "sourceUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA240825222",
+    "sourcePriceCurrency": "USD",
+    "saleEndsAt": "2026-03-31T23:59:59+09:00",
+    "saleLabel": "Sale ends on Mar 31",
+    "promoBadgeText": "Sale ends Mar 31",
+    "promoTooltipText": "Synced from Olive Young daily. Ends 2026-03-31 (UTC+9).",
+    "promoPriority": "high",
+    "promoLastChecked": "2026-02-25T09:05:12.140Z",
+    "miniCalendar": {
+      "type": "mini_price_calendar",
+      "timezone": "UTC+9",
+      "start_date": "2026-02-25",
+      "days": [
+        {
+          "date": "2026-02-25",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-02-26",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-02-27",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-02-28",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-01",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-02",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-03",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-04",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-05",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-06",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-07",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-08",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-09",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        },
+        {
+          "date": "2026-03-10",
+          "price": 14.99,
+          "state": "sale",
+          "label": "Sale"
+        }
+      ],
+      "calendar_end_unknown": false,
+      "calendar_header": "Sale ends Mar 31",
+      "calendar_subheader": "Price: $14.99 until Mar 31",
+      "days_left": 34
+    },
+    "extractedRegularPriceText": "Price US$18.00",
+    "extractedSaleText": "SALE 02-01 ~ 03-31 (UTC+9) (-) US$3.01",
+    "extractedBestDealText": "Best Deal US$14.99",
+    "sourceRegularPrice": 18,
+    "sourceCurrentPrice": 14.99,
+    "sourceCurrency": "USD",
+    "sourceSaleStart": "2026-02-01",
+    "sourceSaleEnd": "2026-03-31",
+    "sourceSaleTimezone": "UTC+9",
+    "sourceDiscountAmount": 3.01,
+    "sourceDiscountPercent": 16.72,
+    "syncStatus": "ok",
+    "syncNotes": "Price aligned with source",
+    "sourceLastSyncedAt": "2026-02-25T09:05:12.140Z",
+    "similarProductIds": [
+      "cmm1ocr4u000askk1lhnfher1"
+    ],
+    "economicalOptionName": "2 items deal",
+    "economicalOptionPrice": 28,
+    "economicalOptionQuantity": 2
   }
 }

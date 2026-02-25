@@ -56,6 +56,13 @@ export function SimilarProductsSection({ products }: SimilarProductsSectionProps
               product,
               displayCurrency
             );
+            const discountPercent =
+              typeof product.originalPrice === "number" &&
+              product.originalPrice > product.price
+                ? Math.round(
+                    ((product.originalPrice - product.price) / product.originalPrice) * 100
+                  )
+                : null;
             return (
             <div
               key={product.id}
@@ -80,6 +87,9 @@ export function SimilarProductsSection({ products }: SimilarProductsSectionProps
                       locale
                     )}
                   </p>
+                )}
+                {discountPercent !== null && (
+                  <p className="text-xs font-bold text-red-600">-{discountPercent}%</p>
                 )}
               </div>
               <div className="mt-3 flex items-center gap-2">

@@ -4,7 +4,12 @@ import { cn } from "@/lib/utils"
 import { Link } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 
-const categories = [
+export interface BrandSidebarFilterItem {
+    id: string
+    label: string
+}
+
+const defaultCategories: BrandSidebarFilterItem[] = [
     { id: "all", label: "All" },
     { id: "best-sellers", label: "Best Sellers" },
     { id: "discounted", label: "Discounted Items" },
@@ -18,7 +23,11 @@ const categories = [
     { id: "coming-soon", label: "Coming Soon" },
 ];
 
-export function BrandSidebar() {
+interface BrandSidebarProps {
+    filters?: BrandSidebarFilterItem[]
+}
+
+export function BrandSidebar({ filters = defaultCategories }: BrandSidebarProps) {
     const searchParams = useSearchParams();
     const activeFilter = searchParams.get('filter') || 'all';
 
@@ -26,7 +35,7 @@ export function BrandSidebar() {
         <div className="w-full lg:w-64 flex-shrink-0">
             <h2 className="font-serif text-2xl mb-8 border-b pb-4 uppercase tracking-widest text-sm font-bold opacity-70">Shop by Category</h2>
             <nav className="flex flex-col gap-1">
-                {categories.map((cat) => (
+                {filters.map((cat) => (
                     <Link
                         key={cat.id}
                         href={{ query: { filter: cat.id } }}

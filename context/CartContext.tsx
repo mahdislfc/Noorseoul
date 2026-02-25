@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from "react"
 import { useUser } from "@/context/UserContext"
+import { useRouter } from "@/i18n/routing"
+import { toast } from "sonner"
 
 export interface CartItem {
     id: string
@@ -29,8 +31,9 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, isLoading } = useUser()
+    const router = useRouter()
     const [items, setItems] = useState<CartItem[]>([])
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpenState] = useState(false)
     const hasHydratedRef = useRef(false)
 
     // Hydrate cart from localStorage after mount to avoid SSR/client mismatch.
@@ -78,7 +81,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }, [isAuthenticated, isLoading])
 
     const addToCart = (newItem: CartItem) => {
-        if (!isAuthenticated) return
+        if (!isAuthenticated) {
+            toast.error("Please register first to use cart and checkout.", {
+                action: {
+                    label: "Register",
+                    onClick: () => router.push("/register"),
+                },
+            })
+            return
+        }
         const normalizedCurrency = (newItem.currency || "AED").toUpperCase()
         setItems((prev) => {
             const existing = prev.find((item) => item.id === newItem.id)
@@ -98,6 +109,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             return [...prev, { ...newItem, currency: normalizedCurrency }]
         })
         // setIsOpen(true) // Removed auto-open as per user request for silent add
+    }
+
+    const setIsOpen = (open: boolean) => {
+        if (open && !isAuthenticated) {
+            toast.error("Please register first to see your cart and checkout.", {
+                action: {
+                    label: "Register",
+                    onClick: () => router.push("/register"),
+                },
+            })
+            return
+        }
+        setIsOpenState(open)
     }
 
     const removeFromCart = (id: string) => {
