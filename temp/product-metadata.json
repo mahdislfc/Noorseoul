@@ -4,6 +4,7 @@
     "priceAed": 73.4,
     "sourceUrl": "https://global.oliveyoung.com/partner/gate?url=/product/detail?prdtNo=GA251033893",
     "sourcePriceCurrency": "USD",
+    "saleEndsAt": "2026-02-28",
     "promoPriority": "none",
     "promoLastChecked": "2026-02-25T09:05:16.281Z",
     "miniCalendar": {
@@ -105,6 +106,8 @@
     "sourceRegularPrice": 20,
     "sourceCurrentPrice": 20,
     "sourceCurrency": "USD",
+    "sourceSaleStart": "2026-02-01",
+    "sourceSaleEnd": "2026-02-28",
     "sourceSaleTimezone": "UTC+9",
     "syncStatus": "warning",
     "syncNotes": "SALE_EXPIRED_ON_SOURCE",
@@ -121,6 +124,7 @@
     "waterResistance": "No",
     "sourceUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251033893",
     "sourcePriceCurrency": "USD",
+    "saleEndsAt": "2026-02-28",
     "promoPriority": "none",
     "promoLastChecked": "2026-02-25T09:05:14.808Z",
     "miniCalendar": {
@@ -222,6 +226,8 @@
     "sourceRegularPrice": 20,
     "sourceCurrentPrice": 20,
     "sourceCurrency": "USD",
+    "sourceSaleStart": "2026-02-01",
+    "sourceSaleEnd": "2026-02-28",
     "sourceSaleTimezone": "UTC+9",
     "syncStatus": "warning",
     "syncNotes": "SALE_EXPIRED_ON_SOURCE",
@@ -477,6 +483,35 @@
     ],
     "economicalOptionName": "2 items deal",
     "economicalOptionPrice": 28,
+    "economicalOptionQuantity": 2
+  },
+  "cmm384dkv00009y89d4menw1c": {
+    "koreanName": "조선미녀 인삼선세럼 (SPF 50+ PA++++)",
+    "ingredients": "Mainly using ginseng, a Korean traditional medicinal herb, which is a core ingredient of BOJ and has been proven to be effective through various research results.\r\nSaponin components abundant in Panax Ginseng Root Extract help to inhibit skin aging and improve wrinkles, and supply nutrition to the skin.\r\nThe capsule serum formula that excludes surfactant moisturizes your skin while adhering to your skin and protecting it from UV rays without any gaps.\r\nSaponin, rich in ginseng, promotes hydration and helps keeps the skin moist, and also helps to maintain healthy skin.\r\nPanax Ginseng Berry and Panax Ginseng Root Extract mixed in Panax Ginseng Root Extract are more effective in preventing skin aging and improving wrinkles due to their high saponin content than regular ginseng root.\r\nNiacinamide is a water-soluble vitamin B ingredient that is effective in improving pigmentation and helps to improve skin texture and brighten the complexion by maintaining the skin's moisture balance.",
+    "skinType": "all",
+    "saleEndsAt": "2026-02-28",
+    "sourceSaleStart": "2026-02-01",
+    "sourceSaleEnd": "2026-02-28"
+  },
+  "cmm3b24h400069y89jwhd50p9": {
+    "koreanName": "조선미녀 광채 프로폴리스 세럼",
+    "ingredients": "Propolis Extract, Dipropylene Glycol, Glycerin, Butylene Glycol, Water, Niacinamide, 1,2-Hexanediol, Melia Azadirachta Flower Extract, Melia Azadirachta Leaf Extract, Sodium Hyaluronate, Curcuma Longa (Turmeric) Root Extract, Ocimum Sanctum Leaf Extract, Theobroma Cacao (Cocoa) Seed Extract, Melaleuca Alternifolia (Tea Tree) Extract, Centella Asiatica Extract, Corallina Officinalis Extract, Lotus Corniculatus Seed Extract, Calophyllum Inophyllum Seed Oil, Betaine Salicylate, Sodium Polyacryloyldimethyl Taurate, Tromethamine, Polyglyceryl-10 Laurate, Caprylyl Glycol, Ethylhexylglycerin, Dextrin, Pentylene Glycol, Octanediol, Tocopherol, Xanthan Gum, Carbomer",
+    "skinType": "all",
+    "additionalCategories": [
+      "essence & serum"
+    ],
+    "similarProductIds": [
+      "cmm384dkv00009y89d4menw1c"
+    ]
+  },
+  "cmm3dp5x5000e9y89aq9dhjko": {
+    "koreanName": "조선미녀 산들쑥선스틱 (SPF 50+ PA++++)",
+    "ingredients": "The silica powder absorbs sebum to increase the product's adherence and provides a matte, smooth feeling and a softness during use.\r\nContaining Artemisia capillaris and Camellia sinensis leaf extract, it helps create smooth skin while maintaining its moisture.\r\nMugwort has been an important raw ingredient in the history of oriental medicine, and Artemisia capillaris in particular has been used to lower body heat since ancient times due to its cold properties.\r\nAlso, mugwort helps to nourish and soothe the skin as it contains various minerals such as vitamins A and C.",
+    "additionalCategories": [
+      "Sunscreen"
+    ],
+    "economicalOptionName": "2 sun sticks",
+    "economicalOptionPrice": 30,
     "economicalOptionQuantity": 2
   }
 }

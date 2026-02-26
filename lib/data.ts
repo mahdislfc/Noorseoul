@@ -188,6 +188,12 @@ function toProductModel(product: Record<string, unknown>): Product {
     currency: String(product.currency || "USD"),
     brand: String(product.brand || ""),
     category: String(product.category || ""),
+    additionalCategories: Array.isArray(product.additionalCategories)
+      ? product.additionalCategories
+          .filter((entry): entry is string => typeof entry === "string")
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+      : [],
     department: String(product.department || ""),
     image: primaryImage,
     bestSeller: Boolean(product.bestSeller),

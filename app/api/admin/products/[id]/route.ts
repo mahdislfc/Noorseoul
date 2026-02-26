@@ -19,7 +19,6 @@ import {
   getFallbackMetadata,
   setFallbackMetadata,
 } from "@/lib/product-metadata-fallback";
-import { syncProductPricesFromSourceUrls } from "@/lib/source-price-sync";
 
 export const runtime = "nodejs";
 
@@ -68,6 +67,25 @@ function parseSimilarProductIds(value: FormDataEntryValue | null) {
         parsed
           .filter((entry): entry is string => typeof entry === "string")
           .map((id) => id.trim())
+          .filter(Boolean)
+      )
+    );
+  } catch {
+    return [];
+  }
+}
+
+function parseAdditionalCategories(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || !value.trim()) return [];
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return Array.from(
+      new Set(
+        parsed
+          .filter((entry): entry is string => typeof entry === "string")
+          .map((entry) => normalizeCategoryInput(entry))
+          .map((entry) => entry.trim())
           .filter(Boolean)
       )
     );
@@ -194,6 +212,8 @@ export async function PUT(
   const scent = String(formData.get("scent") || "").trim();
   const waterResistance = String(formData.get("waterResistance") || "").trim();
   const sourceUrl = String(formData.get("sourceUrl") || "").trim();
+  const sourceSaleStart = String(formData.get("sourceSaleStart") || "").trim();
+  const sourceSaleEnd = String(formData.get("sourceSaleEnd") || "").trim();
   const bundleLabel = String(formData.get("bundleLabel") || "").trim();
   const bundleProductId = String(formData.get("bundleProductId") || "").trim();
   const economicalOptionName = String(
@@ -214,6 +234,12 @@ export async function PUT(
   const similarProductIds = parseSimilarProductIds(
     formData.get("similarProductIds")
   ).filter((productId) => productId !== id);
+  const additionalCategoriesRaw = parseAdditionalCategories(
+    formData.get("additionalCategories")
+  );
+  const additionalCategories = additionalCategoriesRaw.filter(
+    (entry) => entry.toLowerCase() !== category.toLowerCase()
+  );
   const colorShades = parseColorShades(formData.get("colorShades"));
   const imageFiles = formData
     .getAll("images")
@@ -389,22 +415,21 @@ export async function PUT(
     scent,
     waterResistance,
     sourceUrl,
+    sourceSaleStart,
+    sourceSaleEnd,
     bundleLabel,
     bundleProductId,
+    additionalCategories,
     similarProductIds,
     economicalOptionName,
     economicalOptionPrice,
     economicalOptionQuantity,
     colorShades,
     sourcePriceCurrency: existingMetadata.sourcePriceCurrency,
-    saleEndsAt: existingMetadata.saleEndsAt,
+    saleEndsAt: sourceSaleEnd || undefined,
     sourceLastSyncedAt: existingMetadata.sourceLastSyncedAt,
     sourceSyncError: existingMetadata.sourceSyncError,
   });
-
-  if (!hasManualPrice && sourceUrl) {
-    await syncProductPricesFromSourceUrls({ productId: id });
-  }
 
   return NextResponse.json({ product });
 }

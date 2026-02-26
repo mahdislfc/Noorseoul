@@ -363,7 +363,6 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                             </button>
                                             <DialogTitle className="text-center text-3xl font-black capitalize">
                                                 {monthName}
-                                                <span className="ml-2 text-sm font-semibold text-black/60">{viewedYear}</span>
                                             </DialogTitle>
                                             <button
                                                 type="button"

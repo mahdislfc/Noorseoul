@@ -45,11 +45,14 @@ const emptyForm = {
   scent: "",
   waterResistance: "",
   sourceUrl: "",
+  sourceSaleStart: "",
+  sourceSaleEnd: "",
   bundleLabel: "",
   bundleProductId: "",
   economicalOptionName: "",
   economicalOptionPrice: "",
   economicalOptionQuantity: "",
+  additionalCategories: [] as string[],
   similarProductIds: [] as string[],
   colorShades: [] as ColorShadeDraft[],
   price: "",
@@ -77,6 +80,17 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function parseCommaSeparatedList(value: string) {
+  return Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+    )
+  );
+}
+
 export function AdminProducts({ locale }: AdminProductsProps) {
   const [activeTab, setActiveTab] = useState<
     "products" | "orders" | "requested-products"
@@ -93,6 +107,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [similarBrandFilter, setSimilarBrandFilter] = useState("all");
   const [similarNameFilter, setSimilarNameFilter] = useState("");
+  const [brandFilter, setBrandFilter] = useState("all");
 
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -103,9 +118,31 @@ export function AdminProducts({ locale }: AdminProductsProps) {
   );
   const [requestedProductsLoading, setRequestedProductsLoading] = useState(true);
   const [requestedProductsError, setRequestedProductsError] = useState("");
-  const [syncingPrices, setSyncingPrices] = useState(false);
-  const [syncingProductId, setSyncingProductId] = useState<string | null>(null);
   const [siteOrigin, setSiteOrigin] = useState("");
+  const [priceDeskQuery, setPriceDeskQuery] = useState("");
+  const [priceDeskSort, setPriceDeskSort] = useState<
+    "name_asc" | "name_desc" | "price_asc" | "price_desc" | "brand_asc"
+  >("name_asc");
+  const [priceDrafts, setPriceDrafts] = useState<
+    Record<
+      string,
+      {
+        price: string;
+        originalPrice: string;
+        priceAed: string;
+        originalPriceAed: string;
+        priceT: string;
+        originalPriceT: string;
+        sourceSaleStart: string;
+        sourceSaleEnd: string;
+      }
+    >
+  >({});
+  const [savingPriceId, setSavingPriceId] = useState<string | null>(null);
+  const [priceDeskError, setPriceDeskError] = useState("");
+  const [priceDeskSuccess, setPriceDeskSuccess] = useState("");
+  const [isPriceDeskExpanded, setIsPriceDeskExpanded] = useState(true);
+  const [isProductListExpanded, setIsProductListExpanded] = useState(true);
 
   const isEditing = useMemo(() => Boolean(editingId), [editingId]);
 
@@ -181,6 +218,50 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     loadRequestedProducts();
   }, []);
 
+  useEffect(() => {
+    setPriceDrafts(
+      Object.fromEntries(
+        products.map((product) => [
+          product.id,
+          {
+            price: Number.isFinite(product.price) ? String(product.price) : "",
+            originalPrice:
+              typeof product.originalPrice === "number" &&
+                Number.isFinite(product.originalPrice)
+                ? String(product.originalPrice)
+                : "",
+            priceAed:
+              typeof product.priceAed === "number" && Number.isFinite(product.priceAed)
+                ? String(product.priceAed)
+                : "",
+            originalPriceAed:
+              typeof product.originalPriceAed === "number" &&
+                Number.isFinite(product.originalPriceAed)
+                ? String(product.originalPriceAed)
+                : "",
+            priceT:
+              typeof product.priceT === "number" && Number.isFinite(product.priceT)
+                ? String(product.priceT)
+                : "",
+            originalPriceT:
+              typeof product.originalPriceT === "number" &&
+                Number.isFinite(product.originalPriceT)
+                ? String(product.originalPriceT)
+                : "",
+            sourceSaleStart:
+              typeof product.sourceSaleStart === "string"
+                ? product.sourceSaleStart
+                : "",
+            sourceSaleEnd:
+              typeof product.sourceSaleEnd === "string"
+                ? product.sourceSaleEnd
+                : "",
+          },
+        ])
+      )
+    );
+  }, [products]);
+
   const resetForm = () => {
     setForm({ ...emptyForm });
     setImageDrafts([]);
@@ -189,6 +270,137 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     setSimilarBrandFilter("all");
     setSimilarNameFilter("");
     setEditingId(null);
+  };
+
+  const filteredSortedProducts = useMemo(() => {
+    const query = priceDeskQuery.trim().toLowerCase();
+    const filtered = products.filter((product) => {
+      const matchesQuery = query
+        ? [product.name, product.brand, product.category, product.id]
+          .join(" ")
+          .toLowerCase()
+          .includes(query)
+        : true;
+
+      const matchesBrand = brandFilter === "all" || product.brand === brandFilter;
+
+      return matchesQuery && matchesBrand;
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (priceDeskSort === "name_asc") return a.name.localeCompare(b.name);
+      if (priceDeskSort === "name_desc") return b.name.localeCompare(a.name);
+      if (priceDeskSort === "brand_asc") return a.brand.localeCompare(b.brand);
+      if (priceDeskSort === "price_asc") return a.price - b.price;
+      return b.price - a.price;
+    });
+  }, [priceDeskQuery, priceDeskSort, products, brandFilter]);
+
+  const availableBrands = useMemo(() => {
+    const brands = Array.from(new Set(products.map(p => p.brand))).filter(Boolean);
+    return brands.sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const groupedProductsByBrand = useMemo(() => {
+    const groups: Record<string, Product[]> = {};
+    filteredSortedProducts.forEach(product => {
+      const brand = product.brand || "Unknown Brand";
+      if (!groups[brand]) groups[brand] = [];
+      groups[brand].push(product);
+    });
+    return groups;
+  }, [filteredSortedProducts]);
+
+  const updatePriceDraft = (
+    productId: string,
+    field:
+      | "price"
+      | "originalPrice"
+      | "priceAed"
+      | "originalPriceAed"
+      | "priceT"
+      | "originalPriceT"
+      | "sourceSaleStart"
+      | "sourceSaleEnd",
+    value: string
+  ) => {
+    setPriceDrafts((current) => ({
+      ...current,
+      [productId]: {
+        price: current[productId]?.price || "",
+        originalPrice: current[productId]?.originalPrice || "",
+        priceAed: current[productId]?.priceAed || "",
+        originalPriceAed: current[productId]?.originalPriceAed || "",
+        priceT: current[productId]?.priceT || "",
+        originalPriceT: current[productId]?.originalPriceT || "",
+        sourceSaleStart: current[productId]?.sourceSaleStart || "",
+        sourceSaleEnd: current[productId]?.sourceSaleEnd || "",
+        [field]: value,
+      },
+    }));
+  };
+
+  const parsePriceInput = (
+    value: string,
+    fieldLabel: "USD" | "AED" | "T"
+  ): number | undefined => {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      throw new Error(`${fieldLabel} price must be greater than 0.`);
+    }
+    return parsed;
+  };
+
+  const handleSaveQuickPrice = async (productId: string) => {
+    const draft = priceDrafts[productId];
+    if (!draft) return;
+
+    setSavingPriceId(productId);
+    setPriceDeskError("");
+    setPriceDeskSuccess("");
+    try {
+      const price = parsePriceInput(draft.price, "USD");
+      const originalPrice = parsePriceInput(draft.originalPrice, "USD original");
+      const priceAed = parsePriceInput(draft.priceAed, "AED");
+      const originalPriceAed = parsePriceInput(
+        draft.originalPriceAed,
+        "AED original"
+      );
+      const priceT = parsePriceInput(draft.priceT, "T");
+      const originalPriceT = parsePriceInput(draft.originalPriceT, "T original");
+      const sourceSaleStart = draft.sourceSaleStart.trim();
+      const sourceSaleEnd = draft.sourceSaleEnd.trim();
+
+      const payload: Record<string, number> = {};
+      if (typeof price === "number") payload.price = price;
+      if (typeof originalPrice === "number") payload.originalPrice = originalPrice;
+      if (typeof priceAed === "number") payload.priceAed = priceAed;
+      if (typeof originalPriceAed === "number") payload.originalPriceAed = originalPriceAed;
+      if (typeof priceT === "number") payload.priceT = priceT;
+      if (typeof originalPriceT === "number") payload.originalPriceT = originalPriceT;
+      const datePayload = {
+        sourceSaleStart,
+        sourceSaleEnd,
+      };
+
+      const res = await fetch(`/api/admin/products/${productId}/price`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, ...datePayload }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to update price");
+      }
+      await loadProducts();
+      setPriceDeskSuccess("Price updated.");
+    } catch (error) {
+      setPriceDeskError(getErrorMessage(error, "Failed to update price"));
+    } finally {
+      setSavingPriceId(null);
+    }
   };
 
   const addNewImageFiles = (files: FileList | null) => {
@@ -278,10 +490,11 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       }
 
       const formData = new FormData();
-      const { similarProductIds, colorShades, ...restForm } = form;
+      const { similarProductIds, additionalCategories, colorShades, ...restForm } = form;
       Object.entries(restForm).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
+      formData.append("additionalCategories", JSON.stringify(additionalCategories));
       formData.append("similarProductIds", JSON.stringify(similarProductIds));
       formData.append("colorShades", JSON.stringify(colorShades));
       const imageOrder = imageDrafts.map((image) =>
@@ -339,6 +552,8 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       scent: product.scent || "",
       waterResistance: product.waterResistance || "",
       sourceUrl: product.sourceUrl || "",
+      sourceSaleStart: product.sourceSaleStart || "",
+      sourceSaleEnd: product.sourceSaleEnd || "",
       bundleLabel: product.bundleLabel || "",
       bundleProductId: product.bundleProductId || "",
       economicalOptionName: product.economicalOption?.name || "",
@@ -350,6 +565,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
         typeof product.economicalOption?.quantity === "number"
           ? String(product.economicalOption.quantity)
           : "",
+      additionalCategories: product.additionalCategories || [],
       similarProductIds: product.similarProductIds || [],
       colorShades: (product.colorShades || []).map((shade, index) => ({
         id: shade.id?.trim() || `shade-${index + 1}`,
@@ -430,48 +646,6 @@ export function AdminProducts({ locale }: AdminProductsProps) {
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
     window.location.href = `/${locale}/admin/login`;
-  };
-
-  const handleSyncSourcePrices = async () => {
-    setSyncingPrices(true);
-    setProductsError("");
-    try {
-      const res = await fetch("/api/admin/products/sync-prices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to sync prices");
-      }
-      await loadProducts();
-    } catch (error) {
-      setProductsError(getErrorMessage(error, "Failed to sync prices"));
-    } finally {
-      setSyncingPrices(false);
-    }
-  };
-
-  const handleSyncOneProduct = async (productId: string) => {
-    setSyncingProductId(productId);
-    setProductsError("");
-    try {
-      const res = await fetch("/api/admin/products/sync-prices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to sync product price");
-      }
-      await loadProducts();
-    } catch (error) {
-      setProductsError(getErrorMessage(error, "Failed to sync product price"));
-    } finally {
-      setSyncingProductId(null);
-    }
   };
 
   const getProductUrl = (productId: string) => {
@@ -605,31 +779,28 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       <div className="flex gap-2">
         <button
           onClick={() => setActiveTab("products")}
-          className={`rounded-md px-4 py-2 text-sm ${
-            activeTab === "products"
-              ? "bg-primary text-primary-foreground"
-              : "border border-input"
-          }`}
+          className={`rounded-md px-4 py-2 text-sm ${activeTab === "products"
+            ? "bg-primary text-primary-foreground"
+            : "border border-input"
+            }`}
         >
           Products
         </button>
         <button
           onClick={() => setActiveTab("orders")}
-          className={`rounded-md px-4 py-2 text-sm ${
-            activeTab === "orders"
-              ? "bg-primary text-primary-foreground"
-              : "border border-input"
-          }`}
+          className={`rounded-md px-4 py-2 text-sm ${activeTab === "orders"
+            ? "bg-primary text-primary-foreground"
+            : "border border-input"
+            }`}
         >
           See Orders
         </button>
         <button
           onClick={() => setActiveTab("requested-products")}
-          className={`rounded-md px-4 py-2 text-sm ${
-            activeTab === "requested-products"
-              ? "bg-primary text-primary-foreground"
-              : "border border-input"
-          }`}
+          className={`rounded-md px-4 py-2 text-sm ${activeTab === "requested-products"
+            ? "bg-primary text-primary-foreground"
+            : "border border-input"
+            }`}
         >
           Requested Products
         </button>
@@ -681,6 +852,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                 >
                   <option value="">Select section</option>
                   <option value="Skincare">Skincare</option>
+                  <option value="Sun care">Sun care</option>
                   <option value="Makeup">Makeup</option>
                   <option value="Both">Both</option>
                 </select>
@@ -704,6 +876,27 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                 </datalist>
               </div>
               <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">
+                  Additional Categories
+                </label>
+                <input
+                  value={form.additionalCategories.join(", ")}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      additionalCategories: parseCommaSeparatedList(
+                        event.target.value
+                      ),
+                    })
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="e.g. sunscreen, Sun serum, cream"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Separate categories with commas.
+                </p>
+              </div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-2">Pricing</label>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                   <div className="rounded-md border border-input p-3">
@@ -715,8 +908,8 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                         type="number"
                         step="0.01"
                         className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
-                        placeholder={form.sourceUrl.trim() ? "Optional (auto-sync from source URL)" : "Price"}
-                        required={!form.sourceUrl.trim()}
+                        placeholder="Price"
+                        required
                       />
                       <input
                         value={form.originalPrice}
@@ -779,6 +972,34 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                         placeholder="Original"
                       />
                     </div>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="rounded-md border border-input p-3">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                      Sale from
+                    </label>
+                    <input
+                      value={form.sourceSaleStart}
+                      onChange={(event) =>
+                        setForm({ ...form, sourceSaleStart: event.target.value })
+                      }
+                      type="date"
+                      className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                    />
+                  </div>
+                  <div className="rounded-md border border-input p-3">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                      Sale to
+                    </label>
+                    <input
+                      value={form.sourceSaleEnd}
+                      onChange={(event) =>
+                        setForm({ ...form, sourceSaleEnd: event.target.value })
+                      }
+                      type="date"
+                      className="w-full rounded-md border border-input bg-background px-2 py-2 text-sm"
+                    />
                   </div>
                 </div>
               </div>
@@ -975,21 +1196,6 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Supplier/Main Brand Product URL</label>
-                <input
-                  value={form.sourceUrl}
-                  onChange={(event) =>
-                    setForm({ ...form, sourceUrl: event.target.value })
-                  }
-                  type="url"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  placeholder="https://brand.com/product/..."
-                />
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  If USD price is empty and source URL is set, price will auto-sync after save.
-                </p>
-              </div>
-              <div>
                 <label className="block text-sm font-medium mb-1">Bundle Product</label>
                 <select
                   value={form.bundleProductId}
@@ -1005,7 +1211,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                       <option key={product.id} value={product.id}>
                         {product.name}
                       </option>
-                  ))}
+                    ))}
                 </select>
               </div>
               <div>
@@ -1086,32 +1292,32 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                   ) : (
                     <div className="space-y-2">
                       {filteredSimilarProducts.map((product) => {
-                          const checked = form.similarProductIds.includes(product.id);
-                          return (
-                            <label key={product.id} className="flex items-center gap-2 text-sm">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={(event) => {
-                                  if (event.target.checked) {
-                                    setForm({
-                                      ...form,
-                                      similarProductIds: [...form.similarProductIds, product.id],
-                                    });
-                                    return;
-                                  }
+                        const checked = form.similarProductIds.includes(product.id);
+                        return (
+                          <label key={product.id} className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(event) => {
+                                if (event.target.checked) {
                                   setForm({
                                     ...form,
-                                    similarProductIds: form.similarProductIds.filter(
-                                      (id) => id !== product.id
-                                    ),
+                                    similarProductIds: [...form.similarProductIds, product.id],
                                   });
-                                }}
-                              />
-                              <span>{product.name}</span>
-                            </label>
-                          );
-                        })}
+                                  return;
+                                }
+                                setForm({
+                                  ...form,
+                                  similarProductIds: form.similarProductIds.filter(
+                                    (id) => id !== product.id
+                                  ),
+                                });
+                              }}
+                            />
+                            <span>{product.name}</span>
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -1219,11 +1425,10 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                       onDragOver={(event) => handleImageDragOver(event, index)}
                       onDrop={(event) => handleImageDrop(event, index)}
                       onDragEnd={handleImageDragEnd}
-                      className={`flex items-center gap-3 rounded-md border p-2 cursor-move ${
-                        dragOverIndex === index
-                          ? "border-primary bg-primary/5"
-                          : "border-border"
-                      }`}
+                      className={`flex items-center gap-3 rounded-md border p-2 cursor-move ${dragOverIndex === index
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
+                        }`}
                     >
                       <img
                         src={image.previewUrl}
@@ -1297,175 +1502,363 @@ export function AdminProducts({ locale }: AdminProductsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold">Existing Products</h2>
-                <p className="text-xs text-muted-foreground">
-                  Source URL sync reads Olive Young Global USD prices and syncs shade prices when available.
-                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleSyncSourcePrices}
-                  className="rounded-md border border-input px-3 py-1 text-xs"
-                  disabled={syncingPrices}
-                >
-                  {syncingPrices ? "Syncing source prices..." : "Sync prices from source URLs"}
-                </button>
-                <button
-                  onClick={loadProducts}
-                  className="rounded-md border border-input px-3 py-1 text-xs"
-                  disabled={productsLoading}
-                >
-                  Refresh
-                </button>
-              </div>
+              <button
+                onClick={loadProducts}
+                className="rounded-md border border-input px-3 py-1 text-xs"
+                disabled={productsLoading}
+              >
+                Refresh
+              </button>
             </div>
 
-            {productsLoading ? (
-              <p className="text-sm text-muted-foreground">Loading products...</p>
-            ) : products.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No products yet.</p>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex gap-4 rounded-xl border border-border bg-background p-4"
-                  >
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="h-24 w-20 rounded-md object-cover border"
+            <div className="rounded-xl border border-border bg-background p-4">
+              <button
+                type="button"
+                onClick={() => setIsPriceDeskExpanded((current) => !current)}
+                className="flex w-full items-center justify-between gap-2 text-left"
+              >
+                <div>
+                  <h3 className="text-sm font-semibold">
+                    {isPriceDeskExpanded ? "v" : ">"} Price Desk (Manual)
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Edit sale and original prices, then save row-by-row.
+                  </p>
+                </div>
+              </button>
+              {isPriceDeskExpanded && (
+                <div className="mt-3 space-y-3">
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                    <input
+                      value={priceDeskQuery}
+                      onChange={(event) => setPriceDeskQuery(event.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      placeholder="Search by name, brand, category, or id"
                     />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="font-semibold">{product.name}</h3>
-                          {product.koreanName?.trim() && (
-                            <p className="text-xs text-muted-foreground">
-                              {product.koreanName}
-                            </p>
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            {product.brand} · {product.department} · {product.category}
-                          </p>
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
-                            <a
-                              href={getProductUrl(product.id)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-primary underline underline-offset-2"
-                            >
-                              Product page link
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => copyText(getProductUrl(product.id))}
-                              className="rounded border border-input px-2 py-0.5 text-[10px]"
-                            >
-                              Copy
-                            </button>
-                          </div>
-                          {product.sourceUrl?.trim() && (
-                            <a
-                              href={product.sourceUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="mt-1 inline-block text-xs text-muted-foreground underline underline-offset-2 break-all"
-                            >
-                              Source: {product.sourceUrl}
-                            </a>
-                          )}
-                          {product.sourceLastSyncedAt && (
-                            <p className="mt-1 text-[11px] text-muted-foreground">
-                              Last sync: {new Date(product.sourceLastSyncedAt).toLocaleString()}
-                            </p>
-                          )}
-                          {product.syncStatus && (
-                            <p
-                              className={`mt-1 inline-block rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                                product.syncStatus === "ok"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : product.syncStatus === "warning"
-                                    ? "bg-amber-100 text-amber-800"
-                                    : "bg-red-100 text-red-700"
-                              }`}
-                            >
-                              Sync status: {product.syncStatus}
-                            </p>
-                          )}
-                          {product.saleEndsAt && (
-                            <p className="mt-1 text-[11px] text-primary">
-                              Sale active until: {new Date(product.saleEndsAt).toLocaleDateString()}
-                            </p>
-                          )}
-                          {product.sourceSyncError?.trim() && (
-                            <p className="mt-1 text-[11px] text-red-600">
-                              Sync error: {product.sourceSyncError}
-                            </p>
-                          )}
-                          {(product.extractedRegularPriceText?.trim() ||
-                            product.extractedSaleText?.trim() ||
-                            product.extractedBestDealText?.trim()) && (
-                            <div className="mt-2 rounded-md border border-border bg-muted/30 p-2">
-                              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                Sync evidence
-                              </p>
-                              {product.extractedRegularPriceText?.trim() && (
-                                <p className="mt-1 text-[11px]">
-                                  <span className="font-semibold">Price:</span>{" "}
-                                  {product.extractedRegularPriceText}
-                                </p>
-                              )}
-                              {product.extractedSaleText?.trim() && (
-                                <p className="mt-1 text-[11px]">
-                                  <span className="font-semibold">Sale:</span>{" "}
-                                  {product.extractedSaleText}
-                                </p>
-                              )}
-                              {product.extractedBestDealText?.trim() && (
-                                <p className="mt-1 text-[11px]">
-                                  <span className="font-semibold">Best Deal:</span>{" "}
-                                  {product.extractedBestDealText}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                          {product.colorShades && product.colorShades.length > 0 && (
-                            <p className="text-xs text-primary mt-1">
-                              {product.colorShades.length} shade
-                              {product.colorShades.length > 1 ? "s" : ""} configured
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-sm font-semibold">
-                          {product.price.toFixed(2)} {product.currency}
-                        </div>
-                      </div>
-                      <div className="mt-3 flex gap-2">
-                        <button
-                          onClick={() => handleSyncOneProduct(product.id)}
-                          className="rounded-md border border-input px-3 py-1 text-xs"
-                          disabled={syncingProductId === product.id}
-                        >
-                          {syncingProductId === product.id ? "Syncing..." : "Sync price"}
-                        </button>
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className="rounded-md border border-input px-3 py-1 text-xs"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="rounded-md border border-red-200 px-3 py-1 text-xs text-red-600"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                    <select
+                      value={priceDeskSort}
+                      onChange={(event) =>
+                        setPriceDeskSort(
+                          event.target.value as
+                          | "name_asc"
+                          | "name_desc"
+                          | "price_asc"
+                          | "price_desc"
+                          | "brand_asc"
+                        )
+                      }
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="name_asc">Sort: Name A-Z</option>
+                      <option value="name_desc">Sort: Name Z-A</option>
+                      <option value="brand_asc">Sort: Brand A-Z</option>
+                      <option value="price_asc">Sort: USD low-high</option>
+                      <option value="price_desc">Sort: USD high-low</option>
+                    </select>
+                    <select
+                      value={brandFilter}
+                      onChange={(event) => setBrandFilter(event.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="all">Filter: All Brands</option>
+                      {availableBrands.map((brand) => (
+                        <option key={brand} value={brand}>
+                          {brand}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="flex items-center text-xs text-muted-foreground md:col-span-2">
+                      Showing {filteredSortedProducts.length} of {products.length}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+
+                  {priceDeskError && <p className="text-sm text-red-600">{priceDeskError}</p>}
+                  {priceDeskSuccess && (
+                    <p className="text-sm text-emerald-700">{priceDeskSuccess}</p>
+                  )}
+
+                  {productsLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading products...</p>
+                  ) : filteredSortedProducts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No products match your search.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[1280px] text-sm">
+                        <thead>
+                          <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                            <th className="px-2 py-2">Product</th>
+                            <th className="px-2 py-2">Brand</th>
+                            <th className="px-2 py-2">Sale from</th>
+                            <th className="px-2 py-2">Sale to</th>
+                            <th className="px-2 py-2">USD Sale</th>
+                            <th className="px-2 py-2">USD Original</th>
+                            <th className="px-2 py-2">AED Sale</th>
+                            <th className="px-2 py-2">AED Original</th>
+                            <th className="px-2 py-2">T Sale</th>
+                            <th className="px-2 py-2">T Original</th>
+                            <th className="px-2 py-2">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredSortedProducts.map((product) => {
+                            const draft = priceDrafts[product.id] || {
+                              price: "",
+                              originalPrice: "",
+                              priceAed: "",
+                              originalPriceAed: "",
+                              priceT: "",
+                              originalPriceT: "",
+                              sourceSaleStart: "",
+                              sourceSaleEnd: "",
+                            };
+                            return (
+                              <tr key={`price-desk-${product.id}`} className="border-b">
+                                <td className="px-2 py-2">
+                                  <p className="font-medium">{product.name}</p>
+                                  <p className="text-xs text-muted-foreground">{product.category}</p>
+                                </td>
+                                <td className="px-2 py-2">{product.brand}</td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    value={draft.sourceSaleStart}
+                                    onChange={(event) =>
+                                      updatePriceDraft(
+                                        product.id,
+                                        "sourceSaleStart",
+                                        event.target.value
+                                      )
+                                    }
+                                    type="date"
+                                    className="w-36 rounded-md border border-input bg-background px-2 py-0.5 text-xs"
+                                  />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    value={draft.sourceSaleEnd}
+                                    onChange={(event) =>
+                                      updatePriceDraft(
+                                        product.id,
+                                        "sourceSaleEnd",
+                                        event.target.value
+                                      )
+                                    }
+                                    type="date"
+                                    className="w-36 rounded-md border border-input bg-background px-2 py-0.5 text-xs"
+                                  />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    value={draft.price}
+                                    onChange={(event) =>
+                                      updatePriceDraft(product.id, "price", event.target.value)
+                                    }
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="w-14 rounded-md border border-input bg-background px-1 py-0.5 text-xs"
+                                  />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    value={draft.originalPrice}
+                                    onChange={(event) =>
+                                      updatePriceDraft(
+                                        product.id,
+                                        "originalPrice",
+                                        event.target.value
+                                      )
+                                    }
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="w-14 rounded-md border border-input bg-background px-1 py-0.5 text-xs"
+                                  />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    value={draft.priceAed}
+                                    onChange={(event) =>
+                                      updatePriceDraft(product.id, "priceAed", event.target.value)
+                                    }
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="w-14 rounded-md border border-input bg-background px-1 py-0.5 text-xs"
+                                  />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    value={draft.originalPriceAed}
+                                    onChange={(event) =>
+                                      updatePriceDraft(
+                                        product.id,
+                                        "originalPriceAed",
+                                        event.target.value
+                                      )
+                                    }
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    className="w-14 rounded-md border border-input bg-background px-1 py-0.5 text-xs"
+                                  />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    value={draft.priceT}
+                                    onChange={(event) =>
+                                      updatePriceDraft(product.id, "priceT", event.target.value)
+                                    }
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    className="w-14 rounded-md border border-input bg-background px-1 py-0.5 text-xs"
+                                  />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <input
+                                    value={draft.originalPriceT}
+                                    onChange={(event) =>
+                                      updatePriceDraft(
+                                        product.id,
+                                        "originalPriceT",
+                                        event.target.value
+                                      )
+                                    }
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    className="w-14 rounded-md border border-input bg-background px-1 py-0.5 text-xs"
+                                  />
+                                </td>
+                                <td className="px-2 py-2">
+                                  <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleSaveQuickPrice(product.id)}
+                                  className="rounded-md border border-input px-3 py-1 text-xs"
+                                  disabled={savingPriceId === product.id}
+                                >
+                                  {savingPriceId === product.id ? "Applying..." : "Apply changes"}
+                                </button>
+                                    <button
+                                      onClick={() => handleEdit(product)}
+                                      className="rounded-md border border-input px-3 py-1 text-xs"
+                                    >
+                                      Full edit
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-border bg-background p-4">
+              <button
+                type="button"
+                onClick={() => setIsProductListExpanded((current) => !current)}
+                className="flex w-full items-center justify-between gap-2 text-left"
+              >
+                <h3 className="text-sm font-semibold">
+                  {isProductListExpanded ? "v" : ">"} Products View
+                </h3>
+              </button>
+              {isProductListExpanded && (
+                <div className="mt-3">
+                  {productsLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading products...</p>
+                  ) : filteredSortedProducts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      {products.length === 0 ? "No products yet." : "No products match your filters."}
+                    </p>
+                  ) : (
+                    <div className="space-y-8">
+                      {Object.entries(groupedProductsByBrand).sort(([a], [b]) => a.localeCompare(b)).map(([brand, brandProducts]) => (
+                        <div key={brand} className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-serif text-lg border-b-2 border-primary/20 pb-1 px-1">
+                              {brand}
+                            </h4>
+                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                              {brandProducts.length}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {brandProducts.map((product) => (
+                              <div
+                                key={product.id}
+                                className="flex gap-4 rounded-xl border border-border bg-background p-4 shadow-sm hover:shadow-md transition-shadow"
+                              >
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="h-24 w-20 rounded-md object-cover border"
+                                />
+                                <div className="flex-1">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                      <h3 className="font-semibold text-sm">{product.name}</h3>
+                                      {product.koreanName?.trim() && (
+                                        <p className="text-[10px] text-muted-foreground">
+                                          {product.koreanName}
+                                        </p>
+                                      )}
+                                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                                        {product.department} · {product.category}
+                                      </p>
+                                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                                        <a
+                                          href={getProductUrl(product.id)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-[10px] text-primary underline underline-offset-2"
+                                        >
+                                          Product page link
+                                        </a>
+                                        <button
+                                          type="button"
+                                          onClick={() => copyText(getProductUrl(product.id))}
+                                          className="rounded border border-input px-2 py-0.5 text-[8px]"
+                                        >
+                                          Copy
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <div className="text-xs font-bold whitespace-nowrap">
+                                      {product.price.toFixed(2)} {product.currency}
+                                    </div>
+                                  </div>
+                                  <div className="mt-3 flex gap-2">
+                                    <button
+                                      onClick={() => handleEdit(product)}
+                                      className="rounded-md border border-input px-2 py-1 text-[10px] hover:bg-muted"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={() => handleDelete(product.id)}
+                                      className="rounded-md border border-red-200 px-2 py-1 text-[10px] text-red-600 hover:bg-red-50"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </section>
         </>
       ) : activeTab === "orders" ? (

@@ -21,7 +21,13 @@ export async function ProductGrid({ category, department, newArrival, bestSeller
     const normalizedSearch = (search || "").trim().toLowerCase();
 
     const filteredProducts = products.filter(product => {
-        if (category && !categoriesMatch(category, product.category)) return false;
+        if (category) {
+            const matchesPrimary = categoriesMatch(category, product.category);
+            const matchesAdditional = (product.additionalCategories || []).some((entry) =>
+                categoriesMatch(category, entry)
+            );
+            if (!matchesPrimary && !matchesAdditional) return false;
+        }
         if (department && !departmentsMatch(department, product.department)) return false;
         if (newArrival && !product.newArrival) return false;
         if (bestSeller && !product.bestSeller) return false;

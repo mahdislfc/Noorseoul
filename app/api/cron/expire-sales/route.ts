@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { syncProductPricesFromSourceUrls } from "@/lib/source-price-sync";
+import { expireSalesAndRestorePrices } from "@/lib/sale-expiry";
 
 export const runtime = "nodejs";
 
@@ -14,12 +14,10 @@ export async function GET(request: Request) {
   if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
   try {
-    const result = await syncProductPricesFromSourceUrls();
-    return NextResponse.json({
-      ranAt: new Date().toISOString(),
-      ...result,
-    });
+    const result = await expireSalesAndRestorePrices();
+    return NextResponse.json(result, { status: result.ok ? 200 : 207 });
   } catch (error) {
     return NextResponse.json(
       {
@@ -28,7 +26,7 @@ export async function GET(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Failed to sync product prices from source URLs",
+            : "Failed to run sale expiry",
       },
       { status: 500 }
     );

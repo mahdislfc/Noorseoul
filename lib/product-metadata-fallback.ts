@@ -62,6 +62,7 @@ export interface ProductMetadata {
   sourceSyncError?: string;
   bundleLabel?: string;
   bundleProductId?: string;
+  additionalCategories?: string[];
   similarProductIds?: string[];
   economicalOptionName?: string;
   economicalOptionPrice?: number;
@@ -92,6 +93,17 @@ function normalizeIdList(value?: string[]) {
     new Set(
       value
         .map((id) => sanitize(id))
+        .filter(Boolean)
+    )
+  );
+}
+
+function normalizeStringList(value?: string[]) {
+  if (!Array.isArray(value)) return [];
+  return Array.from(
+    new Set(
+      value
+        .map((entry) => sanitize(entry))
         .filter(Boolean)
     )
   );
@@ -221,6 +233,7 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
   const sourceSyncError = sanitize(input.sourceSyncError);
   const bundleLabel = sanitize(input.bundleLabel);
   const bundleProductId = sanitize(input.bundleProductId);
+  const additionalCategories = normalizeStringList(input.additionalCategories);
   const similarProductIds = normalizeIdList(input.similarProductIds);
   const economicalOptionName = sanitize(input.economicalOptionName);
   const economicalOptionPrice = sanitizeNumber(input.economicalOptionPrice);
@@ -299,6 +312,8 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
     sourceSyncError: sourceSyncError || undefined,
     bundleLabel: bundleLabel || undefined,
     bundleProductId: bundleProductId || undefined,
+    additionalCategories:
+      additionalCategories.length > 0 ? additionalCategories : undefined,
     similarProductIds: similarProductIds.length > 0 ? similarProductIds : undefined,
     economicalOptionName: economicalOptionName || undefined,
     economicalOptionPrice:
@@ -397,6 +412,7 @@ export async function setFallbackMetadata(productId: string, metadata: ProductMe
       normalized.sourceSyncError ||
       normalized.bundleLabel ||
       normalized.bundleProductId ||
+      (normalized.additionalCategories && normalized.additionalCategories.length > 0) ||
       (normalized.similarProductIds && normalized.similarProductIds.length > 0) ||
       normalized.economicalOptionName ||
       (typeof normalized.economicalOptionPrice === "number" &&

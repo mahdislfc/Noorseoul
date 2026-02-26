@@ -50,6 +50,7 @@ const categories: Category[] = [
         nameFa: "مراقبت آفتاب",
         subcategories: [
             { name: "sunscreen", nameFa: "ضد آفتاب" },
+            { name: "Sun serum", nameFa: "سرم ضد آفتاب" },
             { name: "sun stick", nameFa: "استیک ضد آفتاب" },
             { name: "Sun cushion", nameFa: "کوشن ضد آفتاب" },
             { name: "Sun spray/sun patch", nameFa: "اسپری/پچ ضد آفتاب" },

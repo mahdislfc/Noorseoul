@@ -14,6 +14,7 @@ export interface Product {
   currency: string;
   brand: string;
   category: string;
+  additionalCategories?: string[];
   department: string;
   image: string;
   bestSeller: boolean;

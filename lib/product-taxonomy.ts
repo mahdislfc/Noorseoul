@@ -18,6 +18,8 @@ const CATEGORY_CANONICAL_MAP: Record<string, string> = {
   mistoil: "Mist/Oil",
   sunscreen: "Sunscreen",
   sunscreens: "Sunscreen",
+  sunserum: "Sun serum",
+  sunserums: "Sun serum",
 };
 
 const DEPARTMENT_CANONICAL_MAP: Record<string, string> = {
@@ -53,6 +55,7 @@ export const CATEGORY_OPTIONS = [
   "facial pack",
   "Patch",
   "Sunscreen",
+  "Sun serum",
 ];
 
 export const DEPARTMENT_OPTIONS = [
@@ -95,8 +98,20 @@ export function departmentsMatch(
 ) {
   const normalizedFilter = normalizeDepartmentInput(filterDepartment).toLowerCase();
   const normalizedProduct = normalizeDepartmentInput(productDepartment).toLowerCase();
+  const filterIsSunCare = normalizedFilter === "sun care";
+  const productIsSunCare = normalizedProduct === "sun care";
+  const filterIsSkincare = normalizedFilter === "skincare";
+  const productIsSkincare = normalizedProduct === "skincare";
+
+  if (
+    (filterIsSunCare && productIsSkincare) ||
+    (filterIsSkincare && productIsSunCare)
+  ) {
+    return true;
+  }
+
   if (normalizedProduct === "both") {
-    return normalizedFilter === "skincare" || normalizedFilter === "makeup";
+    return normalizedFilter === "skincare" || normalizedFilter === "makeup" || normalizedFilter === "sun care";
   }
   if (normalizedFilter === "both") {
     return normalizedProduct === "both";
