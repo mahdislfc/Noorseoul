@@ -394,9 +394,8 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                                 return (
                                                     <span
                                                         key={`day-${day}`}
-                                                        className={`mx-auto inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
-                                                            isSaleEndDay ? "text-red-600" : (isSaleDay ? "text-amber-500" : "text-black")
-                                                        } ${isToday ? "border-2 border-black" : ""}`}
+                                                        className={`mx-auto inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${isSaleEndDay ? "text-red-600" : (isSaleDay ? "text-amber-500" : "text-black")
+                                                            } ${isToday ? "border-2 border-black" : ""}`}
                                                     >
                                                         {day}
                                                     </span>
@@ -471,8 +470,8 @@ export function ProductInfo({ product }: ProductInfoProps) {
                                     type="button"
                                     onClick={() => setSelectedShadeId(shade.id)}
                                     className={`rounded-md border px-3 py-2 text-left ${isSelected
-                                            ? "border-primary bg-primary/10 text-primary"
-                                            : "border-border hover:border-primary/40"
+                                        ? "border-primary bg-primary/10 text-primary"
+                                        : "border-border hover:border-primary/40"
                                         }`}
                                 >
                                     <p className="text-sm font-semibold">{shade.name}</p>
@@ -559,32 +558,32 @@ export function ProductInfo({ product }: ProductInfoProps) {
             )}
 
             {(product.bundleProduct || product.economicalOption) && (
-                <div className="mb-8 rounded-lg border border-primary/25 bg-primary/5 p-4">
-                    <p className="text-xs font-bold uppercase tracking-widest text-primary/80">{t("buyCheaper")}</p>
+                <div className="mb-8 rounded-xl border-2 border-primary/20 bg-primary/5 p-6 shadow-sm">
+                    <p className="text-sm font-bold uppercase tracking-widest text-primary/80">{t("buyCheaper")}</p>
                     {product.bundleLabel?.trim() && (
-                        <p className="mt-2 text-sm text-foreground/80">{product.bundleLabel}</p>
+                        <p className="mt-3 text-base text-foreground/80 font-medium">{product.bundleLabel}</p>
                     )}
-                    <div className="mt-3 grid grid-cols-1 gap-3">
+                    <div className="mt-5 grid grid-cols-1 gap-4">
                         {product.economicalOption && (
-                            <div className="rounded-md border border-border bg-background p-3">
-                                <p className="text-sm font-semibold">{product.economicalOption.name}</p>
-                                <div className="mt-1 flex items-center gap-2">
-                                    <p className="text-sm font-semibold text-primary">
+                            <div className="rounded-lg border border-border bg-background p-5 shadow-sm">
+                                <p className="text-lg font-bold">{product.economicalOption.name}</p>
+                                <div className="mt-2 flex items-center gap-3">
+                                    <p className="text-xl font-extrabold text-primary">
                                         {formatDisplayAmount(product.economicalOption.price, product.currency || "USD", displayCurrency, locale)}
                                     </p>
                                     {economicalOptionQuantity > 1 && (
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm text-muted-foreground font-medium">
                                             {t("quantityShort")}: {economicalOptionQuantity}
                                         </p>
                                     )}
                                     {economicalOptionQuantity > 1 && (
-                                        <p className="text-xs text-muted-foreground line-through">
+                                        <p className="text-sm text-muted-foreground line-through opacity-60">
                                             {formatDisplayAmount(product.price * economicalOptionQuantity, product.currency || "USD", displayCurrency, locale)}
                                         </p>
                                     )}
                                 </div>
-                                <div className="mt-3">
-                                    <Button type="button" size="sm" onClick={handleAddEconomicalOptionToCart}>
+                                <div className="mt-4">
+                                    <Button type="button" size="lg" className="px-8 font-bold" onClick={handleAddEconomicalOptionToCart}>
                                         {t("addToCart")}
                                     </Button>
                                 </div>
@@ -592,48 +591,48 @@ export function ProductInfo({ product }: ProductInfoProps) {
                         )}
 
                         {product.bundleProduct && (
-                            <div className="rounded-md border border-border bg-background p-3">
-                                <div className="flex items-start gap-3">
+                            <div className="rounded-lg border border-border bg-background p-5 shadow-sm">
+                                <div className="flex items-start gap-4">
                                     <img
                                         src={product.bundleProduct.image}
                                         alt={product.bundleProduct.name}
-                                        className="h-16 w-16 rounded-md border object-cover"
+                                        className="h-20 w-20 rounded-md border object-cover"
                                     />
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold leading-snug">{product.bundleProduct.name}</p>
+                                        <p className="text-lg font-bold leading-tight">{product.bundleProduct.name}</p>
                                         {product.bundleProduct.size?.trim() && (
-                                            <p className="mt-1 text-xs text-muted-foreground">{t("size")}: {product.bundleProduct.size}</p>
+                                            <p className="mt-2 text-sm text-muted-foreground font-medium">{t("size")}: {product.bundleProduct.size}</p>
                                         )}
-                                        <p className="mt-1 text-sm font-semibold text-primary">
+                                        <p className="mt-2 text-xl font-extrabold text-primary">
                                             {formatDisplayAmount(product.bundleProduct.price, product.bundleProduct.currency || "USD", displayCurrency, locale)}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="mt-3 flex flex-wrap items-center gap-2">
-                                    <div className="flex items-center border border-border rounded-md px-2">
+                                <div className="mt-5 flex flex-wrap items-center gap-3">
+                                    <div className="flex items-center border border-border rounded-md px-3 bg-secondary/5">
                                         <button
                                             type="button"
-                                            className="p-1 hover:text-primary transition-colors"
+                                            className="p-2 hover:text-primary transition-colors"
                                             onClick={() => setBundleQuantity((current) => Math.max(1, current - 1))}
                                         >
-                                            <Minus className="w-3 h-3" />
+                                            <Minus className="w-4 h-4" />
                                         </button>
-                                        <span className="w-8 text-center text-sm font-semibold">{bundleQuantity}</span>
+                                        <span className="w-10 text-center text-base font-bold">{bundleQuantity}</span>
                                         <button
                                             type="button"
-                                            className="p-1 hover:text-primary transition-colors"
+                                            className="p-2 hover:text-primary transition-colors"
                                             onClick={() => setBundleQuantity((current) => current + 1)}
                                         >
-                                            <Plus className="w-3 h-3" />
+                                            <Plus className="w-4 h-4" />
                                         </button>
                                     </div>
-                                    <Button type="button" size="sm" onClick={handleAddBundleToCart}>
+                                    <Button type="button" size="lg" className="px-8 font-bold" onClick={handleAddBundleToCart}>
                                         {t("addToCart")}
                                     </Button>
                                     <button
                                         type="button"
                                         onClick={() => router.push(`/products/${product.bundleProduct?.id}`)}
-                                        className="text-sm font-semibold text-primary hover:underline"
+                                        className="ml-auto text-base font-bold text-primary hover:underline px-2"
                                     >
                                         {t("viewDetails")}
                                     </button>

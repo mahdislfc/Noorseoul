@@ -62,8 +62,8 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     const currentTotalPrice = currentPrice * quantity
     const originalTotalPrice =
         !isEconomicalSet &&
-        typeof product.originalPrice === "number" &&
-        product.originalPrice > currentPrice
+            typeof product.originalPrice === "number" &&
+            product.originalPrice > currentPrice
             ? product.originalPrice * quantity
             : null
     const discountPercent =
@@ -122,8 +122,8 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-            <DialogContent className="sm:max-w-[425px] md:max-w-4xl p-0 overflow-hidden bg-white gap-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 h-[80vh] md:h-[600px]">
+            <DialogContent className="sm:max-w-[425px] md:max-w-5xl p-0 overflow-hidden bg-white gap-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 h-[80vh] md:h-[750px]">
 
                     {/* Image Gallery Section */}
                     <div className="bg-secondary/10 p-6 flex flex-col gap-4 overflow-hidden">
@@ -169,15 +169,15 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                     {/* Product Details Section */}
                     <div className="p-6 md:p-8 flex flex-col overflow-y-auto">
                         <div className="mb-6">
-                            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1 font-medium">{product.brand}</p>
-                            <DialogTitle className="font-serif text-2xl md:text-3xl leading-tight mb-2">{product.name}</DialogTitle>
-                            <p className="text-sm text-muted-foreground">{product.category}</p>
+                            <p className="text-base text-muted-foreground uppercase tracking-wider mb-1 font-medium">{product.brand}</p>
+                            <DialogTitle className="font-serif text-3xl md:text-4xl leading-tight mb-2">{product.name}</DialogTitle>
+                            <p className="text-base text-muted-foreground">{product.category}</p>
                         </div>
 
-                        <div className="text-2xl font-bold text-primary mb-6 flex items-baseline gap-2">
+                        <div className="text-3xl font-bold text-primary mb-6 flex items-baseline gap-2">
                             <span>{formatDisplayAmount(currentTotalPrice, currentPriceCurrency, displayCurrency, locale)}</span>
                             {originalTotalPrice && (
-                                <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
+                                <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
                                     {formatDisplayAmount(
                                         originalTotalPrice,
                                         originalPriceInfo?.fromCurrency || product.currency || "USD",
@@ -187,25 +187,25 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                 </span>
                             )}
                             {discountPercent !== null && (
-                                <span className="text-xs font-bold text-red-600">-{discountPercent}%</span>
+                                <span className="text-sm font-bold text-red-600">-{discountPercent}%</span>
                             )}
                         </div>
 
                         {product.size && (
                             <div className="mb-6">
-                                <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground block mb-2">{t("size")}</span>
-                                <div className="inline-block px-3 py-1 bg-secondary/30 rounded-md text-sm font-medium">
+                                <span className="text-sm font-bold uppercase tracking-wide text-muted-foreground block mb-2">{t("size")}</span>
+                                <div className="inline-block px-4 py-2 bg-secondary/30 rounded-md text-base font-medium">
                                     {product.size}
                                 </div>
                             </div>
                         )}
 
                         {product.colorShades && product.colorShades.length > 0 && (
-                            <div className="mb-6 rounded-lg border border-border p-3">
-                                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                            <div className="mb-6 rounded-lg border border-border p-4 bg-gray-50/50">
+                                <p className="mb-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
                                     Color / Shade
                                 </p>
-                                <p className={`mb-2 text-xs ${selectedShade ? "text-muted-foreground" : "text-amber-700"}`}>
+                                <p className={`mb-3 text-sm ${selectedShade ? "text-muted-foreground" : "text-amber-700 font-medium"}`}>
                                     There are {product.colorShades.length} shades available. Which shade would you like to order?
                                 </p>
                                 <div className="flex flex-wrap gap-2">
@@ -224,9 +224,9 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                                 key={shade.id}
                                                 type="button"
                                                 onClick={() => setSelectedShadeId(shade.id)}
-                                                className={`rounded-md border px-2 py-1 text-left text-xs ${selectedShade?.id === shade.id
-                                                        ? "border-primary bg-primary/10 text-primary"
-                                                        : "border-border"
+                                                className={`rounded-md border px-3 py-2 text-left text-sm transition-all ${selectedShade?.id === shade.id
+                                                    ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20"
+                                                    : "border-border bg-white hover:border-gray-400"
                                                     }`}
                                             >
                                                 <p className="font-semibold">{shade.name}</p>
@@ -246,25 +246,25 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                         )}
 
                         {product.economicalOption && (
-                            <div className="mb-8 p-4 border border-primary/20 bg-primary/5 rounded-lg">
-                                <div className="flex items-start space-x-3">
+                            <div className="mb-8 p-5 border-2 border-primary/20 bg-primary/5 rounded-xl">
+                                <div className="flex items-start space-x-4">
                                     <Checkbox
                                         id="eco-set"
                                         checked={isEconomicalSet}
                                         onCheckedChange={(checked) => setIsEconomicalSet(checked as boolean)}
-                                        className="mt-1"
+                                        className="mt-1 h-5 w-5"
                                     />
-                                    <div className="grid gap-1.5 leading-none">
+                                    <div className="grid gap-2 leading-none">
                                         <label
                                             htmlFor="eco-set"
-                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-primary"
+                                            className="text-lg font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-primary"
                                         >
                                             {product.economicalOption.name}
                                         </label>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm text-muted-foreground">
                                             {t("economicalSetHint")}
                                         </p>
-                                        <p className="text-sm font-bold mt-1">
+                                        <p className="text-xl font-extrabold mt-1">
                                             {formatDisplayAmount(product.economicalOption.price, product.currency || "USD", displayCurrency, locale)}
                                         </p>
                                     </div>
@@ -280,28 +280,28 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                     </p>
                                 )}
                                 <div className="flex items-center gap-2">
-                                    <div className="flex h-12 items-center rounded-md border border-input bg-background px-2">
+                                    <div className="flex h-14 items-center rounded-md border border-input bg-background px-3">
                                         <button
                                             type="button"
-                                            className="h-8 w-8 inline-flex items-center justify-center rounded-sm hover:text-primary transition-colors"
+                                            className="h-10 w-10 inline-flex items-center justify-center rounded-sm hover:text-primary transition-colors"
                                             onClick={() => setQuantity((current) => Math.max(1, current - 1))}
                                             aria-label={t("decreaseQuantity")}
                                         >
-                                            <Minus className="w-4 h-4" />
+                                            <Minus className="w-5 h-5" />
                                         </button>
-                                        <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
+                                        <span className="w-10 text-center text-lg font-bold">{quantity}</span>
                                         <button
                                             type="button"
-                                            className="h-8 w-8 inline-flex items-center justify-center rounded-sm hover:text-primary transition-colors"
+                                            className="h-10 w-10 inline-flex items-center justify-center rounded-sm hover:text-primary transition-colors"
                                             onClick={() => setQuantity((current) => current + 1)}
                                             aria-label={t("increaseQuantity")}
                                         >
-                                            <Plus className="w-4 h-4" />
+                                            <Plus className="w-5 h-5" />
                                         </button>
                                     </div>
                                     <Button
                                         size="lg"
-                                        className="flex-1 text-lg h-12 gap-2 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                                        className="flex-1 text-xl h-14 gap-3 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all font-bold"
                                         onClick={handleAddToCart}
                                         disabled={Boolean(
                                             !isEconomicalSet &&
@@ -310,13 +310,13 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                                             !selectedShade
                                         )}
                                     >
-                                        <ShoppingBag className="w-5 h-5" />
+                                        <ShoppingBag className="w-6 h-6" />
                                         {t('addToCart')}
                                     </Button>
                                 </div>
                                 <Link
                                     href={`/products/${product.id}`}
-                                    className="block text-center text-sm font-semibold uppercase tracking-widest text-primary hover:underline"
+                                    className="block text-center text-base font-bold uppercase tracking-widest text-primary hover:underline"
                                     onClick={() => onOpenChange(false)}
                                 >
                                     {t("viewDetails")}
