@@ -20,6 +20,22 @@ import {
 
 export const runtime = "nodejs";
 
+function getReadableErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) {
+    const message = error.message || "";
+    const databaseHostMatch = message.match(/Can't reach database server at `([^`]+)`/);
+    if (databaseHostMatch) {
+      return `Database connection failed (${databaseHostMatch[1]}). Check DATABASE_URL and network access.`;
+    }
+    const firstLine = message
+      .split("\n")
+      .map((line) => line.trim())
+      .find(Boolean);
+    if (firstLine) return firstLine;
+  }
+  return fallback;
+}
+
 function isGalleryRelationUnavailable(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   const code =
@@ -175,45 +191,57 @@ export async function GET() {
   if (authError) return authError;
 
   try {
-    const products = await prisma.product.findMany({
-      include: { images: { orderBy: { sortOrder: "asc" } } },
-      orderBy: { createdAt: "desc" },
-    });
-    const metadataMap = await getFallbackMetadataMap();
+    try {
+      const products = await prisma.product.findMany({
+        include: { images: { orderBy: { sortOrder: "asc" } } },
+        orderBy: { createdAt: "desc" },
+      });
+      const metadataMap = await getFallbackMetadataMap();
 
-    const normalized = products.map((product) => ({
-      ...(metadataMap[product.id] || {}),
-      ...product,
-      images: product.images.map((image) => image.url),
-      image: product.images[0]?.url || product.image,
-      economicalOption: buildEconomicalOption(
-        (metadataMap[product.id] || {}) as Record<string, unknown>
-      ),
-    }));
+      const normalized = products.map((product) => ({
+        ...(metadataMap[product.id] || {}),
+        ...product,
+        images: product.images.map((image) => image.url),
+        image: product.images[0]?.url || product.image,
+        economicalOption: buildEconomicalOption(
+          (metadataMap[product.id] || {}) as Record<string, unknown>
+        ),
+      }));
 
-    return NextResponse.json({ products: normalized });
+      return NextResponse.json({ products: normalized });
+    } catch (error) {
+      if (!isGalleryRelationUnavailable(error)) throw error;
+      const products = await prisma.product.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      const galleryMap = await getFallbackGalleryMap();
+      const metadataMap = await getFallbackMetadataMap();
+      const normalized = products.map((product) => ({
+        ...(metadataMap[product.id] || {}),
+        ...product,
+        image: galleryMap[product.id]?.[0] || product.image,
+        images:
+          galleryMap[product.id]?.length
+            ? galleryMap[product.id]
+            : product.image
+              ? [product.image]
+              : [],
+        economicalOption: buildEconomicalOption(
+          (metadataMap[product.id] || {}) as Record<string, unknown>
+        ),
+      }));
+      return NextResponse.json({ products: normalized });
+    }
   } catch (error) {
-    if (!isGalleryRelationUnavailable(error)) throw error;
-    const products = await prisma.product.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    const galleryMap = await getFallbackGalleryMap();
-    const metadataMap = await getFallbackMetadataMap();
-    const normalized = products.map((product) => ({
-      ...(metadataMap[product.id] || {}),
-      ...product,
-      image: galleryMap[product.id]?.[0] || product.image,
-      images:
-        galleryMap[product.id]?.length
-          ? galleryMap[product.id]
-          : product.image
-            ? [product.image]
-            : [],
-      economicalOption: buildEconomicalOption(
-        (metadataMap[product.id] || {}) as Record<string, unknown>
-      ),
-    }));
-    return NextResponse.json({ products: normalized });
+    return NextResponse.json(
+      {
+        error: getReadableErrorMessage(
+          error,
+          "Failed to load products. Please try again."
+        ),
+      },
+      { status: 500 }
+    );
   }
 }
 
