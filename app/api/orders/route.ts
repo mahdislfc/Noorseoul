@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/utils/supabase/server";
-import { getShippingCostForSubtotal } from "@/lib/shipping";
+import { placeOrder } from "@/lib/order-placement";
 
 export const runtime = "nodejs";
 
@@ -13,6 +13,7 @@ interface IncomingOrderItem {
   quantity: number;
   image: string;
   shade?: string;
+  currency?: string;
 }
 
 function isMissingOrderNoteColumnError(error: unknown) {
@@ -22,16 +23,6 @@ function isMissingOrderNoteColumnError(error: unknown) {
     "code" in error &&
     (error as { code?: string }).code === "P2022"
   );
-}
-
-function roundCurrency(value: number) {
-  return Math.round(value * 100) / 100;
-}
-
-function createOrderNumber() {
-  const stamp = Date.now().toString().slice(-8);
-  const suffix = Math.floor(100 + Math.random() * 900);
-  return `NS-${stamp}-${suffix}`;
 }
 
 function mapOrderStatus(status: string): "Processing" | "Shipped" | "Delivered" {
@@ -141,6 +132,7 @@ export async function POST(request: Request) {
   const currency = String(body?.currency || "AED").trim().toUpperCase() || "AED";
   const firstPurchaseSampleApplied = body?.firstPurchaseSampleApplied === true;
   const shippingRewardApplied = body?.shippingRewardApplied === true;
+  const voucherDiscountAmount = Number(body?.voucherDiscountAmount || 0);
   const items = Array.isArray(body?.items) ? (body.items as IncomingOrderItem[]) : [];
 
   if (!email || !firstName || !lastName || !city) {
@@ -154,139 +146,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Your cart is empty" }, { status: 400 });
   }
 
-  const normalizedItems = items
-    .map((item) => ({
-      id: String(item.id || "").trim(),
-      productId: String(item.productId || "").trim(),
-      name: String(item.name || "").trim(),
-      price: Number(item.price || 0),
-      quantity: Number(item.quantity || 0),
-      image: String(item.image || "").trim(),
-      shade: String(item.shade || "").trim(),
-    }))
-    .filter(
-      (item) =>
-        item.id &&
-        item.name &&
-        item.image &&
-        Number.isFinite(item.price) &&
-        item.price > 0 &&
-        Number.isInteger(item.quantity) &&
-        item.quantity > 0
-    );
-
-  if (normalizedItems.length === 0) {
-    return NextResponse.json(
-      { error: "No valid items were provided" },
-      { status: 400 }
-    );
-  }
-
-  let orderNote: string | null = null;
-  if (firstPurchaseSampleApplied) {
-    const totalItemQuantity = normalizedItems.reduce(
-      (sum, item) => sum + item.quantity,
-      0
-    );
-
-    if (totalItemQuantity < 3) {
-      return NextResponse.json(
-        { error: "Sample reward requires at least 3 items" },
-        { status: 400 }
-      );
-    }
-
-    const existingOrderCount = await prisma.order.count({
-      where: { customerEmail: email },
-    });
-
-    if (existingOrderCount > 0) {
-      return NextResponse.json(
-        { error: "Sample reward is only valid for the first order" },
-        { status: 400 }
-      );
-    }
-
-    orderNote = `${firstName} ${lastName}'s first order + sample skincare product.`;
-  }
-
-  const subtotal = roundCurrency(
-    normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  );
-  const baseShippingCost = getShippingCostForSubtotal(subtotal);
-  const vat = roundCurrency(subtotal * 0.05);
-  const shipping = shippingRewardApplied ? 0 : baseShippingCost;
-  const total = roundCurrency(subtotal + vat + shipping);
-
-  const order = await prisma.order.create({
-    data: {
-      orderNumber: createOrderNumber(),
-      customerEmail: email,
+  try {
+    const result = await placeOrder({
+      email,
       firstName,
       lastName,
       city,
-      orderNote,
       currency,
-      subtotal,
-      vat,
-      shipping,
-      total,
-      items: {
-        create: normalizedItems.map((item) => ({
-          name:
-            item.shade && !item.name.toLowerCase().includes("(option:")
-              ? `${item.name} (Option: ${item.shade})`
-              : item.name,
-          productId: item.productId || item.id,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-        })),
-      },
-    },
-    include: { items: true },
-  }).catch(async (error) => {
-    if (!isMissingOrderNoteColumnError(error)) throw error;
+      firstPurchaseSampleApplied,
+      shippingRewardApplied,
+      voucherDiscountAmount,
+      items,
+    });
 
-    return prisma.order.create({
-      data: {
-        orderNumber: createOrderNumber(),
-        customerEmail: email,
-        firstName,
-        lastName,
-        city,
-        currency,
-        subtotal,
-        vat,
-        shipping,
-        total,
-        items: {
-          create: normalizedItems.map((item) => ({
-            productId: item.productId || item.id,
-            name:
-              item.shade && !item.name.toLowerCase().includes("(option:")
-                ? `${item.name} (Option: ${item.shade})`
-                : item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-          })),
+    return NextResponse.json(
+      {
+        ok: true,
+        order: {
+          id: result.order.id,
+          orderNumber: result.order.orderNumber,
+          status: result.order.status,
+          total: result.order.total,
         },
       },
-      include: { items: true },
-    });
-  });
-
-  return NextResponse.json(
-    {
-      ok: true,
-      order: {
-        id: order.id,
-        orderNumber: order.orderNumber,
-        status: order.status,
-        total: order.total,
+      { status: 201 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to place order",
       },
-    },
-    { status: 201 }
-  );
+      { status: 400 }
+    );
+  }
 }

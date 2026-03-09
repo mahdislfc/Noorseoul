@@ -13,6 +13,7 @@ import { getShippingCostForSubtotal } from "@/lib/shipping"
 import { useDisplayCurrency } from "@/context/DisplayCurrencyContext"
 import { formatDisplayAmount } from "@/lib/display-currency"
 import { Link } from "@/i18n/routing"
+import { PayPalCheckoutButton } from "@/components/checkout/PayPalCheckoutButton"
 
 import { useLocale, useTranslations } from 'next-intl';
 
@@ -29,7 +30,6 @@ export default function CheckoutPage() {
     const [lastName, setLastName] = useState("")
     const [address, setAddress] = useState("")
     const [city, setCity] = useState("Seoul")
-    const [placingOrder, setPlacingOrder] = useState(false)
     const [checkoutError, setCheckoutError] = useState("")
     const [successOrderNumber, setSuccessOrderNumber] = useState("")
     const [rewardCodeInput, setRewardCodeInput] = useState("")
@@ -87,14 +87,16 @@ export default function CheckoutPage() {
     useEffect(() => {
         if (!user) return
 
-        setEmail((current) => current.trim() ? current : (user.email || ""))
-        setFirstName((current) => current.trim() ? current : (user.firstName || ""))
-        setLastName((current) => current.trim() ? current : (user.lastName || ""))
-        setAddress((current) => current.trim() ? current : (user.address || ""))
-        setCity((current) => {
-            if (current.trim() && current !== "Seoul") return current
-            const profileCity = user.city?.trim()
-            return profileCity || current || "Seoul"
+        Promise.resolve().then(() => {
+            setEmail((current) => current.trim() ? current : (user.email || ""))
+            setFirstName((current) => current.trim() ? current : (user.firstName || ""))
+            setLastName((current) => current.trim() ? current : (user.lastName || ""))
+            setAddress((current) => current.trim() ? current : (user.address || ""))
+            setCity((current) => {
+                if (current.trim() && current !== "Seoul") return current
+                const profileCity = user.city?.trim()
+                return profileCity || current || "Seoul"
+            })
         })
     }, [user])
 
@@ -115,45 +117,31 @@ export default function CheckoutPage() {
 
             const shippingCode = localStorage.getItem(key(FREE_SHIPPING_CODE_KEY))
             const shippingClaimed = localStorage.getItem(key(FREE_SHIPPING_CLAIMED_KEY)) === "true"
-            if (shippingCode && shippingClaimed) {
-                setActiveFreeShippingCode(shippingCode)
-            } else {
-                setActiveFreeShippingCode("")
-            }
 
             const firstPurchaseSampleCode = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_CODE_KEY))
             const firstPurchaseSampleClaimed = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_CLAIMED_KEY)) === "true"
             const firstPurchaseSampleUsed = localStorage.getItem(key(FIRST_PURCHASE_SAMPLE_USED_KEY)) === "true"
-            if (firstPurchaseSampleCode && firstPurchaseSampleClaimed && !firstPurchaseSampleUsed) {
-                setActiveFirstPurchaseSampleCode(firstPurchaseSampleCode)
-            } else {
-                setActiveFirstPurchaseSampleCode("")
-            }
-            setHasUsedFirstPurchaseSample(firstPurchaseSampleUsed)
 
             const voucher15Code = localStorage.getItem(key(VOUCHER_15_CODE_KEY))
             const voucher15Claimed = localStorage.getItem(key(VOUCHER_15_CLAIMED_KEY)) === "true"
-            if (voucher15Code && voucher15Claimed) {
-                setActiveVoucher15Code(voucher15Code)
-            } else {
-                setActiveVoucher15Code("")
-            }
 
             const voucher30Code = localStorage.getItem(key(VOUCHER_30_CODE_KEY))
             const voucher30Claimed = localStorage.getItem(key(VOUCHER_30_CLAIMED_KEY)) === "true"
-            if (voucher30Code && voucher30Claimed) {
-                setActiveVoucher30Code(voucher30Code)
-            } else {
-                setActiveVoucher30Code("")
-            }
 
             const voucher50Code = localStorage.getItem(key(VOUCHER_50_CODE_KEY))
             const voucher50Claimed = localStorage.getItem(key(VOUCHER_50_CLAIMED_KEY)) === "true"
-            if (voucher50Code && voucher50Claimed) {
-                setActiveVoucher50Code(voucher50Code)
-            } else {
-                setActiveVoucher50Code("")
-            }
+            Promise.resolve().then(() => {
+                setActiveFreeShippingCode(shippingCode && shippingClaimed ? shippingCode : "")
+                setActiveFirstPurchaseSampleCode(
+                    firstPurchaseSampleCode && firstPurchaseSampleClaimed && !firstPurchaseSampleUsed
+                        ? firstPurchaseSampleCode
+                        : ""
+                )
+                setHasUsedFirstPurchaseSample(firstPurchaseSampleUsed)
+                setActiveVoucher15Code(voucher15Code && voucher15Claimed ? voucher15Code : "")
+                setActiveVoucher30Code(voucher30Code && voucher30Claimed ? voucher30Code : "")
+                setActiveVoucher50Code(voucher50Code && voucher50Claimed ? voucher50Code : "")
+            })
         } catch {
             // ignore storage issues
         }
@@ -358,46 +346,8 @@ export default function CheckoutPage() {
         }
     }
 
-    const handleCompletePurchase = async () => {
-        setCheckoutError("")
-        setSuccessOrderNumber("")
-
-        if (!email.trim() || !firstName.trim() || !lastName.trim() || !city.trim()) {
-            setCheckoutError(t("messages.completeDetails"))
-            return
-        }
-
-        if (items.length === 0) {
-            setCheckoutError(t("messages.bagEmpty"))
-            return
-        }
-
-        setPlacingOrder(true)
-        try {
-            const res = await fetch("/api/orders", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email,
-                    firstName,
-                    lastName,
-                    address,
-                    city,
-                    currency: cartCurrency,
-                    firstPurchaseSampleApplied: isFirstPurchaseSampleApplied,
-                    shippingRewardApplied,
-                    items,
-                }),
-            })
-
-            const data = await res.json().catch(() => null)
-            if (!res.ok) {
-                throw new Error(data?.error || t("messages.failedToPlaceOrder"))
-            }
-
-            setSuccessOrderNumber(data?.order?.orderNumber || "")
+    const finalizeSuccessfulCheckout = (orderNumber: string) => {
+            setSuccessOrderNumber(orderNumber)
             if (isFirstPurchaseSampleApplied && activeFirstPurchaseSampleCode) {
                 try {
                     localStorage.setItem(storageKey(FIRST_PURCHASE_SAMPLE_USED_KEY), "true")
@@ -461,12 +411,11 @@ export default function CheckoutPage() {
             setAppliedRewards([])
             setAppliedCodeValues([])
             clearCart()
-        } catch (error) {
-            setCheckoutError(error instanceof Error ? error.message : t("messages.failedToPlaceOrder"))
-        } finally {
-            setPlacingOrder(false)
-        }
     }
+
+    const isCheckoutReady =
+        Boolean(email.trim() && firstName.trim() && lastName.trim() && city.trim()) &&
+        items.length > 0
 
     if (isLoading) {
         return (
@@ -804,14 +753,37 @@ export default function CheckoutPage() {
                                 </p>
                             )}
 
-                            <Button
-                                type="button"
-                                className="w-full py-6 text-sm"
-                                onClick={handleCompletePurchase}
-                                disabled={placingOrder || items.length === 0}
-                            >
-                                {placingOrder ? t("actions.placingOrder") : t("actions.completePurchase")}
-                            </Button>
+                            {!successOrderNumber && (
+                                <div className="space-y-3">
+                                    {!isCheckoutReady && (
+                                        <p className="text-sm text-muted-foreground">
+                                            {t("messages.completeDetails")}
+                                        </p>
+                                    )}
+                                    <PayPalCheckoutButton
+                                        disabled={!isCheckoutReady}
+                                        payload={{
+                                            email,
+                                            firstName,
+                                            lastName,
+                                            city,
+                                            currency: cartCurrency,
+                                            items,
+                                            firstPurchaseSampleApplied: isFirstPurchaseSampleApplied,
+                                            shippingRewardApplied,
+                                            voucherDiscountAmount,
+                                        }}
+                                        onError={(message) => setCheckoutError(message)}
+                                        onSuccess={(orderNumber) => {
+                                            setCheckoutError("")
+                                            finalizeSuccessfulCheckout(orderNumber)
+                                        }}
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        PayPal checkout charges in USD.
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="flex justify-center gap-6 mt-2 opacity-50 grayscale hover:grayscale-0 transition-all text-muted-foreground">
                                 <CreditCard className="w-6 h-6" />
