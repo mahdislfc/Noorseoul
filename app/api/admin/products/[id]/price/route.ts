@@ -5,8 +5,6 @@ import { getFallbackMetadata, setFallbackMetadata } from "@/lib/product-metadata
 
 export const runtime = "nodejs";
 
-type RouteParams = { id: string } | Promise<{ id: string }>;
-
 async function ensureAuthorized() {
   const session = await getAdminSessionCookie();
   if (!isAdminSessionValid(session)) {
@@ -15,7 +13,7 @@ async function ensureAuthorized() {
   return null;
 }
 
-async function resolveRouteId(params: RouteParams) {
+async function resolveRouteId(params: Promise<{ id: string }>) {
   const resolved = await params;
   return (resolved?.id || "").trim();
 }
@@ -44,7 +42,7 @@ function parseDateInput(value: unknown, fieldName: string) {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: RouteParams }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;

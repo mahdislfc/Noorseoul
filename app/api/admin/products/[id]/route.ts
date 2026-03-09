@@ -22,8 +22,6 @@ import {
 
 export const runtime = "nodejs";
 
-type RouteParams = { id: string } | Promise<{ id: string }>;
-
 function isGalleryRelationUnavailable(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   const code =
@@ -148,14 +146,14 @@ function parseImageOrder(value: FormDataEntryValue | null) {
   }
 }
 
-async function resolveRouteId(params: RouteParams) {
+async function resolveRouteId(params: Promise<{ id: string }>) {
   const resolved = await params;
   return (resolved?.id || "").trim();
 }
 
 export async function PUT(
   request: Request,
-  { params }: { params: RouteParams }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;
@@ -452,7 +450,7 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: RouteParams }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await ensureAuthorized();
   if (authError) return authError;

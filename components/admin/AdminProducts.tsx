@@ -342,7 +342,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
 
   const parsePriceInput = (
     value: string,
-    fieldLabel: "USD" | "AED" | "T"
+    fieldLabel: string
   ): number | undefined => {
     const trimmed = value.trim();
     if (!trimmed) return undefined;
