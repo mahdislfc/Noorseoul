@@ -4,6 +4,7 @@ import {
   setFallbackMetadata,
   type ProductMetadata,
 } from "@/lib/product-metadata-fallback";
+import { getTodayDateKey, isSaleExpired } from "@/lib/sale-date";
 
 interface SaleExpiryResult {
   ok: boolean;
@@ -16,19 +17,11 @@ interface SaleExpiryResult {
   errors: Array<{ productId: string; message: string }>;
 }
 
-function getTodayDateKey() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function getSaleEndDate(metadata: ProductMetadata) {
   const sourceSaleEnd = (metadata.sourceSaleEnd || "").trim();
   if (sourceSaleEnd) return sourceSaleEnd;
   const saleEndsAt = (metadata.saleEndsAt || "").trim();
   return saleEndsAt;
-}
-
-function isExpired(saleEndDate: string, today: string) {
-  return saleEndDate < today;
 }
 
 export async function expireSalesAndRestorePrices(): Promise<SaleExpiryResult> {
@@ -54,7 +47,7 @@ export async function expireSalesAndRestorePrices(): Promise<SaleExpiryResult> {
       const metadata = metadataMap[product.id] || {};
       const saleEndDate = getSaleEndDate(metadata);
       if (!saleEndDate) continue;
-      if (!isExpired(saleEndDate, today)) continue;
+      if (!isSaleExpired(saleEndDate, today)) continue;
 
       expired += 1;
 

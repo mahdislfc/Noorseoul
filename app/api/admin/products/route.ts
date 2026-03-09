@@ -17,6 +17,7 @@ import {
   getFallbackMetadataMap,
   setFallbackMetadata,
 } from "@/lib/product-metadata-fallback";
+import { isSaleExpired } from "@/lib/sale-date";
 
 export const runtime = "nodejs";
 
@@ -175,6 +176,63 @@ function buildEconomicalOption(
   return { name: fallbackName, price, quantity };
 }
 
+function normalizeExpiredSale(product: Record<string, unknown>) {
+  const sourceSaleEnd =
+    typeof product.sourceSaleEnd === "string" ? product.sourceSaleEnd.trim() : "";
+  const saleEndsAt =
+    typeof product.saleEndsAt === "string" ? product.saleEndsAt.trim() : "";
+  const saleEndRaw = sourceSaleEnd || saleEndsAt;
+  if (!saleEndRaw || !isSaleExpired(saleEndRaw)) return product;
+
+  const price =
+    typeof product.price === "number" && Number.isFinite(product.price)
+      ? product.price
+      : 0;
+  const priceAed =
+    typeof product.priceAed === "number" && Number.isFinite(product.priceAed)
+      ? product.priceAed
+      : null;
+  const priceT =
+    typeof product.priceT === "number" && Number.isFinite(product.priceT)
+      ? product.priceT
+      : null;
+  const originalPrice =
+    typeof product.originalPrice === "number" &&
+    Number.isFinite(product.originalPrice) &&
+    product.originalPrice > 0
+      ? product.originalPrice
+      : null;
+  const originalPriceAed =
+    typeof product.originalPriceAed === "number" &&
+    Number.isFinite(product.originalPriceAed) &&
+    product.originalPriceAed > 0
+      ? product.originalPriceAed
+      : null;
+  const originalPriceT =
+    typeof product.originalPriceT === "number" &&
+    Number.isFinite(product.originalPriceT) &&
+    product.originalPriceT > 0
+      ? product.originalPriceT
+      : null;
+
+  return {
+    ...product,
+    price: originalPrice ?? price,
+    priceAed: originalPriceAed ?? priceAed,
+    priceT: originalPriceT ?? priceT,
+    originalPrice: null,
+    originalPriceAed: null,
+    originalPriceT: null,
+    sourceSaleStart: null,
+    sourceSaleEnd: null,
+    saleEndsAt: null,
+    saleLabel: null,
+    promoBadgeText: null,
+    promoTooltipText: null,
+    miniCalendar: null,
+  };
+}
+
 async function saveImage(file: File) {
   const uploadDir = path.join(process.cwd(), "public", "uploads");
   await fs.mkdir(uploadDir, { recursive: true });
@@ -198,15 +256,18 @@ export async function GET() {
       });
       const metadataMap = await getFallbackMetadataMap();
 
-      const normalized = products.map((product) => ({
-        ...(metadataMap[product.id] || {}),
-        ...product,
-        images: product.images.map((image) => image.url),
-        image: product.images[0]?.url || product.image,
-        economicalOption: buildEconomicalOption(
-          (metadataMap[product.id] || {}) as Record<string, unknown>
-        ),
-      }));
+      const normalized = products.map((product) => {
+        const merged = {
+          ...(metadataMap[product.id] || {}),
+          ...product,
+          images: product.images.map((image) => image.url),
+          image: product.images[0]?.url || product.image,
+          economicalOption: buildEconomicalOption(
+            (metadataMap[product.id] || {}) as Record<string, unknown>
+          ),
+        };
+        return normalizeExpiredSale(merged as Record<string, unknown>);
+      });
 
       return NextResponse.json({ products: normalized });
     } catch (error) {
@@ -216,20 +277,23 @@ export async function GET() {
       });
       const galleryMap = await getFallbackGalleryMap();
       const metadataMap = await getFallbackMetadataMap();
-      const normalized = products.map((product) => ({
-        ...(metadataMap[product.id] || {}),
-        ...product,
-        image: galleryMap[product.id]?.[0] || product.image,
-        images:
-          galleryMap[product.id]?.length
-            ? galleryMap[product.id]
-            : product.image
-              ? [product.image]
-              : [],
-        economicalOption: buildEconomicalOption(
-          (metadataMap[product.id] || {}) as Record<string, unknown>
-        ),
-      }));
+      const normalized = products.map((product) => {
+        const merged = {
+          ...(metadataMap[product.id] || {}),
+          ...product,
+          image: galleryMap[product.id]?.[0] || product.image,
+          images:
+            galleryMap[product.id]?.length
+              ? galleryMap[product.id]
+              : product.image
+                ? [product.image]
+                : [],
+          economicalOption: buildEconomicalOption(
+            (metadataMap[product.id] || {}) as Record<string, unknown>
+          ),
+        };
+        return normalizeExpiredSale(merged as Record<string, unknown>);
+      });
       return NextResponse.json({ products: normalized });
     }
   } catch (error) {

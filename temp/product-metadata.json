@@ -4,7 +4,6 @@
     "priceAed": 73.4,
     "sourceUrl": "https://global.oliveyoung.com/partner/gate?url=/product/detail?prdtNo=GA251033893",
     "sourcePriceCurrency": "USD",
-    "saleEndsAt": "2026-02-28",
     "promoPriority": "none",
     "promoLastChecked": "2026-02-25T09:05:16.281Z",
     "miniCalendar": {
@@ -106,8 +105,6 @@
     "sourceRegularPrice": 20,
     "sourceCurrentPrice": 20,
     "sourceCurrency": "USD",
-    "sourceSaleStart": "2026-02-01",
-    "sourceSaleEnd": "2026-02-28",
     "sourceSaleTimezone": "UTC+9",
     "syncStatus": "warning",
     "syncNotes": "SALE_EXPIRED_ON_SOURCE",
@@ -124,7 +121,6 @@
     "waterResistance": "No",
     "sourceUrl": "https://global.oliveyoung.com/product/detail?prdtNo=GA251033893",
     "sourcePriceCurrency": "USD",
-    "saleEndsAt": "2026-02-28",
     "promoPriority": "none",
     "promoLastChecked": "2026-02-25T09:05:14.808Z",
     "miniCalendar": {
@@ -226,8 +222,6 @@
     "sourceRegularPrice": 20,
     "sourceCurrentPrice": 20,
     "sourceCurrency": "USD",
-    "sourceSaleStart": "2026-02-01",
-    "sourceSaleEnd": "2026-02-28",
     "sourceSaleTimezone": "UTC+9",
     "syncStatus": "warning",
     "syncNotes": "SALE_EXPIRED_ON_SOURCE",
@@ -488,10 +482,7 @@
   "cmm384dkv00009y89d4menw1c": {
     "koreanName": "조선미녀 인삼선세럼 (SPF 50+ PA++++)",
     "ingredients": "Mainly using ginseng, a Korean traditional medicinal herb, which is a core ingredient of BOJ and has been proven to be effective through various research results.\r\nSaponin components abundant in Panax Ginseng Root Extract help to inhibit skin aging and improve wrinkles, and supply nutrition to the skin.\r\nThe capsule serum formula that excludes surfactant moisturizes your skin while adhering to your skin and protecting it from UV rays without any gaps.\r\nSaponin, rich in ginseng, promotes hydration and helps keeps the skin moist, and also helps to maintain healthy skin.\r\nPanax Ginseng Berry and Panax Ginseng Root Extract mixed in Panax Ginseng Root Extract are more effective in preventing skin aging and improving wrinkles due to their high saponin content than regular ginseng root.\r\nNiacinamide is a water-soluble vitamin B ingredient that is effective in improving pigmentation and helps to improve skin texture and brighten the complexion by maintaining the skin's moisture balance.",
-    "skinType": "all",
-    "saleEndsAt": "2026-02-28",
-    "sourceSaleStart": "2026-02-01",
-    "sourceSaleEnd": "2026-02-28"
+    "skinType": "all"
   },
   "cmm3b24h400069y89jwhd50p9": {
     "koreanName": "조선미녀 광채 프로폴리스 세럼",

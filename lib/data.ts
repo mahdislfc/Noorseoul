@@ -6,6 +6,7 @@ import {
   getFallbackMetadata,
   getFallbackMetadataMap,
 } from "@/lib/product-metadata-fallback";
+import { isSaleExpired } from "@/lib/sale-date";
 
 function isConnectionPoolTimeout(error: unknown) {
   const message = error instanceof Error ? error.message : "";
@@ -43,6 +44,71 @@ function isGalleryRelationUnavailable(error: unknown) {
 }
 
 function toProductModel(product: Record<string, unknown>): Product {
+  const sourceSaleEndRaw =
+    typeof product.sourceSaleEnd === "string" ? product.sourceSaleEnd : null;
+  const saleEndsAtRaw =
+    typeof product.saleEndsAt === "string" ? product.saleEndsAt : null;
+  const saleEndRaw = sourceSaleEndRaw?.trim() || saleEndsAtRaw?.trim() || null;
+  const hasExpiredSale = Boolean(saleEndRaw && isSaleExpired(saleEndRaw));
+  const rawPrice =
+    typeof product.price === "number" && Number.isFinite(product.price)
+      ? product.price
+      : 0;
+  const rawPriceAed =
+    typeof product.priceAed === "number" && Number.isFinite(product.priceAed)
+      ? product.priceAed
+      : null;
+  const rawPriceT =
+    typeof product.priceT === "number" && Number.isFinite(product.priceT)
+      ? product.priceT
+      : null;
+  const rawOriginalPrice =
+    typeof product.originalPrice === "number" &&
+    Number.isFinite(product.originalPrice) &&
+    product.originalPrice > 0
+      ? product.originalPrice
+      : null;
+  const rawOriginalPriceAed =
+    typeof product.originalPriceAed === "number" &&
+    Number.isFinite(product.originalPriceAed)
+      ? product.originalPriceAed
+      : null;
+  const rawOriginalPriceT =
+    typeof product.originalPriceT === "number" &&
+    Number.isFinite(product.originalPriceT)
+      ? product.originalPriceT
+      : null;
+  const displayPrice = hasExpiredSale && rawOriginalPrice ? rawOriginalPrice : rawPrice;
+  const displayPriceAed =
+    hasExpiredSale && typeof rawOriginalPriceAed === "number" && rawOriginalPriceAed > 0
+      ? rawOriginalPriceAed
+      : rawPriceAed;
+  const displayPriceT =
+    hasExpiredSale && typeof rawOriginalPriceT === "number" && rawOriginalPriceT > 0
+      ? rawOriginalPriceT
+      : rawPriceT;
+  const displayOriginalPrice = hasExpiredSale ? null : rawOriginalPrice;
+  const displayOriginalPriceAed = hasExpiredSale ? null : rawOriginalPriceAed;
+  const displayOriginalPriceT = hasExpiredSale ? null : rawOriginalPriceT;
+  const displaySaleEndsAt = hasExpiredSale ? null : saleEndsAtRaw;
+  const displaySourceSaleEnd = hasExpiredSale ? null : sourceSaleEndRaw;
+  const displaySaleLabel =
+    hasExpiredSale || typeof product.saleLabel !== "string" ? null : product.saleLabel;
+  const displayPromoBadgeText =
+    hasExpiredSale || typeof product.promoBadgeText !== "string" ? null : product.promoBadgeText;
+  const displayPromoTooltipText =
+    hasExpiredSale || typeof product.promoTooltipText !== "string"
+      ? null
+      : product.promoTooltipText;
+  const displayMiniCalendar =
+    hasExpiredSale || !(product.miniCalendar && typeof product.miniCalendar === "object")
+      ? null
+      : (product.miniCalendar as Product["miniCalendar"]);
+  const displaySourceSaleStart =
+    hasExpiredSale || typeof product.sourceSaleStart !== "string"
+      ? null
+      : product.sourceSaleStart;
+
   const rawImages = Array.isArray((product as { images?: unknown[] }).images)
     ? ((product as { images: Array<{ url?: string }> }).images || [])
     : [];
@@ -164,27 +230,12 @@ function toProductModel(product: Record<string, unknown>): Product {
       typeof product.descriptionFa === "string" || product.descriptionFa === null
         ? product.descriptionFa
         : null,
-    priceAed:
-      typeof product.priceAed === "number" && Number.isFinite(product.priceAed)
-        ? product.priceAed
-        : null,
-    priceT:
-      typeof product.priceT === "number" && Number.isFinite(product.priceT)
-        ? product.priceT
-        : null,
-    price: Number(product.price || 0),
-    originalPrice:
-      typeof product.originalPrice === "number" ? product.originalPrice : null,
-    originalPriceAed:
-      typeof product.originalPriceAed === "number" &&
-      Number.isFinite(product.originalPriceAed)
-        ? product.originalPriceAed
-        : null,
-    originalPriceT:
-      typeof product.originalPriceT === "number" &&
-      Number.isFinite(product.originalPriceT)
-        ? product.originalPriceT
-        : null,
+    priceAed: displayPriceAed,
+    priceT: displayPriceT,
+    price: displayPrice,
+    originalPrice: displayOriginalPrice,
+    originalPriceAed: displayOriginalPriceAed,
+    originalPriceT: displayOriginalPriceT,
     currency: String(product.currency || "USD"),
     brand: String(product.brand || ""),
     category: String(product.category || ""),
@@ -215,24 +266,17 @@ function toProductModel(product: Record<string, unknown>): Product {
       typeof product.sourcePriceCurrency === "string"
         ? product.sourcePriceCurrency
         : null,
-    saleEndsAt:
-      typeof product.saleEndsAt === "string" ? product.saleEndsAt : null,
-    saleLabel:
-      typeof product.saleLabel === "string" ? product.saleLabel : null,
-    promoBadgeText:
-      typeof product.promoBadgeText === "string" ? product.promoBadgeText : null,
-    promoTooltipText:
-      typeof product.promoTooltipText === "string" ? product.promoTooltipText : null,
+    saleEndsAt: displaySaleEndsAt,
+    saleLabel: displaySaleLabel,
+    promoBadgeText: displayPromoBadgeText,
+    promoTooltipText: displayPromoTooltipText,
     promoPriority:
       product.promoPriority === "high" || product.promoPriority === "none"
         ? product.promoPriority
         : null,
     promoLastChecked:
       typeof product.promoLastChecked === "string" ? product.promoLastChecked : null,
-    miniCalendar:
-      product.miniCalendar && typeof product.miniCalendar === "object"
-        ? (product.miniCalendar as Product["miniCalendar"])
-        : null,
+    miniCalendar: displayMiniCalendar,
     extractedRegularPriceText:
       typeof product.extractedRegularPriceText === "string"
         ? product.extractedRegularPriceText
@@ -255,10 +299,8 @@ function toProductModel(product: Record<string, unknown>): Product {
         : null,
     sourceCurrency:
       typeof product.sourceCurrency === "string" ? product.sourceCurrency : null,
-    sourceSaleStart:
-      typeof product.sourceSaleStart === "string" ? product.sourceSaleStart : null,
-    sourceSaleEnd:
-      typeof product.sourceSaleEnd === "string" ? product.sourceSaleEnd : null,
+    sourceSaleStart: displaySourceSaleStart,
+    sourceSaleEnd: displaySourceSaleEnd,
     sourceSaleTimezone:
       typeof product.sourceSaleTimezone === "string" ? product.sourceSaleTimezone : null,
     sourceDiscountAmount:
