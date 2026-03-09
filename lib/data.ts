@@ -154,10 +154,6 @@ function toProductModel(product: Record<string, unknown>): Product {
             "id" in shade && typeof shade.id === "string" && shade.id.trim()
               ? shade.id.trim()
               : `shade-${index + 1}`;
-          const shadePrice =
-            "price" in shade && typeof shade.price === "number" && Number.isFinite(shade.price)
-              ? shade.price
-              : null;
           const shadePriceAed =
             "priceAed" in shade &&
             typeof shade.priceAed === "number" &&
@@ -170,6 +166,10 @@ function toProductModel(product: Record<string, unknown>): Product {
             Number.isFinite(shade.priceT)
               ? shade.priceT
               : null;
+          const shadeThumbnail =
+            "thumbnail" in shade && typeof shade.thumbnail === "string"
+              ? shade.thumbnail.trim()
+              : "";
           if (!shadeName) return null;
           const fallbackBasePrice =
             typeof product.price === "number" && Number.isFinite(product.price) && product.price > 0
@@ -183,10 +183,7 @@ function toProductModel(product: Record<string, unknown>): Product {
             typeof product.priceT === "number" && Number.isFinite(product.priceT) && product.priceT > 0
               ? product.priceT
               : null;
-          const finalShadePrice =
-            typeof shadePrice === "number" && shadePrice > 0
-              ? shadePrice
-              : fallbackBasePrice;
+          const finalShadePrice = fallbackBasePrice;
           if (typeof finalShadePrice !== "number" || finalShadePrice <= 0) return null;
           return {
             id: shadeId,
@@ -200,6 +197,7 @@ function toProductModel(product: Record<string, unknown>): Product {
               typeof shadePriceT === "number" && shadePriceT > 0
                 ? shadePriceT
                 : fallbackBasePriceT,
+            thumbnail: shadeThumbnail || null,
           };
         })
         .filter(
@@ -211,9 +209,14 @@ function toProductModel(product: Record<string, unknown>): Product {
             price: number;
             priceAed: number | null;
             priceT: number | null;
+            thumbnail: string | null;
           } => Boolean(shade)
         )
     : [];
+  const colorShadeLabel =
+    typeof product.colorShadeLabel === "string" && product.colorShadeLabel.trim()
+      ? product.colorShadeLabel.trim()
+      : null;
 
   return {
     id: String(product.id || ""),
@@ -343,6 +346,7 @@ function toProductModel(product: Record<string, unknown>): Product {
           }
         : undefined,
     colorShades,
+    colorShadeLabel,
   };
 }
 

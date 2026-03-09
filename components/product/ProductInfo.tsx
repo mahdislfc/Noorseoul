@@ -64,7 +64,9 @@ interface ProductInfoProps {
             price: number
             priceAed?: number | null
             priceT?: number | null
+            thumbnail?: string | null
         }>
+        colorShadeLabel?: string | null
         bundleProduct?: {
             id: string
             name: string
@@ -114,6 +116,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         product.colorShades?.find((shade) => shade.id === selectedShadeId) ||
         product.colorShades?.[0] ||
         null
+    const optionLabel = product.colorShadeLabel?.trim() || "Color / Shade"
     const selectedShadePriceInfo = selectedShade
         ? resolveDisplayPrice(
             {
@@ -234,7 +237,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
             name: product.name,
             price: activeUnitPriceInfo.amount,
             quantity: quantity,
-            image: product.images[0],
+            image: selectedShade?.thumbnail?.trim() || product.images[0],
             shade: selectedShade?.name || undefined,
         }
         addToCart({
@@ -326,7 +329,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 </div>
                 {selectedShade && (
                     <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary">
-                        Shade price: {formatDisplayAmount(activeUnitPriceInfo.amount, activeUnitPriceInfo.fromCurrency, displayCurrency, locale)}
+                        {optionLabel} price: {formatDisplayAmount(activeUnitPriceInfo.amount, activeUnitPriceInfo.fromCurrency, displayCurrency, locale)}
                     </div>
                 )}
                 {saleBadgeText && (
@@ -448,41 +451,35 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
             {product.colorShades && product.colorShades.length > 0 && (
                 <div className="mb-8 rounded-lg border border-border p-4">
-                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Color / Shade</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{optionLabel}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        This product has multiple shades. Choose your preferred one.
+                        This product has multiple options. Choose your preferred one.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                         {product.colorShades.map((shade) => {
-                            const shadePriceInfo = resolveDisplayPrice(
-                                {
-                                    price: shade.price,
-                                    currency: product.currency || "USD",
-                                    priceAed: shade.priceAed ?? null,
-                                    priceT: shade.priceT ?? null,
-                                },
-                                displayCurrency
-                            )
                             const isSelected = (selectedShade?.id || "") === shade.id
                             return (
                                 <button
                                     key={shade.id}
                                     type="button"
                                     onClick={() => setSelectedShadeId(shade.id)}
-                                    className={`rounded-md border px-3 py-2 text-left ${isSelected
+                                    className={`flex min-w-[11rem] items-center gap-2 rounded-md border px-3 py-2 text-left ${isSelected
                                         ? "border-primary bg-primary/10 text-primary"
                                         : "border-border hover:border-primary/40"
                                         }`}
                                 >
-                                    <p className="text-sm font-semibold">{shade.name}</p>
-                                    <p className="text-xs">
-                                        {formatDisplayAmount(
-                                            shadePriceInfo.amount,
-                                            shadePriceInfo.fromCurrency,
-                                            displayCurrency,
-                                            locale
-                                        )}
-                                    </p>
+                                    {shade.thumbnail?.trim() ? (
+                                        <img
+                                            src={shade.thumbnail}
+                                            alt={shade.name}
+                                            className="h-10 w-10 rounded border object-cover"
+                                        />
+                                    ) : (
+                                        <div className="h-10 w-10 rounded border bg-muted/30" />
+                                    )}
+                                    <div>
+                                        <p className="text-sm font-semibold">{shade.name}</p>
+                                    </div>
                                 </button>
                             )
                         })}

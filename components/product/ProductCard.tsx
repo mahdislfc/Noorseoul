@@ -148,7 +148,7 @@ export function ProductCard({ product }: { product: Product }) {
                 </div>
                 {product.colorShades && product.colorShades.length > 0 && (
                     <p className="text-xs text-primary font-semibold">
-                        {product.colorShades.length} shades available
+                        {product.colorShades.length} {product.colorShadeLabel?.trim() || "options"} available
                     </p>
                 )}
                 <Link

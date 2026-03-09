@@ -164,3 +164,9 @@ h6 {
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .container {
+    max-width: min(110rem, calc(100vw - 1.5rem)) !important;
+  }
+}

@@ -77,7 +77,9 @@ export interface Product {
     price: number;
     priceAed?: number | null;
     priceT?: number | null;
+    thumbnail?: string | null;
   }>;
+  colorShadeLabel?: string | null;
 }
 
 export type AdminOrderStatus =

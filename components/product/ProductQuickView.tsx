@@ -40,6 +40,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
     const productImages = product.images || [product.image]
     const selectedShade =
         product.colorShades?.find((shade) => shade.id === selectedShadeId) || null
+    const optionLabel = product.colorShadeLabel?.trim() || "Color / Shade"
     const selectedShadePriceInfo = selectedShade
         ? resolveDisplayPrice(
             {
@@ -80,7 +81,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
 
     const handleAddToCart = () => {
         if (!isEconomicalSet && product.colorShades && product.colorShades.length > 0 && !selectedShade) {
-            toast.error(`There are ${product.colorShades.length} shades available. Which shade would you like to order?`)
+            toast.error(`There are ${product.colorShades.length} options available. Please choose one.`)
             return
         }
 
@@ -101,7 +102,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                 name: product.name,
                 price: currentPrice,
                 quantity,
-                image: product.image,
+                image: selectedShade?.thumbnail?.trim() || product.image,
                 currency: currentPriceCurrency,
                 shade: selectedShade?.name || undefined,
             }
@@ -203,41 +204,35 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                         {product.colorShades && product.colorShades.length > 0 && (
                             <div className="mb-6 rounded-lg border border-border p-4 bg-gray-50/50">
                                 <p className="mb-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
-                                    Color / Shade
+                                    {optionLabel}
                                 </p>
                                 <p className={`mb-3 text-sm ${selectedShade ? "text-muted-foreground" : "text-amber-700 font-medium"}`}>
-                                    There are {product.colorShades.length} shades available. Which shade would you like to order?
+                                    There are {product.colorShades.length} options available. Please choose one.
                                 </p>
                                 <div className="flex flex-wrap gap-2">
                                     {product.colorShades.map((shade) => {
-                                        const shadePriceInfo = resolveDisplayPrice(
-                                            {
-                                                price: shade.price,
-                                                currency: product.currency,
-                                                priceAed: shade.priceAed ?? null,
-                                                priceT: shade.priceT ?? null,
-                                            },
-                                            displayCurrency
-                                        )
                                         return (
                                             <button
                                                 key={shade.id}
                                                 type="button"
                                                 onClick={() => setSelectedShadeId(shade.id)}
-                                                className={`rounded-md border px-3 py-2 text-left text-sm transition-all ${selectedShade?.id === shade.id
+                                                className={`flex min-w-[11rem] items-center gap-2 rounded-md border px-3 py-2 text-left text-sm transition-all ${selectedShade?.id === shade.id
                                                     ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20"
                                                     : "border-border bg-white hover:border-gray-400"
                                                     }`}
                                             >
-                                                <p className="font-semibold">{shade.name}</p>
-                                                <p>
-                                                    {formatDisplayAmount(
-                                                        shadePriceInfo.amount,
-                                                        shadePriceInfo.fromCurrency,
-                                                        displayCurrency,
-                                                        locale
-                                                    )}
-                                                </p>
+                                                {shade.thumbnail?.trim() ? (
+                                                    <img
+                                                        src={shade.thumbnail}
+                                                        alt={shade.name}
+                                                        className="h-10 w-10 rounded border object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="h-10 w-10 rounded border bg-muted/30" />
+                                                )}
+                                                <div>
+                                                    <p className="font-semibold">{shade.name}</p>
+                                                </div>
                                             </button>
                                         )
                                     })}
@@ -276,7 +271,7 @@ export function ProductQuickView({ product, open, onOpenChange, children }: Prod
                             <div className="space-y-2">
                                 {product.colorShades && product.colorShades.length > 0 && !selectedShade && !isEconomicalSet && (
                                     <p className="text-xs font-medium text-amber-700">
-                                        Please choose a shade before adding to cart.
+                                        Please choose an option before adding to cart.
                                     </p>
                                 )}
                                 <div className="flex items-center gap-2">

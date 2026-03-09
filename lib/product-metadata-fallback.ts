@@ -73,7 +73,9 @@ export interface ProductMetadata {
     price?: number;
     priceAed?: number;
     priceT?: number;
+    thumbnail?: string;
   }>;
+  colorShadeLabel?: string;
 }
 
 type MetadataStore = Record<string, ProductMetadata>;
@@ -130,6 +132,7 @@ function normalizeColorShades(value?: ProductMetadata["colorShades"]) {
         ...(typeof price === "number" ? { price } : {}),
         ...(typeof priceAed === "number" ? { priceAed } : {}),
         ...(typeof priceT === "number" ? { priceT } : {}),
+        ...(sanitize(entry?.thumbnail) ? { thumbnail: sanitize(entry?.thumbnail) } : {}),
       };
     })
     .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
@@ -245,6 +248,7 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
       ? economicalOptionQuantityRaw
       : undefined;
   const colorShades = normalizeColorShades(input.colorShades);
+  const colorShadeLabel = sanitize(input.colorShadeLabel);
 
   return {
     koreanName: koreanName || undefined,
@@ -322,6 +326,7 @@ function normalizeMetadata(input: ProductMetadata): ProductMetadata {
         : undefined,
     economicalOptionQuantity,
     colorShades: colorShades.length > 0 ? colorShades : undefined,
+    colorShadeLabel: colorShadeLabel || undefined,
   };
 }
 
@@ -417,7 +422,8 @@ export async function setFallbackMetadata(productId: string, metadata: ProductMe
       normalized.economicalOptionName ||
       (typeof normalized.economicalOptionPrice === "number" &&
         normalized.economicalOptionPrice > 0) ||
-      (normalized.colorShades && normalized.colorShades.length > 0)
+      (normalized.colorShades && normalized.colorShades.length > 0) ||
+      normalized.colorShadeLabel
   );
 
   if (hasAnyValue) {

@@ -24,8 +24,8 @@ export default async function AdminProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background px-6 py-12">
-      <div className="max-w-5xl mx-auto">{children}</div>
+    <div className="min-h-screen bg-background px-4 py-8 lg:px-8">
+      <div className="mx-auto w-full max-w-[110rem]">{children}</div>
     </div>
   );
 }

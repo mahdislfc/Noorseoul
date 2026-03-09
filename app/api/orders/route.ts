@@ -234,8 +234,8 @@ export async function POST(request: Request) {
       items: {
         create: normalizedItems.map((item) => ({
           name:
-            item.shade && !item.name.toLowerCase().includes("(shade:")
-              ? `${item.name} (Shade: ${item.shade})`
+            item.shade && !item.name.toLowerCase().includes("(option:")
+              ? `${item.name} (Option: ${item.shade})`
               : item.name,
           productId: item.productId || item.id,
           price: item.price,
@@ -264,8 +264,8 @@ export async function POST(request: Request) {
           create: normalizedItems.map((item) => ({
             productId: item.productId || item.id,
             name:
-              item.shade && !item.name.toLowerCase().includes("(shade:")
-                ? `${item.name} (Shade: ${item.shade})`
+              item.shade && !item.name.toLowerCase().includes("(option:")
+                ? `${item.name} (Option: ${item.shade})`
                 : item.name,
             price: item.price,
             quantity: item.quantity,

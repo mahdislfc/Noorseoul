@@ -123,6 +123,7 @@ export default async function ProductPage({
                 bundleProductId: product.bundleProductId || "",
                 economicalOption: product.economicalOption,
                 colorShades: product.colorShades || [],
+                colorShadeLabel: product.colorShadeLabel || null,
                 bundleProduct: bundleProduct
                   ? {
                       id: bundleProduct.id,

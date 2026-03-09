@@ -25,9 +25,8 @@ interface ImageDraft {
 interface ColorShadeDraft {
   id: string;
   name: string;
-  price: string;
-  priceAed: string;
-  priceT: string;
+  thumbnail: string;
+  thumbnailFile?: File;
 }
 
 const emptyForm = {
@@ -52,9 +51,10 @@ const emptyForm = {
   economicalOptionName: "",
   economicalOptionPrice: "",
   economicalOptionQuantity: "",
+  colorShadeLabel: "",
   additionalCategories: [] as string[],
   similarProductIds: [] as string[],
-  colorShades: [] as ColorShadeDraft[],
+      colorShades: [] as ColorShadeDraft[],
   price: "",
   originalPrice: "",
   currency: "USD",
@@ -496,7 +496,21 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       });
       formData.append("additionalCategories", JSON.stringify(additionalCategories));
       formData.append("similarProductIds", JSON.stringify(similarProductIds));
-      formData.append("colorShades", JSON.stringify(colorShades));
+      const colorShadesPayload = colorShades.map((shade) => {
+        const uploadKey = shade.thumbnailFile
+          ? `colorShadeThumbnail-${shade.id}`
+          : undefined;
+        if (uploadKey) {
+          formData.append(uploadKey, shade.thumbnailFile as File);
+        }
+        return {
+          id: shade.id,
+          name: shade.name,
+          thumbnail: shade.thumbnailFile ? "" : shade.thumbnail,
+          uploadKey,
+        };
+      });
+      formData.append("colorShades", JSON.stringify(colorShadesPayload));
       const imageOrder = imageDrafts.map((image) =>
         image.kind === "existing" ? image.previewUrl : "__new__"
       );
@@ -570,11 +584,9 @@ export function AdminProducts({ locale }: AdminProductsProps) {
       colorShades: (product.colorShades || []).map((shade, index) => ({
         id: shade.id?.trim() || `shade-${index + 1}`,
         name: shade.name || "",
-        price: typeof shade.price === "number" ? String(shade.price) : "",
-        priceAed:
-          typeof shade.priceAed === "number" ? String(shade.priceAed) : "",
-        priceT: typeof shade.priceT === "number" ? String(shade.priceT) : "",
+        thumbnail: typeof shade.thumbnail === "string" ? shade.thumbnail : "",
       })),
+      colorShadeLabel: product.colorShadeLabel || "",
       price: String(product.price),
       originalPrice: product.originalPrice ? String(product.originalPrice) : "",
       currency: product.currency,
@@ -731,9 +743,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
         {
           id: `shade-${Date.now()}-${current.colorShades.length + 1}`,
           name: "",
-          price: "",
-          priceAed: "",
-          priceT: "",
+          thumbnail: "",
         },
       ],
     }));
@@ -741,7 +751,7 @@ export function AdminProducts({ locale }: AdminProductsProps) {
 
   const updateColorShadeRow = (
     shadeId: string,
-    field: keyof ColorShadeDraft,
+    field: "name",
     value: string
   ) => {
     setForm((current) => ({
@@ -756,6 +766,21 @@ export function AdminProducts({ locale }: AdminProductsProps) {
     setForm((current) => ({
       ...current,
       colorShades: current.colorShades.filter((shade) => shade.id !== shadeId),
+    }));
+  };
+
+  const updateColorShadeThumbnailFile = (shadeId: string, file?: File) => {
+    setForm((current) => ({
+      ...current,
+      colorShades: current.colorShades.map((shade) =>
+        shade.id !== shadeId
+          ? shade
+          : {
+              ...shade,
+              thumbnailFile: file,
+              thumbnail: file ? URL.createObjectURL(file) : shade.thumbnail,
+            }
+      ),
     }));
   };
 
@@ -1013,18 +1038,26 @@ export function AdminProducts({ locale }: AdminProductsProps) {
               </div>
               <div className="md:col-span-2">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <label className="block text-sm font-medium">Color / Shade Pricing Box</label>
+                  <label className="block text-sm font-medium">Product Options (Shade/Flavor/Fragrance)</label>
                   <button
                     type="button"
                     onClick={addColorShadeRow}
                     className="rounded-md border border-input px-3 py-1 text-xs"
                   >
-                    Add shade
+                    Add option
                   </button>
                 </div>
+                <input
+                  value={form.colorShadeLabel}
+                  onChange={(event) =>
+                    setForm({ ...form, colorShadeLabel: event.target.value })
+                  }
+                  className="mb-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="Option label shown to customers (e.g. Flavor, Fragrance, Color)"
+                />
                 {form.colorShades.length === 0 ? (
                   <p className="rounded-md border border-dashed border-input px-3 py-3 text-sm text-muted-foreground">
-                    No shades yet. Add rows only for products with selectable colors/shades.
+                    No options yet. Add rows for selectable variants like shade, flavor, or fragrance.
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -1038,42 +1071,31 @@ export function AdminProducts({ locale }: AdminProductsProps) {
                           onChange={(event) =>
                             updateColorShadeRow(shade.id, "name", event.target.value)
                           }
-                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-4"
-                          placeholder={`Shade name ${index + 1}`}
+                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-3"
+                          placeholder={`Option name ${index + 1}`}
                         />
                         <input
-                          value={shade.price}
+                          type="file"
+                          accept="image/*"
                           onChange={(event) =>
-                            updateColorShadeRow(shade.id, "price", event.target.value)
+                            updateColorShadeThumbnailFile(
+                              shade.id,
+                              event.target.files?.[0]
+                            )
                           }
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-2"
-                          placeholder="USD"
+                          className="rounded-md border border-input bg-background px-2 py-2 text-xs md:col-span-4"
                         />
-                        <input
-                          value={shade.priceAed}
-                          onChange={(event) =>
-                            updateColorShadeRow(shade.id, "priceAed", event.target.value)
-                          }
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-2"
-                          placeholder="AED"
-                        />
-                        <input
-                          value={shade.priceT}
-                          onChange={(event) =>
-                            updateColorShadeRow(shade.id, "priceT", event.target.value)
-                          }
-                          type="number"
-                          step="1"
-                          min="0"
-                          className="rounded-md border border-input bg-background px-2 py-2 text-sm md:col-span-2"
-                          placeholder="T"
-                        />
+                        <div className="flex items-center justify-center rounded-md border border-input bg-muted/20 md:col-span-1">
+                          {shade.thumbnail.trim() ? (
+                            <img
+                              src={shade.thumbnail}
+                              alt={shade.name || `Option ${index + 1}`}
+                              className="h-10 w-10 rounded object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground">No image</span>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeColorShadeRow(shade.id)}

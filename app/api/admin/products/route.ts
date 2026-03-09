@@ -113,27 +113,16 @@ function parseColorShades(value: FormDataEntryValue | null) {
             ? record.id.trim()
             : `shade-${index + 1}`;
         const name = typeof record.name === "string" ? record.name.trim() : "";
-        const price =
-          typeof record.price === "number"
-            ? record.price
-            : Number(record.price || 0);
-        const priceAed =
-          typeof record.priceAed === "number"
-            ? record.priceAed
-            : Number(record.priceAed || 0);
-        const priceT =
-          typeof record.priceT === "number"
-            ? record.priceT
-            : Number(record.priceT || 0);
+        const thumbnail =
+          typeof record.thumbnail === "string" ? record.thumbnail.trim() : "";
+        const uploadKey =
+          typeof record.uploadKey === "string" ? record.uploadKey.trim() : "";
         if (!name) return null;
-        const normalizedPrice =
-          Number.isFinite(price) && price > 0 ? price : undefined;
         return {
           id,
           name,
-          ...(typeof normalizedPrice === "number" ? { price: normalizedPrice } : {}),
-          ...(Number.isFinite(priceAed) && priceAed > 0 ? { priceAed } : {}),
-          ...(Number.isFinite(priceT) && priceT > 0 ? { priceT } : {}),
+          ...(thumbnail ? { thumbnail } : {}),
+          ...(uploadKey ? { uploadKey } : {}),
         };
       })
       .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
@@ -368,6 +357,7 @@ export async function POST(request: Request) {
   const economicalOptionQuantity = economicalOptionQuantityRaw
     ? Number(economicalOptionQuantityRaw)
     : undefined;
+  const colorShadeLabel = String(formData.get("colorShadeLabel") || "").trim();
   const similarProductIds = parseSimilarProductIds(
     formData.get("similarProductIds")
   );
@@ -378,6 +368,31 @@ export async function POST(request: Request) {
     (entry) => entry.toLowerCase() !== category.toLowerCase()
   );
   const colorShades = parseColorShades(formData.get("colorShades"));
+  const normalizedColorShades: Array<{
+    id: string;
+    name: string;
+    thumbnail?: string;
+  }> = [];
+  for (const shade of colorShades) {
+    let thumbnail = typeof shade.thumbnail === "string" ? shade.thumbnail : "";
+    if (typeof shade.uploadKey === "string" && shade.uploadKey) {
+      const uploadEntry = formData.get(shade.uploadKey);
+      if (uploadEntry instanceof File && uploadEntry.size > 0) {
+        if (!uploadEntry.type.startsWith("image/")) {
+          return NextResponse.json(
+            { error: `Invalid option image file for "${shade.name}"` },
+            { status: 400 }
+          );
+        }
+        thumbnail = await saveImage(uploadEntry);
+      }
+    }
+    normalizedColorShades.push({
+      id: shade.id,
+      name: shade.name,
+      ...(thumbnail ? { thumbnail } : {}),
+    });
+  }
   const imageFiles = formData
     .getAll("images")
     .filter((entry): entry is File => entry instanceof File && entry.size > 0);
@@ -466,7 +481,8 @@ export async function POST(request: Request) {
     economicalOptionName,
     economicalOptionPrice,
     economicalOptionQuantity,
-    colorShades,
+    colorShades: normalizedColorShades,
+    colorShadeLabel,
   });
 
   return NextResponse.json({ product }, { status: 201 });
