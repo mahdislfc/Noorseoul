@@ -4,7 +4,10 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  outputFileTracingExcludes: {
+    "/*": ["./public/uploads/**/*"],
+    "/api/*": ["./public/uploads/**/*"],
+  },
 };
 
 export default withNextIntl(nextConfig);
