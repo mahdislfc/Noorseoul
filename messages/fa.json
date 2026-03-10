@@ -127,7 +127,7 @@
             "claimedRewards": "جوایز اعمال شده",
             "subtotal": "جمع جزء",
             "voucherDiscount": "تخفیف ووچر",
-            "delivery": "ارسال ویژه",
+            "delivery": "ارسال",
             "shippingPolicy": "سیاست ارسال: کمتر از $100 = $10، از $100 تا $200 = $18، از $200.01 تا $250 = $20، بالاتر از $250 = $25.",
             "gemsEstimate": "بعد از این خرید {count} جم دریافت می کنید.",
             "shippingReward": "جایزه ارسال",

@@ -705,7 +705,7 @@ export default function CheckoutPage() {
                                     </div>
                                 )}
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">{t("summary.delivery")}</span>
+                                    <span className="text-muted-foreground">Delivery</span>
                                     <span className="font-bold uppercase tracking-tighter">
                                         {displayMoney(baseShippingCost)}
                                     </span>

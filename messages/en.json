@@ -127,7 +127,7 @@
             "claimedRewards": "Claimed rewards",
             "subtotal": "Subtotal",
             "voucherDiscount": "Voucher Discount",
-            "delivery": "White-Glove Delivery",
+            "delivery": "Delivery",
             "shippingPolicy": "Shipping policy: below $100 = $10, $100-$200 = $18, $200.01-$250 = $20, above $250 = $25.",
             "gemsEstimate": "You will receive {count} gems after this purchase.",
             "shippingReward": "Shipping Reward",
