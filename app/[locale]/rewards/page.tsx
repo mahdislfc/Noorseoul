@@ -22,8 +22,7 @@ const REWARD_OPTIONS = [
     },
     { id: "shipping", points: 400, title: "Free Shipping", description: "Free shipping on your next order." },
     { id: "voucher15", points: 200, title: "$10 Voucher", description: "Voucher for your next checkout." },
-    { id: "voucher30", points: 350, title: "$20 Voucher", description: "Voucher for your next checkout." },
-    { id: "voucher50", points: 500, title: "$30 Voucher", description: "Voucher for your next checkout." }
+    { id: "voucher30", points: 350, title: "$20 Voucher", description: "Voucher for your next checkout." }
 ]
 
 const FREE_SHIPPING_CODE_KEY = "reward_free_shipping_code"
