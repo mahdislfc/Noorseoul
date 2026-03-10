@@ -576,21 +576,11 @@ export default function CheckoutPage() {
                                                 <p className="text-xs text-muted-foreground">{t("payment.encryptionNote")}</p>
                                             </div>
                                         </div>
-                                        <div className="space-y-4">
-                                            <div className="flex flex-col gap-2">
-                                                <label className="text-xs font-bold uppercase tracking-widest">{t("fields.cardNumber")}</label>
-                                                <input type="text" placeholder="0000 0000 0000 0000" className="h-12 w-full rounded-lg border border-border bg-transparent px-4 outline-none" />
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="flex flex-col gap-2">
-                                                    <label className="text-xs font-bold uppercase tracking-widest">{t("fields.expiry")}</label>
-                                                    <input type="text" placeholder="MM / YY" className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none" />
-                                                </div>
-                                                <div className="flex flex-col gap-2">
-                                                    <label className="text-xs font-bold uppercase tracking-widest">{t("fields.cvc")}</label>
-                                                    <input type="text" placeholder="123" className="h-12 rounded-lg border border-border bg-transparent px-4 outline-none" />
-                                                </div>
-                                            </div>
+                                        <div className="rounded-lg border border-border bg-secondary/10 p-4">
+                                            <p className="text-sm font-semibold">PayPal only</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Complete your payment using PayPal in the order summary.
+                                            </p>
                                         </div>
                                     </div>
                                 )}
